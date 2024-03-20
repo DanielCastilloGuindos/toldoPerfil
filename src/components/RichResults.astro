@@ -1,0 +1,53 @@
+---
+
+/** https://developers.google.com/search/docs/appearance/structured-data/organization */
+const organizationSchema = {
+	"@context": "https://schema.org",
+	"@type": "Organization",
+	"url": "https://toldoperfil.es",
+	"image": "/img/og.jpg",
+	"sameAs": [ // TODO: Añadir redes sociales
+		"https://www.instagram.com/xxx",
+		"https://x.com/xxx",
+	],
+	"logo": "/img/logo.png",
+	"name": "Toldo Perfil",
+	"alternateName": "ToldoPerfil",
+	"description":
+		"Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!",
+}
+
+export const FAQs = [
+	{
+		question: "¿Question 1?",
+		answer: "Answer 1",
+	},
+	{
+		question: "¿Question 2?",
+		answer: "Answer 2",
+	},
+	{
+		question: "¿Question 3?",
+		answer: "Answer 3",
+	},
+]
+
+/** https://developers.google.com/search/docs/appearance/structured-data/faqpage */
+const FAQSchema = {
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	"mainEntity": [
+		FAQs.map(({ answer, question }) => ({
+			"@type": "Question",
+			"name": question,
+			"acceptedAnswer": {
+				"@type": "Answer",
+				"text": answer,
+			},
+		})),
+	],
+}
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
+<script type="application/ld+json" set:html={JSON.stringify(FAQSchema)} />

@@ -1,0 +1,53 @@
+---
+import HamburgerButton from "@/components/HamburgerButton.astro"
+
+const pages = [
+	{ name: "Productos", href: "#products" },
+	{ name: "Servicios", href: "#services" }, 
+	{ name: "Nosotros ", href: "#about-us" },
+	{ name: "Tu presupuesto", href: "#get-a-quote", buttonStyles: true, disabled: false },
+].map((page) => ({
+	...page,
+	active: Astro.url.pathname === page.href,
+}))
+---
+
+<header id="menu" class="group px-4 sm:py-5 sm:px-8 flex justify-between items-center align-middle font-bold leading-tight text-sx font-sans" transition:persist>
+	<a href="/">Toldo Perfil</a>
+
+	<nav class=" inset-0 sm:relative hidden sm:flex flex-col sm:flex-row justify-center items-center gap-6 text-[14px] bg-white sm:bg-transparent group-[.open]:fixed group-[.open]:flex">
+		{
+			pages.map(({ disabled, name, href, active, buttonStyles }, key) => (
+				<>
+					<a
+						href={href}
+						class:list={[
+							"py-3 px-5 opacity-0 sm:opacity-100 [transition-property: opacity] sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear group-[.open]:opacity-100 delay-1000 sm:delay-0  sm:hover:-translate-y-0.5",
+							{ "button": buttonStyles },
+							{ "pointer-events-none": disabled },
+							{ "current-page": active },
+						]}
+						id={`nav-link-${key}`}
+					>
+						{name}
+					</a>
+				</>
+			))
+		}
+	</nav>
+
+	<HamburgerButton />
+</header>
+
+<script>
+	import { $, $$ } from "@/consts/dom-selector";
+	const menu = $('#menu');
+
+	// document.addEventListener("astro:page-load", () => {
+		// menu.addEventListener('hamburgerButtonClick', toggleMenu);
+
+		// function toggleMenu () {
+		// 	menu?.classList.toggle('open');
+		// }
+	// });
+</script>

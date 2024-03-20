@@ -1,0 +1,45 @@
+---
+import { FAQs } from "@/components/RichResults.astro"
+---
+<style>
+  .faq-details:not([open]) > p {
+    display: none;
+  }
+
+  .faq-summary::after {
+    content: '➕';
+    float: right;
+  }
+
+  .faq-details[open] .faq-summary::after {
+    content: '➖';
+    float: right;
+  }
+</style>
+
+<details-handler />
+
+<>
+  {FAQs.map(({ answer, question }, index) => {
+    const id = `faq-${index}`;
+    return (
+      <details id={id} class="mb-4 border rounded">
+        <summary class="cursor-pointer bg-gray-200 hover:bg-gray-300 py-2 px-4 border-b faq-summary" on:click={() => toggleDetails(index)}>
+          {question}
+        </summary>
+        <p class="p-4">{answer}</p>
+      </details>
+    );
+  })}
+</>
+
+<script>
+  const toggleDetails = (index) => {
+    const allDetails = document.querySelectorAll('details');
+    allDetails.forEach((detail, currentIndex) => {
+      if (currentIndex !== index) {
+        detail.removeAttribute('open');
+      }
+    });
+  };
+</script>

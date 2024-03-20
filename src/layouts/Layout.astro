@@ -1,0 +1,103 @@
+---
+import SEO, { type Preload } from "@/components/SEO.astro"
+import Header from '@/sections/Header.astro'
+import Footer from '@/sections/Footer.astro'
+
+interface Props {
+	title: string
+	description: string
+	preload?: Array<Preload>
+	canonical?: string
+	image?: string
+}
+
+
+const { title, description, preload, canonical, image } = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<SEO
+			canonical={canonical}
+			description={description}
+			image={image}
+			preload={preload}
+			title={title}
+		/>
+
+	</head>
+	<body>
+		<Header />
+		<slot />
+		<Footer />
+	</body>
+</html>
+<style is:global>
+	:root {
+		--color-primary: #ddd;
+		--color-secondary: #333;
+		--color-accent: #b4cd02;
+		--color-accent-rgb: 213, 255, 0;
+
+		--background-color: #d6ffe3;
+		--background-twitch: var(--color-twitch-ice);
+
+		--color-twitch: #9146ff;
+		--color-twitch-ice: #f0f0ff;
+	}
+	html {
+		font-family: system-ui, sans-serif;
+		background: var(--background-color);
+		scrollbar-gutter: stable;
+		-webkit-font-smoothing: antialiased;
+		color: #3d3d3d;
+	}
+
+	body {
+		@apply flex flex-col justify-start h-lvh;
+	}
+
+	main {
+		position: relative;
+	}
+
+	@supports selector(::-webkit-scrollbar) {
+		::-webkit-scrollbar {
+			width: 10px;
+			border-radius: 10px;
+		}
+
+		::-webkit-scrollbar-thumb {
+			border-radius: 10px;
+			background-color: theme("colors.primary");
+			border: 2px solid transparent;
+			background-clip: content-box;
+		}
+
+		::-webkit-scrollbar-thumb:active {
+			background-color: #666;
+		}
+
+		::-webkit-scrollbar-track {
+			background: var(--background-image);
+		}
+
+		::-webkit-scrollbar-corner {
+			background: var(--background-image);
+		}
+	}
+
+	@supports not selector(::-webkit-scrollbar) {
+		* {
+			scrollbar-color: theme("colors.primary") transparent;
+			scrollbar-width: thin;
+		}
+	}
+	.button {
+	@apply text-indigo-900 border-2 border-indigo-900 rounded;
+	box-shadow:
+		0 2px 4px 0 rgba(136,144,195,0.2),
+		0 5px 15px 0 rgba(37,44,97,0.15);
+	}
+</style>

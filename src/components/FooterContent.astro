@@ -1,0 +1,53 @@
+---
+import Typography from "@/components/Typography.astro"
+import SocialButtons from "@/components/SocialButtons.astro"
+---
+
+<div class="w-full flex flex-col justify-center items-center">
+	<div class="w-full px-20 grid sm:grid-cols-3 md:grid-cols-5 gap-y-7">
+		<div class="w-60">
+			<h2 class="mb-6 text-lg font-semibold text-gray-900 uppercase dark:text-white">Enlaces</h2>
+			<ul class="text-gray-500 dark:text-gray-400 leading-3">
+				<li class="mb-4">
+					<a href="#products" class=" hover:underline">Productos</a>
+				</li>
+				<li class="mb-4">
+						<a href="#services" class="hover:underline">Servicios</a>
+				</li>
+				<li class="mb-4">
+						<a href="#about-us" class="hover:underline">Nosotros</a>
+				</li>
+				<li class="mb-4">
+						<a href="#get-a-quote" class="hover:underline">Tu prespuesto</a>
+				</li>
+			</ul>
+		</div>
+		<div class="w-60">
+			<h2 class="mb-6 text-lg font-semibold text-gray-900 uppercase dark:text-white">Legal</h2>
+			<ul class="text-gray-500 dark:text-gray-400 leading-3">
+				<li class="mb-4">
+					<a href="/privacy-policy" class=" hover:underline">Política de privacidad</a>
+				</li>
+				<li class="mb-4">
+					<a href="/legal-advice" class="hover:underline">Aviso Legal</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+
+	<hr
+		class="my-12 h-[2px] w-full border-t-0 bg-transparent bg-gradient-to-r from-transparent via-white to-transparent bg-center block"
+		aria-hidden="true"
+	/>
+
+	<div class="w-full px-20 flex justify-between items-center text-gray-500 sm:text-center dark:text-gray-400">
+		<Typography as="span" variant="body" color="neutral" class:list={"text-center text-sm"}>
+			&copy; {new Date().getFullYear()} Toldo Perfil <span
+				aria-hidden="true"
+				class="hidden md:inline">|</span
+			><br aria-hidden="true" class="block md:hidden" /> Todos los derechos reservados.
+		</Typography>
+
+		<SocialButtons />
+	</div>
+</div>
