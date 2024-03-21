@@ -13,9 +13,9 @@ const pages = [
 ---
 
 <header id="menu" class="group px-4 sm:py-5 sm:px-8 flex justify-between items-center align-middle font-bold leading-tight text-sx font-sans" transition:persist>
-	<a href="/">Toldo Perfil</a>
+	<a href="/" class="z-10">Toldo Perfil</a>
 
-	<nav class=" inset-0 sm:relative hidden sm:flex flex-col sm:flex-row justify-center items-center gap-6 text-[14px] bg-white sm:bg-transparent group-[.open]:fixed group-[.open]:flex">
+	<nav class=" inset-0 sm:relative hidden sm:flex flex-col sm:flex-row justify-center items-center gap-6 text-[14px] bg-white sm:bg-transparent group-[.open]:fixed group-[.open]:flex z-10">
 		{
 			pages.map(({ disabled, name, href, active, buttonStyles }, key) => (
 				<>
