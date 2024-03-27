@@ -25,7 +25,7 @@ const pages = [
 	<a href="/" class="text-lg sm:text-base z-10">Toldo Perfil</a>
 
 	<nav
-		class="inset-0 sm:relative hidden sm:flex flex-col sm:flex-row justify-center items-center gap-6 text-[14px] bg-white sm:bg-transparent group-[.open]:fixed group-[.open]:flex z-10"
+		class="inset-0 sm:relative hidden sm:flex flex-col sm:flex-row justify-center items-center gap-6 text-[14px] bg-white sm:bg-transparent group-[.open]:fixed group-[.open]:sm:relative  group-[.open]:flex z-10"
 	>
 		{
 			pages.map(({ disabled, name, href, active, buttonStyles }, key) => (
@@ -51,36 +51,32 @@ const pages = [
 	<HamburgerButton />
 </header>
 
+<style is:global>
+html {
+	scroll-behavior: smooth;
+}
+</style>
+
 <script>
 	import { $, $$ } from "@/consts/dom-selector";
 	const menu = $('#menu');
-	// document.addEventListener("astro:page-load", () => {
-	// menu.addEventListener('hamburgerButtonClick', toggleMenu);
-
-	// function toggleMenu () {
-	// 	menu?.classList.toggle('open');
-	// }
-	// });
 
 	let windowHeight = window.innerHeight;
-	const handleResize = () => {
-		windowHeight = window.innerHeight;
-	};
+	const handleResize = () => { windowHeight = window.innerHeight };
 	document.addEventListener("resize", handleResize);
 
 	$$('a[href^="#"]').forEach((anchor) => {
 		anchor.addEventListener("click", function (e) {
 			e.preventDefault();
 
-			menu?.classList.toggle('open');
+			menu?.classList.remove('open');
 
-			const targetId = this.getAttribute("href").substring(1);
-			const targetElement = document.getElementById(targetId);
+			const targetId = this.getAttribute("href");
 
-			if (targetElement) {
-				const targetOffset = targetElement.offsetTop;
-				const targetHeight = targetElement.offsetHeight;
-				const scrollToPosition = targetOffset + targetHeight;
+			if ( $(targetId) ) {
+				const targetOffset = $(targetId).offsetTop;
+				const targetHeight = $(targetId).offsetHeight;
+				const scrollToPosition = targetOffset + (windowHeight/2) - (targetHeight /2);
 
 				window.scrollTo({
 					top: scrollToPosition,
