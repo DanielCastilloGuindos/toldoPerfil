@@ -1,7 +1,7 @@
 {
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "baseUrl": "/home/dannycastle/Documents/astro/toldoPerfil",
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./src/*"
