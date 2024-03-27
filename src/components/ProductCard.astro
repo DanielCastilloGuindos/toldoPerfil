@@ -2,7 +2,7 @@
 const { title, description, image = "/img/example.jpg" } = Astro.props
 ---
 
-<figure class="relative overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear">
+<figure class="relative overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear" class:list={ Astro.props.class }>
 	<a class="group" href="#"
 		><img
 			class="w-full object-cover"

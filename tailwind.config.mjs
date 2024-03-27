@@ -86,6 +86,16 @@ export default {
               left: '25%',
               top: '50%',
           }
+        },
+        scrollEffect : {
+          'from': {
+            opacity: '0',
+            scale: '25%'
+          },
+          'to': {
+            opacity: '1',
+            scale: '100%'
+          }
         }
       },
       animation: {

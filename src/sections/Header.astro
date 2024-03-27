@@ -1,21 +1,32 @@
 ---
-import HamburgerButton from "@/components/HamburgerButton.astro"
+import HamburgerButton from "@/components/HamburgerButton.astro";
 
 const pages = [
 	{ name: "Productos", href: "#products" },
-	{ name: "Servicios", href: "#services" }, 
+	{ name: "Servicios", href: "#services" },
 	{ name: "Nosotros ", href: "#about-us" },
-	{ name: "Tu presupuesto", href: "#get-a-quote", buttonStyles: true, disabled: false },
+	{
+		name: "Tu presupuesto",
+		href: "#contact-us",
+		buttonStyles: true,
+		disabled: false,
+	},
 ].map((page) => ({
 	...page,
 	active: Astro.url.pathname === page.href,
-}))
+}));
 ---
 
-<header id="menu" class="group px-4 sm:py-5 sm:px-8 flex justify-between items-center align-middle font-bold leading-tight text-sx font-sans" transition:persist>
+<header
+	id="menu"
+	class="group px-4 sm:py-5 sm:px-8 flex justify-between items-center align-middle font-bold leading-tight text-sx font-sans sticky top-0 left-0 z-10 bg-white border-0 border-b"
+	transition:persist
+>
 	<a href="/" class="z-10">Toldo Perfil</a>
 
-	<nav class=" inset-0 sm:relative hidden sm:flex flex-col sm:flex-row justify-center items-center gap-6 text-[14px] bg-white sm:bg-transparent group-[.open]:fixed group-[.open]:flex z-10">
+	<nav
+		class="inset-0 sm:relative hidden sm:flex flex-col sm:flex-row justify-center items-center gap-6 text-[14px] bg-white sm:bg-transparent group-[.open]:fixed group-[.open]:flex z-10"
+	>
 		{
 			pages.map(({ disabled, name, href, active, buttonStyles }, key) => (
 				<>
@@ -23,7 +34,7 @@ const pages = [
 						href={href}
 						class:list={[
 							"py-3 px-5 opacity-0 sm:opacity-100 [transition-property: opacity] sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear group-[.open]:opacity-100 delay-1000 sm:delay-0  sm:hover:-translate-y-0.5",
-							{ "button": buttonStyles },
+							{ button: buttonStyles },
 							{ "pointer-events-none": disabled },
 							{ "current-page": active },
 						]}
@@ -41,13 +52,38 @@ const pages = [
 
 <script>
 	import { $, $$ } from "@/consts/dom-selector";
-	const menu = $('#menu');
-
+	// const menu = $('#menu');
 	// document.addEventListener("astro:page-load", () => {
-		// menu.addEventListener('hamburgerButtonClick', toggleMenu);
+	// menu.addEventListener('hamburgerButtonClick', toggleMenu);
 
-		// function toggleMenu () {
-		// 	menu?.classList.toggle('open');
-		// }
+	// function toggleMenu () {
+	// 	menu?.classList.toggle('open');
+	// }
 	// });
+
+	let windowHeight = window.innerHeight;
+	const handleResize = () => {
+		windowHeight = window.innerHeight;
+	};
+	document.addEventListener("resize", handleResize);
+
+	$$('a[href^="#"]').forEach((anchor) => {
+		anchor.addEventListener("click", function (e) {
+			e.preventDefault();
+
+			const targetId = this.getAttribute("href").substring(1);
+			const targetElement = document.getElementById(targetId);
+
+			if (targetElement) {
+				const targetOffset = targetElement.offsetTop;
+				const targetHeight = targetElement.offsetHeight;
+				const scrollToPosition = targetOffset + targetHeight;
+
+				window.scrollTo({
+					top: scrollToPosition,
+					behavior: "smooth",
+				});
+			}
+		});
+	});
 </script>
