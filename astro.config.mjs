@@ -10,5 +10,6 @@ export default defineConfig({
     react({
       experimentalReactChildren: true,
     })
-  ]
+  ],
+  site: 'https://toldoperfil.es'
 });
