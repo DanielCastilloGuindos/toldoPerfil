@@ -60,12 +60,14 @@ html {
 <script>
 	import { $, $$ } from "@/consts/dom-selector";
 	const menu = $('#menu');
+	const hamburgerButton = $('#HamburgerButton');
 	
 	document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
 		anchor.addEventListener("click", function (e) {
 			e.preventDefault();
 			
 			menu?.classList.remove('open');
+			hamburgerButton?.classList.remove('open');
 			
 			const targetId = this.getAttribute("href");
 			
@@ -78,7 +80,7 @@ html {
 				
 				if (isMobile) {
 					const windowHeight = window.innerHeight;
-					scrollToPosition = targetOffset - (windowHeight / 2) + (targetHeight / 2);
+					scrollToPosition = targetOffset - (windowHeight / 3) + (targetHeight / 2);
 				} else {
 					scrollToPosition = targetOffset + targetHeight;
 				}
