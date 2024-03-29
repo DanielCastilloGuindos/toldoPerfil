@@ -1,2 +1,8 @@
 User-agent: *
-Disallow: 
+Allow: /
+
+# Host
+Host: https://toldoperfil.es
+
+# Sitemaps
+Sitemap: https://toldoperfil.es/sitemap-index.xml

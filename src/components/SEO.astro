@@ -43,11 +43,10 @@ const canonicalURL = canonical
 
 <link rel="canonical" href={canonicalURL} />
 <meta name="viewport" content="width=device-width" />
-<meta name="theme-color" content="#d5ff00" />
+<meta name="theme-color" content="#f5f4ff" />
 
 <meta name="keywords" content="toldos, toldos a medida, toldos brazo extensible, toldos punto recto, toldo perfil" />
 
-<!-- TODO: Completar la parte de twitter -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:site" content="@toldoPerfil" />
 <meta name="twitter:creator" content="@toldoPerfil" />
@@ -66,21 +65,11 @@ const canonicalURL = canonical
 <meta name="robots" content="index, follow" />
 <meta name="googlebot" content="index, follow" />
 
-<link rel="icon" href="/img/icons/favicon.ico" sizes="32x32" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<link rel="apple-touch-icon" href="/img/icons/apple-touch-icon.png" />
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="manifest" href="/manifest.webmanifest" />
 
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<meta name="msapplication-config" content="/browserconfig.xml" />
-
-{
-	!import.meta.env.DEV && (
-		<>
-			<script is:inline src="/registerSW.js" />
-			<link rel="manifest" href="/manifest.webmanifest" />
-		</>
-	)
-}
-
+<!-- <script is:inline src="/registerSW.js"></script> -->
+<link rel="manifest" href="/manifest.webmanifest" />
 <RichResults />
