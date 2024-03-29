@@ -7,22 +7,22 @@ export const Carousel = ({ intervalTime= 8000 }) => {
 	const slides = [{
 			title: (<>Bienvenido a <span className="text-indigo-600">ToldoPerfil</span></>),
 			description: 'Su solución para toldos de alta calidad',
-			background: '/img/carousel/protrait01.webp',
+			image: '/img/carousel/protrait01.webp',
 		},
 		{
 			title: 'Title 2',
 			description: 'Description 2',
-			background: '/img/carousel/protrait02.webp',
+			image: '/img/carousel/protrait02.webp',
 		},
 		{
 			title: 'Title 3',
 			description: 'Description 3',
-			background: '/img/carousel/protrait03.webp',
+			image: '/img/carousel/protrait03.webp',
 		},
 		{
 			title: 'Title 4',
 			description: 'Description 4',
-			background: '/img/carousel/protrait04.webp',
+			image: '/img/carousel/protrait04.webp',
 		},
 	];
 
@@ -50,15 +50,15 @@ export const Carousel = ({ intervalTime= 8000 }) => {
 		<>
 
       {/* Carousel items */}
-      <div className="min-h-fit">
-        {slides.map((slide, index) => {
+      <div className="h-fit max-h-screen">
+        {slides.map(({ title, description, image }, index) => {
 					let isActive = index === activeSlide;
 					return (
 						<CarouselSlide
-							key={ slide.background + slide.title}
-							title={ slide.title }
-							description={ slide.description }
-							background={ slide.background }
+							key={ image + title}
+							title={ title }
+							description={ description }
+							image={ image }
 							isActive={ isActive } />)
 				})}
       </div>

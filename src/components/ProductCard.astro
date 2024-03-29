@@ -2,14 +2,16 @@
 const { id, title, description, image = "/img/example.jpg" } = Astro.props
 ---
 
-<figure class="relative overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear" class:list={ Astro.props.class }>
-	<a class="group" href=`/products/${id}` aria-label=`Enlace para ver los toldos montados para ${title}`>
+<a class="group" href=`/products/${id}` aria-label=`Enlace para ver los toldos montados para ${title}`>
+	<figure class="relative overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear" class:list={ Astro.props.class }>
 		<img
 			class="w-full object-cover aspect-[1.82/1]"
 			alt=`Imagen de  ${title}`
 			src={ image }
 			style="view-transition-name: image_{ title };"
-		/><figcaption
+			loading="lazy"
+		/>
+		<figcaption
 			class="absolute top-0 left-0 py-10 px-8 w-full h-full flex flex-col justify-center sm:justify-start items-center sm:items-start bg-indigo-950 bg-opacity-50 sm:bg-opacity-0 sm:group-hover:bg-opacity-50 text-white text-center sm:text-left transition-all duration-500 group-hover:duration-200 delay-500 group-hover:delay-0 leading-[4rem]"
 		>
 			<h5
@@ -17,10 +19,12 @@ const { id, title, description, image = "/img/example.jpg" } = Astro.props
 				style="view-transition-name: title_{ title };"
 			>
 				{ title }
-			</h5><span
+			</h5>
+			<span
 				class="text-[0.95rem] font-[Helvetica] tracking-wider opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500"
 				>
 				{description}
 			</span>
-		</figcaption></a>
-</figure>
+		</figcaption>
+	</figure>
+</a>

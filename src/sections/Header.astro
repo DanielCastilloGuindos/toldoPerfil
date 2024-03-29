@@ -2,9 +2,9 @@
 import HamburgerButton from "@/components/HamburgerButton.astro";
 
 const pages = [
-	{ name: "Productos", href: "#products" },
-	{ name: "Servicios", href: "#services" },
 	{ name: "Nosotros ", href: "#about-us" },
+	{ name: "Productos", href: "#products" },
+	{ name: "FAQ", href: "#faq" },
 	{
 		name: "Tu presupuesto",
 		href: "#contact-us",
@@ -60,23 +60,28 @@ html {
 <script>
 	import { $, $$ } from "@/consts/dom-selector";
 	const menu = $('#menu');
-
-	let windowHeight = window.innerHeight;
-	const handleResize = () => { windowHeight = window.innerHeight };
-	document.addEventListener("resize", handleResize);
-
-	$$('a[href^="#"]').forEach((anchor) => {
+	
+	document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
 		anchor.addEventListener("click", function (e) {
 			e.preventDefault();
-
+			
 			menu?.classList.remove('open');
-
+			
 			const targetId = this.getAttribute("href");
-
+			
 			if ( $(targetId) ) {
 				const targetOffset = $(targetId).offsetTop;
 				const targetHeight = $(targetId).offsetHeight;
-				const scrollToPosition = targetOffset + (windowHeight/2) - (targetHeight /2);
+				const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+				
+				let scrollToPosition;
+				
+				if (isMobile) {
+					const windowHeight = window.innerHeight;
+					scrollToPosition = targetOffset - (windowHeight / 2) + (targetHeight / 2);
+				} else {
+					scrollToPosition = targetOffset + targetHeight;
+				}
 
 				window.scrollTo({
 					top: scrollToPosition,
