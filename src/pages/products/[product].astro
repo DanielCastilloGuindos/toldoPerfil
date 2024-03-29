@@ -1,0 +1,19 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { getStaticProductsPaths } from "@/consts/clients.ts";
+
+export function getStaticPaths() {
+	return getStaticProductsPaths();
+}
+
+const { product } = Astro.params;
+---
+
+<Layout
+description="Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!"
+title="Toldo Perfil - Especialistas en toldos personalizados de alta calidad"
+>
+	<main class="font-sans">
+		{ product }
+	</main>
+</Layout>

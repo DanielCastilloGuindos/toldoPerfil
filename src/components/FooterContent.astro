@@ -1,35 +1,68 @@
 ---
-import Typography from "@/components/Typography.astro"
-import SocialButtons from "@/components/SocialButtons.astro"
+import Typography from "@/components/Typography.astro";
+import SocialButtons from "@/components/SocialButtons.astro";
 ---
 
 <div class="w-full flex flex-col justify-center items-center">
 	<div class="w-full px-20 grid sm:grid-cols-3 md:grid-cols-5 gap-y-7">
 		<div class="w-60">
-			<h2 class="mb-6 text-lg font-semibold text-gray-900 uppercase dark:text-white">Enlaces</h2>
+			<h2
+				class="mb-6 text-lg font-semibold text-gray-900 uppercase dark:text-white"
+			>
+				Enlaces
+			</h2>
 			<ul class="text-gray-500 dark:text-gray-400 leading-3">
 				<li class="mb-4">
-					<a href="#products" class=" hover:underline">Productos</a>
+					<a
+						href="#products"
+						class="hover:underline"
+						aria-label='Enlace a la sección "Productos"'>Productos</a
+					>
 				</li>
 				<li class="mb-4">
-						<a href="#services" class="hover:underline">Servicios</a>
+					<a
+						href="#services"
+						class="hover:underline"
+						aria-label='Enlace a la sección "Servicios"'>Servicios</a
+					>
 				</li>
 				<li class="mb-4">
-						<a href="#about-us" class="hover:underline">Nosotros</a>
+					<a
+						href="#about-us"
+						class="hover:underline"
+						aria-label='Enlace a la sección "Nosotros"'>Nosotros</a
+					>
 				</li>
 				<li class="mb-4">
-						<a href="#get-a-quote" class="hover:underline">Tu prespuesto</a>
+					<a
+						href="#get-a-quote"
+						class="hover:underline"
+						aria-label='Enlace a la sección "Tu prespuesto"'>Tu prespuesto</a
+					>
 				</li>
 			</ul>
 		</div>
 		<div class="w-60">
-			<h2 class="mb-6 text-lg font-semibold text-gray-900 uppercase dark:text-white">Legal</h2>
+			<h2
+				class="mb-6 text-lg font-semibold text-gray-900 uppercase dark:text-white"
+			>
+				Legal
+			</h2>
 			<ul class="text-gray-500 dark:text-gray-400 leading-3">
 				<li class="mb-4">
-					<a href="/privacy-policy" class=" hover:underline">Política de privacidad</a>
+					<a
+						href="/privacy-policy"
+						class="hover:underline"
+						aria-label='Enlace a la página "Política de privacidad"'
+						>Política de privacidad</a
+					>
 				</li>
 				<li class="mb-4">
-					<a href="/legal-advice" class="hover:underline">Aviso Legal</a>
+					<a
+						href="/legal-advice"
+						class="hover:underline"
+						aria-label='Enlace a la sección "Aviso Legal"'>Aviso Legal</a
+					>
 				</li>
 			</ul>
 		</div>
@@ -40,8 +73,15 @@ import SocialButtons from "@/components/SocialButtons.astro"
 		aria-hidden="true"
 	/>
 
-	<div class="w-full px-20 flex justify-between flex-col sm:flex-row gap-y-4 items-center text-gray-500 sm:text-center dark:text-gray-400">
-		<Typography as="span" variant="body" color="neutral" class:list={"text-center text-sm"}>
+	<div
+		class="w-full px-20 flex justify-between flex-col sm:flex-row gap-y-4 items-center text-gray-500 sm:text-center dark:text-gray-400"
+	>
+		<Typography
+			as="span"
+			variant="body"
+			color="neutral"
+			class:list={"text-center text-sm"}
+		>
 			&copy; {new Date().getFullYear()} Toldo Perfil <span
 				aria-hidden="true"
 				class="hidden md:inline">|</span

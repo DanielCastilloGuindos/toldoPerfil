@@ -1,5 +1,6 @@
 ---
 import ProductCard from "@/components/ProductCard.astro";
+import { clients } from "@/consts/clients.ts"
 ---
 
 <section
@@ -10,7 +11,7 @@ import ProductCard from "@/components/ProductCard.astro";
 		<header
 			class="w-full py-4 flex flex-col gap-y-6 justify-center items-center"
 		>
-			<h3 class="text-3xl font-bold">Amplia Gama de Productos</h3>
+			<h3 class="text-3xl font-bold text-center">Amplia Gama de Productos</h3>
 			<h4 class="text-sm text-gray-100 max-w-xs text-center">
 				Sombra y estilo para tu espacio
 			</h4>
@@ -19,36 +20,17 @@ import ProductCard from "@/components/ProductCard.astro";
 		<article
 			class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-6 px-2 sm:px-0 w-full sm:max-w-6xl"
 		>
-			<ProductCard
-				title="Example"
-				description="description"
+		{ clients.map(({id, title, description, images, isVisible}) => {
+			if (!isVisible) return;
+			let protrairPath = `/img/works/${id}/${images[0]}`
+			return (<ProductCard
+				id={id}
+				title={ title }
+				image={ protrairPath }
+				key={ id }
 				class:list={"scroll-effect"}
-			/>
-			<ProductCard
-				title="Example"
-				description="description"
-				class:list={"scroll-effect"}
-			/>
-			<ProductCard
-				title="Example"
-				description="description"
-				class:list={"scroll-effect"}
-			/>
-			<ProductCard
-				title="Example"
-				description="description"
-				class:list={"scroll-effect"}
-			/>
-			<ProductCard
-				title="Example"
-				description="description"
-				class:list={"scroll-effect"}
-			/>
-			<ProductCard
-				title="Example"
-				description="description"
-				class:list={"scroll-effect"}
-			/>
+			/>)
+		}) }
 		</article>
 	</div>
 </section>

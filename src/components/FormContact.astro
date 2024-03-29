@@ -1,9 +1,7 @@
 <form action="" method="POST" class="w-full">
 	<fieldset class="flex flex-col gap-4 text-sm w-full">
 		<div class="relative">
-			<label
-				for="fullname"
-				class="text-indigo-950 text-sm cursor-pointer">
+			<label for="fullname" class="text-indigo-950 text-sm cursor-pointer">
 				¡Hola! ¿Cómo te llamas?
 			</label>
 			<input
@@ -13,17 +11,14 @@
 				placeholder=""
 				class="relative w-full py-1 px-4 outline-none text-indigo-900 placeholder-indigo-400 border-0 border-b border-indigo-900 cursor-pointer bg-transparent"
 			/>
-				<!-- <label
+			<!-- <label
 				for="fullname"
 				class="absolute top-0 left-0 transition-all duration-300  scale-75 -top-1/2 peer-focus: peer-focus:scale-75 peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:scale-100 -z-0 cursor-pointer"
 				>¡Hola! ¿Cómo te llamas?</label
 			> -->
-			
 		</div>
 		<div class="relative">
-			<label
-				for="email"
-				class="text-indigo-950 text-sm cursor-pointer">
+			<label for="email" class="text-indigo-950 text-sm cursor-pointer">
 				¿Cuál es tu correo?
 			</label>
 			<input
@@ -35,9 +30,7 @@
 			/>
 		</div>
 		<div class="relative">
-			<label
-				for="phone"
-				class="text-indigo-950 text-sm cursor-pointer">
+			<label for="phone" class="text-indigo-950 text-sm cursor-pointer">
 				¿A qué número podemos llamarte?
 			</label>
 			<input
@@ -49,17 +42,21 @@
 			/>
 		</div>
 		<div class="relative">
-			<label for="category" class="text-indigo-950 text-sm cursor-pointer">Lo que necesitas de nosotros es...</label>
-			<select name="category" id="category" class="relative w-full py-1 px-4 outline-none text-indigo-900 placeholder-indigo-400 border-0 border-b border-indigo-900 cursor-pointer bg-transparent" >
+			<label for="category" class="text-indigo-950 text-sm cursor-pointer"
+				>Lo que necesitas de nosotros es...</label
+			>
+			<select
+				name="category"
+				id="category"
+				class="relative w-full py-1 px-4 outline-none text-indigo-900 placeholder-indigo-400 border-0 border-b border-indigo-900 cursor-pointer bg-transparent"
+			>
 				<option value="">Selecciona una opción</option>
 				<option value="1">Pedir presupuesto</option>
 				<option value="2">Información</option>
 			</select>
 		</div>
 		<div class="relative">
-			<label
-				for="description"
-				class="text-indigo-950 text-sm cursor-pointer">
+			<label for="description" class="text-indigo-950 text-sm cursor-pointer">
 				¡Escribenos! Estaremos encantados de leerte
 			</label>
 			<textarea
@@ -70,7 +67,12 @@
 			></textarea>
 		</div>
 		<div class="flex justify-center sm:justify-end">
-			<button type="submit" class="py-3 px-5 opacity-100[transition-property: translate] duration-200 ease-linear hover:-translate-y-0.5 button">Contactar</button>
+			<button
+				aria-label="Boton de formulario de contacto"
+				type="submit"
+				class="py-3 px-5 opacity-100[transition-property: translate] duration-200 ease-linear hover:-translate-y-0.5 button"
+				>Contactar</button
+			>
 		</div>
 	</fieldset>
 </form>

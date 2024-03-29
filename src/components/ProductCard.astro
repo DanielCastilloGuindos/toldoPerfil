@@ -1,10 +1,10 @@
 ---
-const { title, description, image = "/img/example.jpg" } = Astro.props
+const { id, title, description, image = "/img/example.jpg" } = Astro.props
 ---
 
 <figure class="relative overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear" class:list={ Astro.props.class }>
-	<a class="group" href="#"
-		><img
+	<a class="group" href=`/products/${id}` aria-label=`Enlace para ver los toldos montados para ${title}`>
+		<img
 			class="w-full object-cover aspect-[1.82/1]"
 			alt=`Imagen de  ${title}`
 			src={ image }

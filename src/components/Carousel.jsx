@@ -7,23 +7,23 @@ export const Carousel = ({ intervalTime= 8000 }) => {
 	const slides = [{
 			title: (<>Bienvenido a <span className="text-indigo-600">ToldoPerfil</span></>),
 			description: 'Su solución para toldos de alta calidad',
-			background: '/img/example.jpg',
+			background: '/img/carousel/protrait01.webp',
 		},
 		{
 			title: 'Title 2',
 			description: 'Description 2',
-			background: '/img/example.jpg',
+			background: '/img/carousel/protrait02.webp',
 		},
 		{
 			title: 'Title 3',
 			description: 'Description 3',
-			background: '/img/example.jpg',
+			background: '/img/carousel/protrait03.webp',
 		},
 		{
 			title: 'Title 4',
 			description: 'Description 4',
-			background: '/img/example.jpg',
-		}
+			background: '/img/carousel/protrait04.webp',
+		},
 	];
 
   const handlePrevSlide = () => {
@@ -66,10 +66,12 @@ export const Carousel = ({ intervalTime= 8000 }) => {
 			<div className="absolute top-0 left-0 w-full h-full grid grid-flow-col">
 				<button
 					id="arrowLeft"
+					aria-label="Flecha izquierda"
 					onClick={ handlePrevSlide }
 					className="cursor-[url(/img/carousel/arrow-left.png),_pointer] text-transparent">arrowLeft</button>
 				<button
 					id="arrowRigth"
+					aria-label="Flecha derecha"
 					onClick={ handleNextSlide }
 					className="cursor-[url(/img/carousel/arrow-right.png),_pointer] text-transparent">arrowRigth</button>
 			</div>
