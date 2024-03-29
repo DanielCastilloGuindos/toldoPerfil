@@ -4,7 +4,7 @@ export const CarouselSlide = ({ title, description, image, isActive = false }) =
 	return (
 		<figure className={`relative w-full h-full float-left -mr-[100%] !transform-none ${myOpacity} transition-opacity duration-[600ms] ease-in-out motion-reduce:transition-none`}>
 			<img
-				className="w-full h-full object-cover aspect-[1.8/1]"
+				className="w-full h-full max-h-screen object-cover aspect-[4:3]"
 				src={ image }
 				alt={`Imagen de ${title}`}
 				loading="lazy"

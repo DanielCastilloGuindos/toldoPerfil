@@ -50,7 +50,7 @@ export const Carousel = ({ intervalTime= 8000 }) => {
 		<>
 
       {/* Carousel items */}
-      <div className="h-fit max-h-screen">
+      <div className="h-fit">
         {slides.map(({ title, description, image }, index) => {
 					let isActive = index === activeSlide;
 					return (
