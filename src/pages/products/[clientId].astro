@@ -1,0 +1,52 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { clients, getStaticProductsPaths } from "@/consts/clients.ts";
+import ProductCard from '@/components/ProductCard.astro'
+
+export function getStaticPaths() {
+	return getStaticProductsPaths();
+}
+
+const { clientId } = Astro.params;
+
+const selectedClient = clients.find(client => client.id === clientId );
+const { id, title, description, images } = selectedClient;
+
+const path = `/img/works/${id}/`
+---
+
+<Layout
+description="Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!"
+title=`Toldo Perfil - ${title}` 
+>
+	<main class="font-sans">
+		<header class="flex justify-center">
+			<h1
+				class="text-[1.65rem] leading-9 tracking-wider font-bold uppercase"
+				transition:name={ "title_" + id }>
+				{ title }
+			</h1>
+		</header>
+		<section class="w-full px-auto">
+			<div class="grid grid-cols-2 gap-6 justify-center items-start w-full   md:max-w-5xl mx-auto">
+				<aside class="py-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-6 px-2 sm:px-0 w-full sm:max-w-6xl">
+					{ images.map((image) => {
+						return (
+							<img
+								class="relative object-cover aspect-[1.82/1] overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear scroll-effect"
+								alt=`Imagen de ${title}`
+								src={ path + image }
+								transition:name={"image_" + id}
+								loading="lazy"
+							/>
+						)
+					}) }
+				</aside>
+	
+				<article>
+					<p class="py-4">Lorem ipsum dolor sit amet consectetur adipisicing elit. Unde nam vero illum consequuntur, quidem officiis in nobis hic sunt officia dicta eaque nulla impedit aspernatur repellat nisi. Eos at mollitia magni magnam, exercitationem velit! Vero cupiditate velit non recusandae soluta voluptatibus molestiae, iure assumenda sunt? Eligendi obcaecati iste nesciunt laborum excepturi voluptatibus dolorem! Odit, esse error. Asperiores nisi dolor ducimus cupiditate iure officia eligendi, harum repudiandae rerum culpa autem dolores odit dolorem veritatis deserunt, delectus obcaecati non consectetur dolore aliquid accusantium! Laudantium autem dolorem nam iste nisi deleniti maxime unde aperiam ipsa asperiores, omnis at iure aspernatur provident voluptatem. Atque, sequi ad voluptate reprehenderit quae quam reiciendis velit officiis autem quia, voluptatum sunt? Ipsa soluta quaerat asperiores optio, corrupti dolores tempore neque iusto ratione voluptatum culpa magni sed tempora corporis adipisci molestiae minus, omnis iste porro. Soluta qui quae alias illum distinctio, beatae officia in corrupti dicta accusamus corporis quos debitis hic magnam earum dolorum ducimus dolore itaque ratione, inventore reprehenderit tempore doloremque repellendus temporibus? Quasi iure earum consectetur eaque mollitia. Natus praesentium in voluptatum perferendis porro. Aspernatur asperiores non recusandae qui iusto modi a. Eos, quidem quas facere vel saepe a praesentium. Corrupti, quisquam? Sint quam ipsam aliquid sapiente.</p>
+				</article>
+			</div>
+		</section>
+	</main>
+</Layout>

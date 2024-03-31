@@ -3,7 +3,7 @@ export const getStaticProductsPaths = () => {
 	
 	clients.map((client) => {
 		staticProductsPaths.push(
-			{params: {product: client.id}}
+			{params: {clientId: client.id}}
 		)
 	});
 

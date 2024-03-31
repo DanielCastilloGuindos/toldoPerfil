@@ -1,4 +1,6 @@
 ---
+import { ViewTransitions } from 'astro:transitions';
+
 import SEO, { type Preload } from "@/components/SEO.astro"
 import Header from '@/sections/Header.astro'
 import Footer from '@/sections/Footer.astro'
@@ -16,7 +18,7 @@ const { title, description, preload, image, canonical = 'https://toldoperfil.es'
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="es" transition:animate="none">
 	<head>
 		<SEO
 			canonical={canonical}
@@ -26,9 +28,10 @@ const { title, description, preload, image, canonical = 'https://toldoperfil.es'
 			title={title}
 		/>
 
+    <ViewTransitions />
 	</head>
 	<body>
-		<Header />
+		<Header isVisibleNav={ Astro.props.isVisibleNav || false } />
 		<slot />
 		<Footer />
 	</body>

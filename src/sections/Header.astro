@@ -15,6 +15,9 @@ const pages = [
 	...page,
 	active: Astro.url.pathname === page.href,
 }));
+
+
+const { isVisibleNav } = Astro.props
 ---
 
 <header
@@ -22,10 +25,15 @@ const pages = [
 	class="group py-2 px-4 sm:py-5 sm:px-8 flex justify-between items-center align-middle font-bold leading-tight text-sx font-sans sticky top-0 left-0 z-10 bg-white border-0 border-b"
 	transition:persist
 >
-	<a href="/" class="text-lg sm:text-base z-10" aria-label="Enlace a la página principal de Toldo Perfil">Toldo Perfil</a>
+	<a href="/" class="py-3 text-lg sm:text-base z-10" aria-label="Enlace a la página principal de Toldo Perfil">Toldo Perfil</a>
 
 	<nav
-		class="inset-0 sm:relative hidden sm:flex flex-col sm:flex-row justify-center items-center gap-6 text-[14px] bg-white sm:bg-transparent group-[.open]:fixed group-[.open]:sm:relative  group-[.open]:flex z-10"
+		class:list={[
+		"inset-0 sm:relative hidden sm:flex flex-col sm:flex-row justify-center items-center gap-6 text-[14px] bg-white sm:bg-transparent group-[.open]:fixed group-[.open]:sm:relative group-[.open]:flex z-10",
+		{
+			'hidden sm:hidden group-[.open]:hidden': !isVisibleNav
+		},
+	]}
 	>
 		{
 			pages.map(({ disabled, name, href, active, buttonStyles }, key) => (
@@ -48,7 +56,11 @@ const pages = [
 		}
 	</nav>
 
-	<HamburgerButton />
+	<HamburgerButton class:list={[
+		{
+			'hidden sm:hidden group-[.open]:hidden': !isVisibleNav
+		},
+	]}/>
 </header>
 
 <style is:global>

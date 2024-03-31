@@ -3,12 +3,12 @@ const { id, title, description, image = "/img/example.jpg" } = Astro.props
 ---
 
 <a class="group" href=`/products/${id}` aria-label=`Enlace para ver los toldos montados para ${title}`>
-	<figure class="relative overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear" class:list={ Astro.props.class }>
+	<figure class="relative overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear scroll-effect">
 		<img
 			class="w-full object-cover aspect-[1.82/1]"
-			alt=`Imagen de  ${title}`
+			alt=`Imagen de ${title}`
 			src={ image }
-			style="view-transition-name: image_{ title };"
+			transition:name={"image_" + id}
 			loading="lazy"
 		/>
 		<figcaption
@@ -16,7 +16,8 @@ const { id, title, description, image = "/img/example.jpg" } = Astro.props
 		>
 			<h5
 				class="text-[1.65rem] leading-9 tracking-wider font-bold uppercase opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500"
-				style="view-transition-name: title_{ title };"
+				transition:name={ "title_" + id }
+				transition:animate="slide"
 			>
 				{ title }
 			</h5>
