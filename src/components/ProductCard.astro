@@ -8,7 +8,7 @@ const { id, title, description, image = "/img/example.jpg" } = Astro.props
 			class="w-full object-cover aspect-[1.82/1]"
 			alt=`Imagen de ${title}`
 			src={ image }
-			transition:name={"image_" + id}
+			transition:name={"image_" + image}
 			loading="lazy"
 		/>
 		<figcaption

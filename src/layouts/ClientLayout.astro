@@ -1,0 +1,120 @@
+---
+import { ViewTransitions } from 'astro:transitions';
+
+import SEO, { type Preload } from "@/components/SEO.astro"
+import Header from '@/sections/Header.astro'
+import Footer from '@/sections/Footer.astro'
+
+interface Props {
+	title: string
+	description: string
+	preload?: Array<Preload>
+	canonical?: string
+	image?: string
+}
+
+
+const { title, description, preload, image, canonical = 'https://toldoperfil.es' } = Astro.props
+---
+
+<!doctype html>
+<html lang="es" transition:animate="none">
+	<head>
+		<SEO
+			canonical={canonical}
+			description={description}
+			image={image}
+			preload={preload}
+			title={title}
+		/>
+
+    <ViewTransitions />
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>
+<style is:global>
+	:root {
+		--color-primary: #ddd;
+		--color-secondary: #333;
+		--color-accent: #301dff;
+		--color-accent-rgb: 213, 255, 0;
+
+		--background-color: #f5f4ff;
+		--background-twitch: var(--color-twitch-ice);
+
+		--color-twitch: #9146ff;
+		--color-twitch-ice: #f0f0ff;
+	}
+	html {
+		@apply bg-indigo-950 font-serif text-white antialiased;
+	}
+
+	body {
+		@apply flex flex-col justify-start h-fit min-h-lvh;
+	}
+
+	main {
+		@apply relative;
+	}
+
+	@supports selector(::-webkit-scrollbar) {
+		::-webkit-scrollbar {
+			width: 10px;
+			border-radius: 10px;
+		}
+
+		::-webkit-scrollbar-thumb {
+			border-radius: 10px;
+			background-color: theme("colors.primary");
+			border: 2px solid transparent;
+			background-clip: content-box;
+		}
+
+		::-webkit-scrollbar-thumb:active {
+			background-color: #666;
+		}
+
+		::-webkit-scrollbar-track {
+			background: var(--background-image);
+		}
+
+		::-webkit-scrollbar-corner {
+			background: var(--background-image);
+		}
+	}
+
+	@supports not selector(::-webkit-scrollbar) {
+		* {
+			scrollbar-color: theme("colors.primary") transparent;
+			scrollbar-width: thin;
+		}
+	}
+	.button {
+		@apply text-indigo-50 border-2 border-white rounded-full;
+		box-shadow:
+			0 2px 4px 0 rgba(136,144,195,0.2),
+			0 5px 15px 0 rgba(37,44,97,0.15);
+	}
+
+	@keyframes scrollEffect {
+		from {
+			opacity: 0;
+			scale: 25%;
+		},
+		to {
+			opacity: 1;
+			scale: 100%;
+		}
+	}
+
+	.scroll-effect {
+		view-timeline-name: --section;
+		view-timeline-axis: block;
+		animation-timeline: --section;
+		animation-name: scrollEffect;
+		animation-range: entry 10% cover 30%;
+		animation-fill-mode: both;
+	}
+</style>

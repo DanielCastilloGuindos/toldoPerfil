@@ -1,5 +1,5 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import ClientLayout from '@/layouts/ClientLayout.astro';
 import { clients, getStaticProductsPaths } from "@/consts/clients.ts";
 import ProductCard from '@/components/ProductCard.astro'
 
@@ -15,20 +15,29 @@ const { id, title, description, images } = selectedClient;
 const path = `/img/works/${id}/`
 ---
 
-<Layout
+<ClientLayout
 description="Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!"
 title=`Toldo Perfil - ${title}` 
 >
 	<main class="font-sans">
-		<header class="flex justify-center">
+		<header class="relative flex justify-center items-center sm:h-32">
 			<h1
 				class="text-[1.65rem] leading-9 tracking-wider font-bold uppercase"
 				transition:name={ "title_" + id }>
 				{ title }
 			</h1>
+
+			<a
+			href="/"
+			aria-label=""
+			class="absolute top-1/4 sm:top-1/2 right-6 sm:right-16 -translate-y-1/2 w-6 sm:w-12 h-6 sm:h-12 border-2 border-white hover:border-indigo-500 -rotate-45 hover:rotate-45 transition-all rounded-full group">
+					<span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2/3 h-[.1rem] bg-white group-hover:bg-indigo-500 transition-all "></span>
+					<span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2/3 h-[.1rem] bg-white group-hover:bg-indigo-500 rotate-90 transition-all "></span>
+				</a>
+			</button>
 		</header>
 		<section class="w-full px-auto">
-			<div class="grid grid-cols-2 gap-6 justify-center items-start w-full   md:max-w-5xl mx-auto">
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 justify-center items-start w-full md:max-w-5xl mx-auto">
 				<aside class="py-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-6 px-2 sm:px-0 w-full sm:max-w-6xl">
 					{ images.map((image) => {
 						return (
@@ -36,8 +45,7 @@ title=`Toldo Perfil - ${title}`
 								class="relative object-cover aspect-[1.82/1] overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear scroll-effect"
 								alt=`Imagen de ${title}`
 								src={ path + image }
-								transition:name={"image_" + id}
-								loading="lazy"
+								transition:name={"image_" + image}
 							/>
 						)
 					}) }
@@ -49,4 +57,4 @@ title=`Toldo Perfil - ${title}`
 			</div>
 		</section>
 	</main>
-</Layout>
+</ClientLayout>
