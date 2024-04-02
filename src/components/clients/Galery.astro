@@ -1,0 +1,16 @@
+---
+const { path, alt, images } = Astro.props; 
+---
+
+<aside class="py-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-6 px-2 sm:px-0 w-full sm:max-w-6xl">
+	{ images.map((image) => {
+		return (
+			<img
+				class="relative object-cover aspect-[1.82/1] overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear scroll-effect"
+				alt={ alt }
+				src={ path + image }
+				transition:name={"image_" + image}
+			/>
+		)
+	}) }
+</aside>

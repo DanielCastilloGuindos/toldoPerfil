@@ -1,0 +1,16 @@
+---
+import Galery from "@/components/clients/Galery.astro";
+
+const { data } = Astro.props;
+const { id, title, description, images } = data;
+---
+
+<section class="w-full px-auto">
+	<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 justify-center items-start w-full md:max-w-5xl mx-auto">
+		<Galery alt=`Imagen de ${title}` path=`/img/works/${id}/` images={ images } />
+
+		<article>
+			<p class="sm:pt-4 px-4 sm:px-0 text-[14px] sm:text-xl font-light text-center sm:text-justify tracking-wider">Lorem ipsum dolor sit amet consectetur adipisicing elit. Unde nam vero illum consequuntur, quidem officiis in nobis hic sunt officia dicta eaque nulla impedit aspernatur repellat nisi. Eos at mollitia magni magnam, exercitationem velit! Vero cupiditate velit non recusandae soluta voluptatibus molestiae, iure assumenda sunt? Eligendi obcaecati iste nesciunt laborum excepturi voluptatibus dolorem! Odit, esse error. Asperiores nisi dolor ducimus cupiditate iure officia eligendi, harum repudiandae rerum culpa autem dolores odit dolorem veritatis deserunt, delectus obcaecati non consectetur dolore aliquid accusantium! Laudantium autem dolorem nam iste nisi deleniti maxime unde aperiam ipsa asperiores, omnis at iure aspernatur provident voluptatem.</p>
+		</article>
+	</div>
+</section>
