@@ -1,7 +1,7 @@
 export const getStaticProductsPaths = () => {
 	let staticProductsPaths = [];
 	
-	clients.map((client) => {
+	brandsAndFranchisesCustomers.map((client) => {
 		staticProductsPaths.push(
 			{params: {clientId: client.id}}
 		)
@@ -10,7 +10,7 @@ export const getStaticProductsPaths = () => {
 	return staticProductsPaths;
 }
 
-export const clients = [
+export const brandsAndFranchisesCustomers = [
 	{
 		id: 'AlainAfflelou',
 		title: 'Alain Afflelou',
@@ -92,15 +92,6 @@ export const clients = [
 		],
 	},
 	{
-		id: 'Others',
-		title: 'Others',
-		isVisible: false,
-		images: [
-			'Others01.webp',
-			'Others02.webp',
-		],
-	},
-	{
 		id: 'Por303Motivos',
 		title: 'Por303Motivos',
 		isVisible: true,
@@ -119,6 +110,25 @@ export const clients = [
 			'Shifu02.webp',
 			'Shifu03.webp',
 			'Shifu04.webp',
+		],
+	},
+];
+
+export const PrivateCustomers = [
+	{
+		id: 'privatecostumerone',
+		title: 'cliente particular',
+		isVisible: true,
+		images: [
+			'privatecostumerone.webp',
+		]
+	},
+	{
+		id: 'privatecostumertwo',
+		title: 'cliente particular',
+		isVisible: true,
+		images: [
+			'privatecostumertwo.webp',
 		],
 	},
 ];

@@ -1,26 +1,26 @@
 ---
 import ProductCard from "@/components/ProductCard.astro";
-import { clients } from "@/consts/clients.ts"
+import { brandsAndFranchisesCustomers as bafCustomers } from "@/consts/customers"
 ---
 
 <section
-	id="products"
+	id="brandsAndFranchises"
 	class="flex flex-col justify-center items-center w-full p-0 md:p-16 md:pt-0 bg-neutral-800 text-white"
 >
 	<div class="w-full md:max-w-5xl">
 		<header
 			class="w-full py-4 flex flex-col gap-y-6 justify-center items-center"
 		>
-			<h3 class="text-3xl font-bold text-center">Amplia Gama de Productos</h3>
+			<h3 class="text-3xl font-bold text-center">Primeras Marcas y Franquicias</h3>
 			<h4 class="text-sm text-gray-100 max-w-xs text-center">
-				Sombra y estilo para tu espacio
+				Trabajamos con primeras marcas a nivel nacional para cadenas hoteleras,restaurantes, ópticas, automoción, bancos, etc
 			</h4>
 		</header>
 
 		<article
 			class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-6 px-2 sm:px-0 w-full sm:max-w-6xl"
 		>
-		{ clients.map(({id, title, description, images, isVisible}) => {
+		{ bafCustomers.map(({id, title, description, images, isVisible}) => {
 			if (!isVisible) return;
 			let protrairPath = `/img/works/${id}/${images[0]}`
 			return (<ProductCard

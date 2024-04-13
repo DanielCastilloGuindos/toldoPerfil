@@ -1,9 +1,12 @@
 ---
 import HamburgerButton from "@/components/HamburgerButton.astro";
+import { Image } from "astro:assets";
 
 const pages = [
 	{ name: "Nosotros ", href: "#about-us" },
-	{ name: "Productos", href: "#products" },
+	{ name: "Marcas y Franquiciados", href: "#brandsAndFranchises" },
+	{ name: "Comunidades", href: "#communities" },
+	{ name: "Particulares", href: "#privatecustomers" },
 	{ name: "FAQ", href: "#faq" },
 	{
 		name: "Tu presupuesto",
@@ -25,7 +28,15 @@ const { isVisibleNav } = Astro.props
 	class="group py-2 px-4 sm:py-5 sm:px-8 flex justify-between items-center align-middle font-bold leading-tight text-sx font-sans sticky top-0 left-0 z-10 bg-white border-0 border-b"
 	transition:persist
 >
-	<a href="/" class="py-3 text-lg sm:text-base z-10" aria-label="Enlace a la página principal de Toldo Perfil">Toldo Perfil</a>
+	<a href="/" class="py-3 text-lg sm:text-base z-10" aria-label="Enlace a la página principal de Toldo Perfil">
+		<span class="hidden" aria-hidden="true">Toldo Perfil</span>
+		<Image
+			src='/img/logo.png'
+			alt='Logo de ToldoPerfil'
+			width='128'
+			height='100'
+		/>
+	</a>
 
 	<nav
 		class:list={[

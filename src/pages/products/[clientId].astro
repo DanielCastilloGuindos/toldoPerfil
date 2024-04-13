@@ -1,5 +1,5 @@
 ---
-import { clients, getStaticProductsPaths } from "@/consts/clients.ts";
+import { brandsAndFranchisesCustomers as bafCustomers, getStaticProductsPaths } from "@/consts/customers";
 
 import ClientLayout from '@/layouts/ClientLayout.astro';
 
@@ -12,7 +12,7 @@ export function getStaticPaths() {
 
 const { clientId } = Astro.params;
 
-const selectedClient = clients.find(client => client.id === clientId );
+const selectedClient = bafCustomers.find(client => client.id === clientId );
 ---
 
 <ClientLayout
@@ -23,4 +23,4 @@ title=`Toldo Perfil - ${selectedClient.title}`
 		<Header title={ selectedClient.title } transitionName= { "title_" + selectedClient.id } />
 		<InfoGalery data={ selectedClient } /> 
 	</main>
-</ClientLayout>
+</ClientLayout>@/consts/customers

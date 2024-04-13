@@ -1,4 +1,7 @@
-<form action="" method="POST" class="w-full">
+<form
+	class="w-full"
+	onsubmit="event => event.preventDefault();return false"
+>
 	<fieldset class="flex flex-col gap-4 text-sm w-full">
 		<div class="relative">
 			<label for="fullname" class="text-indigo-950 text-sm cursor-pointer">
@@ -76,3 +79,68 @@
 		</div>
 	</fieldset>
 </form>
+
+<script>
+	import { $, $$ } from "@/consts/dom-selector";
+
+	const apiKey = 'xpzvoqdj'
+	const api = `https://formspree.io/f/${apiKey}`;
+
+	const submitForm = () => {
+		saveInput();
+		sendmail();
+	};
+
+	// save and retrieve generic formdata from localstorage
+	const getFormData = () => {
+		const store = Object.create(null);
+		store.fullname = $("#fullname")?.value;
+		store.email = $("#email")?.value;
+		store.phone = $("#phone")?.value;
+		store.category = $("#category")?.value;
+		store.description = $("#description")?.value;
+		return store;
+	};
+
+	const saveInput = () => {
+		const { description, category, ...rest } = getFormData();
+		localStorage.setItem("contactInfo", JSON.stringify(rest));
+	};
+
+	const retrieveInfo = () => {
+		const store = JSON.parse(localStorage.getItem("contactInfo") || "{}");
+		$("#fullname").value = store.fullname || "";
+		$("#email").value = store.email || "";
+		$("#phone").value = store.phone || "";
+	};
+	// end: localstorage
+
+	// This kicks thing of, should really be on window.onload but...
+	const submitBtn = $('[type="submit"]');
+	submitBtn?.addEventListener("click", submitForm);
+	retrieveInfo();
+	[...$$("input")][0]?.focus();
+	// window.onload = () => {} // don't know why this wont work
+
+	const sendmail = async () => {
+		const { name, surname, email, tel, message, subject } = getFormData();
+		const data = await fetch(api, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ name, surname, email, tel, message, subject }),
+		})
+			.then((res) => {
+				if (!res.ok) {
+					throw new Error(res.status);
+				}
+				return res.json();
+			})
+			.catch((err) => {
+				console.log("Error", err);
+				throw new Error("Network error.");
+			});
+		console.log(data);
+	};
+</script>

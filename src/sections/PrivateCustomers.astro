@@ -1,0 +1,37 @@
+---
+import ProductCard from "@/components/ProductCard.astro";
+import { PrivateCustomers } from "@/consts/customers.ts"
+---
+
+<section
+	id="privatecustomers"
+	class="flex flex-col justify-center items-center w-full p-0 md:p-16 md:pt-0 bg-neutral-800 text-white"
+>
+	<div class="w-full md:max-w-5xl">
+		<header
+			class="w-full py-4 flex flex-col gap-y-6 justify-center items-center"
+		>
+			<h3 class="text-3xl font-bold text-center">Particulares</h3>
+			<h4 class="text-sm text-gray-100 max-w-xs text-center">
+				Asesoramos a nuestros clientes el tipo de toldo que le conviene en cada caso
+			</h4>
+		</header>
+
+		<article
+			class="py-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-6 px-2 sm:px-0 w-full sm:max-w-6xl"
+		>
+		{ PrivateCustomers.map(({id, title, description, images, isVisible}) => {
+			if (!isVisible) return;
+			let protrairPath = `/img/works/${id}/${images[0]}`
+			return (<ProductCard
+				id={id}
+				title={ title }
+				description=''
+				image={ protrairPath }
+				key={ id }
+				linked={ false }
+			/>)
+		}) }
+		</article>
+	</div>
+</section>
