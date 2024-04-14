@@ -1,10 +1,48 @@
-<p class="hidden">
-	-Sustitución de lonas en mal estado de tu toldo
-	-Rotulación de faldones de toldos para tiendas, comercios, franquicias etc..
-	-Incorporación de iluminación de tecnología led en los toldos
-	-Faldones con logotipos luminosos
-	-Pergolas BIOCLIMATICAS
-	-Pergolas con palillería y lona acrílica
-	-Cerramientos y Terrazas para Hostelería
-	-Balaustradas de cristal para escaleras y separación de piscinas
-</p>
+---
+import { Image } from "astro:assets";
+import CheckIcon from  "@/icons/check.astro"
+
+const list = [
+	'Sustitución de lonas en mal estado de tu toldo',
+	'Rotulación de faldones de toldos para tiendas, comercios, franquicias etc..',
+	'Incorporación de iluminación de tecnología led en los toldos',
+	'Faldones con logotipos luminosos',
+	'Pergolas BIOCLIMATICAS',
+	'Pergolas con palillería y lona acrílica',
+	'Cerramientos y Terrazas para Hostelería',
+	'Balaustradas de cristal para escaleras y separación de piscinas'
+];
+---
+<section
+	id="faq"
+	class="flex flex-col justify-center items-center w-full p-0 md:p-16 md:pt-0 bg-transparent text-gray-900"
+>
+	<div class="w-full md:max-w-4xl">
+		<header
+			class="w-full py-4 flex flex-col gap-y-6 justify-center items-center"
+		>
+			<h3 class="text-3xl text-indigo-950 font-bold">Amplia Gama de Productos</h3>
+			<h4 class="text-sm text-gray-600 max-w-xs text-center">
+				
+			</h4>
+		</header>
+
+		<article class="grid grid-cols-1 sm:grid-cols-2 justify-center items-center gap-6 ">
+			<ul class='list-nonex'>
+				{ list.map(item => (
+					<li class="flex justify-start items-center gap-2 px-4 py-2">
+						<CheckIcon class="text-indigo-900" />
+						<p class="text-sm flex-1">{item}</p>
+					</li>
+				)) }
+			</ul>
+
+			<Image
+				src="/img/products/products.webp"
+				alt="Dibujo de un toldo"
+				width="512"
+				height="512"
+			/>
+		</article>
+	</div>
+</section>

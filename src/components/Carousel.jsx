@@ -10,7 +10,7 @@ export const Carousel = ({ intervalTime= 8000 }) => {
 			description: 'Su solución para toldos de alta calidad',
 			image: '/img/carousel/protrait01.webp',
 			content: (
-				<div className="w-full h-full flex flex-col justify-center items-start gap-4 px-4">
+				<div className="w-full h-full flex flex-col justify-center items-center sm:items-start gap-4 px-4">
 					<h2 className='text-3xl sm:text-5xl text-white font-bold'>
 						Bienvenido a <br aria-hidden='true' />
 						<span className=" font-extrabold">ToldoPerfil</span>
