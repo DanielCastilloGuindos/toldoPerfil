@@ -4,25 +4,65 @@ import { CarouselSlide } from "@/components/CarouselSlide.jsx";
 export const Carousel = ({ intervalTime= 8000 }) => {
   const [activeSlide, setActiveSlide] = useState(0);
 	let intervalRef = useRef(null);
-	const slides = [{
+	const slides = [
+		{
 			title: (<>Bienvenido a <span className="text-indigo-600">ToldoPerfil</span></>),
 			description: 'Su solución para toldos de alta calidad',
 			image: '/img/carousel/protrait01.webp',
+			content: (
+				<div className="w-full h-full flex flex-col justify-center items-start gap-4 px-4">
+					<h2 className='text-3xl sm:text-5xl text-white font-bold'>
+						Bienvenido a <br aria-hidden='true' />
+						<span className=" font-extrabold">ToldoPerfil</span>
+					</h2>
+					<p className="text-[14px] sm:text-xl font-light text-center tracking-wider text-white">Su solución para toldos de alta calidad.</p>
+					<a
+						href='#contact-us'
+						aria-label='Enlace a la sección "Contactanos"'
+						className="py-3 px-5 bg-indigo-50 font-bold [transition-property: translate] duration-200 ease-linear delay-0 hover:-translate-y-0.5 secondary-button z-10"
+					>
+						Obtén tu presupuesto
+					</a>
+				</div>
+			)
 		},
 		{
 			title: 'Title 2',
 			description: 'Description 2',
 			image: '/img/carousel/protrait02.webp',
+			content: (
+				<div className="w-full h-full flex flex-col justify-center items-center gap-4 px-4">
+					<h2 className='text-3xl sm:text-5xl text-white font-bold'>
+						Soluciones para todos
+					</h2>
+					<p className="text-[14px] sm:text-xl font-light text-center tracking-wider text-white">Desde primeras marcas como particulares</p>
+				</div>
+			)
 		},
 		{
 			title: 'Title 3',
 			description: 'Description 3',
 			image: '/img/carousel/protrait03.webp',
+			content: (
+				<div className="w-full h-full flex flex-col justify-center items-center gap-4 py-4">
+					<h2 className='text-3xl sm:text-5xl text-white font-bold'>
+						Amplia gama de productos
+					</h2>
+					<p className="text-[14px] sm:text-xl font-light text-center tracking-wider text-white">Las mejores calidades a tu servicio</p>
+				</div>
+			)
 		},
 		{
 			title: 'Title 4',
 			description: 'Description 4',
 			image: '/img/carousel/protrait04.webp',
+			content: (
+				<div className="w-full h-full flex flex-col justify-center items-center gap-4 py-4">
+					<h2 className='text-3xl sm:text-5xl text-white font-bold'>
+						Obtén el control de tu día
+					</h2>
+				</div>
+			)
 		},
 	];
 
@@ -51,7 +91,7 @@ export const Carousel = ({ intervalTime= 8000 }) => {
 
       {/* Carousel items */}
       <div className="h-fit">
-        {slides.map(({ title, description, image }, index) => {
+        {slides.map(({ title, description, image, content }, index) => {
 					let isActive = index === activeSlide;
 					return (
 						<CarouselSlide
@@ -59,7 +99,9 @@ export const Carousel = ({ intervalTime= 8000 }) => {
 							title={ title }
 							description={ description }
 							image={ image }
-							isActive={ isActive } />)
+							isActive={ isActive }
+							content={content}
+						/>)
 				})}
       </div>
 
