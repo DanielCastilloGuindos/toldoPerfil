@@ -1,12 +1,13 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import Hero from '@/sections/Hero.astro'
-import Individuals from '@/sections/PrivateCustomers.astro'
+import Info from '@/sections/Info.astro'
 import BrandsAndFranchises from '@/sections/BrandsAndFranchises.astro'
 import Communities from '@/sections/Communities.astro'
-import Info from '@/sections/Info.astro'
-import Form from '@/sections/Form.astro'
+import Individuals from '@/sections/PrivateCustomers.astro'
+import Products from '@/sections/Products.astro';
 import FAQs from '@/sections/FAQs.astro'
+import Form from '@/sections/Form.astro'
 ---
 
 <Layout
@@ -21,6 +22,7 @@ isVisibleNav={true}
 		<BrandsAndFranchises />
 		<Communities />
 		<Individuals />
+		<Products />
 		<FAQs />
 		<Form />
 	</main>

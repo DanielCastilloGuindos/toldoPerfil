@@ -5,6 +5,12 @@ export default {
 	content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
 	theme: {
 		extend: {
+      backgroundImage: {
+        'gradient-center': 'radial-gradient(circle at center, #333333d4, #0000007a)',
+      },
+      backgroundSize: {
+        '2em': '.2em .2em',
+      },
 			fontFamily: {
 				// atomic: ["Atomic", "cursive"],
 			},
