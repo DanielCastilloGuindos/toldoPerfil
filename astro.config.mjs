@@ -10,6 +10,6 @@ export default defineConfig({
     experimentalReactChildren: true
   })],
   site: 'https://toldoperfil.es',
-  output: 'hybrid',
+  output: 'server',
   adapter: vercel()
 });

@@ -1,6 +1,44 @@
+---
+import sendGrid from "@sendgrid/mail";
+sendGrid.setApiKey(import.meta.env.SENDGRID_API_KEY);
+
+if (Astro.request.method === "POST") {
+	debugger;
+	try {
+		// Getting posted data from our contact form
+		const data = await Astro.request.formData();
+		const fullname = data.get('fullname');
+		const email = data.get('email');
+		const phone = data.get('phone');
+		const subject = data.get('category');
+		const message = data.get('description');
+
+		// Sending email
+		const msg = {
+			to: "danielcastilloguindos@gmail.com",
+			from: "danielcastilloguindos@gmail.com",
+			replyTo: { email: email, name: fullname },
+			subject: `${subject} | ${fullname}`,
+			text: message,
+		};
+
+		await sendGrid
+			.send(msg)
+			.then(() => {
+				console.log("Email sent");
+			})
+			.catch((error) => {
+				console.error(error);
+			});
+	} catch (error) {
+		console.error(error);
+	}
+}
+---
+
 <form
 	class="w-full"
-	onsubmit="event => event.preventDefault();return false"
+	method="POST"
 >
 	<fieldset class="flex flex-col gap-4 text-sm w-full">
 		<div class="relative">
@@ -80,7 +118,7 @@
 	</fieldset>
 </form>
 
-<script>
+<!-- <script>
 	import { $, $$ } from "@/consts/dom-selector";
 
 	const apiKey = 'xpzvoqdj'
@@ -142,4 +180,4 @@
 			});
 		console.log(data);
 	};
-</script>
+</script> -->
