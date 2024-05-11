@@ -131,4 +131,20 @@ export const PrivateCustomers = [
 			'privatecostumertwo.webp',
 		],
 	},
+	{
+		id: 'privatecostumerthree',
+		title: 'cliente particular',
+		isVisible: true,
+		images: [
+			'privatecostumerthree.webp',
+		],
+	},
+	{
+		id: 'privatecostumerfour',
+		title: 'cliente particular',
+		isVisible: true,
+		images: [
+			'privatecostumerfour.webp',
+		],
+	},
 ];
