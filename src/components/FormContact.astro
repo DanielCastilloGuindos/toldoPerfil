@@ -1,44 +1,10 @@
 ---
-import sendGrid from "@sendgrid/mail";
-sendGrid.setApiKey(import.meta.env.SENDGRID_API_KEY);
-
-if (Astro.request.method === "POST") {
-	debugger;
-	try {
-		// Getting posted data from our contact form
-		const data = await Astro.request.formData();
-		const fullname = data.get('fullname');
-		const email = data.get('email');
-		const phone = data.get('phone');
-		const subject = data.get('category');
-		const message = data.get('description');
-
-		// Sending email
-		const msg = {
-			to: "danielcastilloguindos@gmail.com",
-			from: "danielcastilloguindos@gmail.com",
-			replyTo: { email: email, name: fullname },
-			subject: `${subject} | ${fullname}`,
-			text: message,
-		};
-
-		await sendGrid
-			.send(msg)
-			.then(() => {
-				console.log("Email sent");
-			})
-			.catch((error) => {
-				console.error(error);
-			});
-	} catch (error) {
-		console.error(error);
-	}
-}
+import PopUpMessage from "@/components/PopUpMessage.astro";
 ---
 
 <form
 	class="w-full"
-	method="POST"
+	onsubmit="event => event.preventDefault();return false"
 >
 	<fieldset class="flex flex-col gap-4 text-sm w-full">
 		<div class="relative">
@@ -83,8 +49,9 @@ if (Astro.request.method === "POST") {
 			/>
 		</div>
 		<div class="relative">
-			<label for="category" class="text-indigo-950 text-sm cursor-pointer"
-				>Lo que necesitas de nosotros es...</label
+			<label for="category" class="text-indigo-950 text-sm cursor-pointer">
+				Lo que necesitas de nosotros es...
+			</label
 			>
 			<select
 				name="category"
@@ -92,8 +59,8 @@ if (Astro.request.method === "POST") {
 				class="relative w-full py-1 px-4 outline-none text-indigo-900 placeholder-indigo-400 border-0 border-b border-indigo-900 cursor-pointer bg-transparent"
 			>
 				<option value="">Selecciona una opción</option>
-				<option value="1">Pedir presupuesto</option>
-				<option value="2">Información</option>
+				<option value="Pedir presupuesto">Pedir presupuesto</option>
+				<option value="Información">Información</option>
 			</select>
 		</div>
 		<div class="relative">
@@ -109,20 +76,22 @@ if (Astro.request.method === "POST") {
 		</div>
 		<div class="flex justify-center sm:justify-end">
 			<button
+				id="contactButton"
 				aria-label="Boton de formulario de contacto"
 				type="submit"
-				class="py-3 px-5 opacity-100[transition-property: translate] duration-200 ease-linear hover:-translate-y-0.5 button"
-				>Contactar</button
-			>
+				class="w-28 py-3 px-5 opacity-100[transition-property: translate] duration-200 ease-linear hover:-translate-y-0.5 button"
+				>
+				Contactar
+			</button>
 		</div>
 	</fieldset>
 </form>
 
-<!-- <script>
+<script>
 	import { $, $$ } from "@/consts/dom-selector";
+import Error from "@/sections/Error.astro";
 
-	const apiKey = 'xpzvoqdj'
-	const api = `https://formspree.io/f/${apiKey}`;
+	const fetch_api = `/api/sendEmail.json`;
 
 	const submitForm = () => {
 		saveInput();
@@ -160,24 +129,46 @@ if (Astro.request.method === "POST") {
 	// window.onload = () => {} // don't know why this wont work
 
 	const sendmail = async () => {
-		const { name, surname, email, tel, message, subject } = getFormData();
-		const data = await fetch(api, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({ name, surname, email, tel, message, subject }),
-		})
-			.then((res) => {
-				if (!res.ok) {
-					throw new Error(res.status);
-				}
-				return res.json();
+		const { fullname, email, phone, category: subject, description } = getFormData();
+		const htmlMsg = `<p>${fullname}(${phone} - ${email}) escribe:</p><p>${description}</p>`;
+
+		let msg = '¡Enviado!';
+		let bgDisplay = 'bg-green-600';
+
+		try {
+			const res = await fetch(fetch_api, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					from: 'no-reply@toldoperfil.es',
+					to: 'danielcastilloguindos@toldoperfil.es',
+					subject: subject,
+					html: htmlMsg,
+					text: htmlMsg.replace(/<[^>]*>/g, ''),
+				}),
 			})
-			.catch((err) => {
-				console.log("Error", err);
-				throw new Error("Network error.");
-			});
-		console.log(data);
+
+			const data = await res.json();
+			
+			if (data.message.statusCode !== 200) throw Error;
+		} catch (error) {
+			msg = '¡Error!';
+			bgDisplay = 'bg-red-600';
+		} finally {
+			$('#contactButton').innerHTML = msg;
+			$('#contactButton').classList.add( bgDisplay, '!text-white');
+		}
 	};
-</script> -->
+
+	// Función para cargar un componente de Astro con atributos
+	const loadAstroComponent = (componentName, attributes) => {
+		const astroComponent = document.createElement(componentName);
+		// Establecer los atributos
+		Object.keys(attributes).forEach(key => {
+			astroComponent.setAttribute(key, attributes[key]);
+		});
+		document.body.appendChild(astroComponent);
+	};
+</script>

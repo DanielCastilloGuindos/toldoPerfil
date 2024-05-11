@@ -1,0 +1,64 @@
+---
+const TYPES = {
+	'success': {
+		'class': 'bg-green-600 text-white'
+	},
+	'warning': {
+		'class': 'bg-red-600 text-white'
+	},
+	'default': {
+		'class': 'bg-white'
+	}
+}
+const { title, message, buttons, isOpen = true, duration = 5000, type = 'default'} = Astro.props;
+let isVisibleDialog = isOpen;
+
+setTimeout(() => {
+	isVisibleDialog = true;
+}, duration);
+
+const displayClass = TYPES[type].class;
+
+---
+
+<!-- Popup modal -->
+<dialog
+	id="popUp"
+	open={ isVisibleDialog }
+	class:list={[
+		"fixed top-2 z-50 py-4 px-6 text-md rounded shadow-xl",
+		displayClass
+	]}
+>
+	<header>
+		<h3 class="text-lg font-bold mb-2">{ title || 'Default title' }</h3>
+	</header>
+
+	<!-- Contenido del popup -->
+	<section>
+		<p class="mb-2">{message || 'Default message' }</p>
+	</section>
+
+	<!-- Botón para cerrar el popup -->
+	<!-- <footer>
+		<button
+			aria-label="Boton de pop up"
+			class="py-3 px-5 opacity-100[transition-property: translate] duration-200 ease-linear hover:-translate-y-0.5 button"
+			>
+			Cerrar
+		</button>
+	</footer> -->
+</dialog>
+
+<!-- Script para abrir y cerrar el popup -->
+<script>
+	import { $, $$ } from "@/consts/dom-selector";
+
+	function openDialog() {
+		$('dialog#popUp').showModal();
+	}
+
+	function closeDialog() {
+		$('dialog#popUp').close();
+	}
+</script>
