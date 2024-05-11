@@ -6,10 +6,15 @@ import vercel from "@astrojs/vercel/serverless";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(), react({
-    experimentalReactChildren: true
-  })],
-  site: 'https://toldoperfil.es',
-  output: 'server',
-  adapter: vercel()
+	integrations: [tailwind(), react({
+		experimentalReactChildren: true
+	})],
+	site: 'https://toldoperfil.es',
+	output: 'server',
+	adapter: vercel(),
+	buildOptions: {
+		rollupOptions: {
+			external: ['resend']
+		}
+	}
 });
