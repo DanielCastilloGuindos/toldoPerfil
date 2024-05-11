@@ -11,7 +11,9 @@ export default defineConfig({
 	})],
 	site: 'https://toldoperfil.es',
 	output: 'server',
-	adapter: vercel(),
+	adapter: vercel({
+    webAnalytics: { enabled: true }
+  }),
 	buildOptions: {
 		rollupOptions: {
 			external: ['resend']
