@@ -1,6 +1,12 @@
 ---
 import ProductCard from "@/components/ProductCard.astro";
+import ProductCardDB from "@/components/ProductCardDB.astro";
 import { brandsAndFranchisesCustomers as bafCustomers } from "@/consts/customers"
+import { db, Customers, eq } from 'astro:db';
+
+const customersQuery = await db.select()
+	.from(Customers)
+	.where( eq(Customers.category, 'enterprise'));
 ---
 
 <section
@@ -29,6 +35,17 @@ import { brandsAndFranchisesCustomers as bafCustomers } from "@/consts/customers
 				description='Haz click para ver más detalles'
 				image={ protrairPath }
 				key={ id }
+			/>)
+		}) }
+		{ customersQuery.map(({customer_id, title, description, images, isVisible}) => {
+			if (!isVisible) return;
+			let protrairPath = images[0]
+			return (<ProductCardDB
+				id={customer_id}
+				title={ title }
+				description='Haz click para ver más detalles'
+				image={ protrairPath }
+				key={ 'd'+customer_id }
 			/>)
 		}) }
 		</article>

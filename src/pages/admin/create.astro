@@ -1,17 +1,19 @@
 ---
+import ReturnButton from "@/components/clients/ReturnButton.astro";
 import Layout from "@/layouts/AdminLayout.astro";
+import { db, Customers, isDbError } from "astro:db";
 import { v2 as cloudinary } from "cloudinary";
 
 let uploadedFiles: any[] = [];
 const CATEGORIES = {
-	'ENTERPRISE': {
-		key: 'Enterprise',
-		value: 'enterprise',
+	ENTERPRISE: {
+		key: "Enterprise",
+		value: "enterprise",
 	},
-	'PRIVATECUSTOMER': {
-		key: 'Private customer',
-		value: 'privateCustomer',
-	}
+	PRIVATECUSTOMER: {
+		key: "Private customer",
+		value: "privateCustomer",
+	},
 };
 
 // Configurar Cloudinary
@@ -41,25 +43,42 @@ if (Astro.request.method === "POST") {
 	const description = data.get("description");
 	const category = data.get("category");
 	const files = data.getAll("images") as File[];
-	const subfolder = category === CATEGORIES.PRIVATECUSTOMER.value
-		? CATEGORIES.PRIVATECUSTOMER.value
-		: `enterprise/${title}`;
+	const folder =
+		category === CATEGORIES.PRIVATECUSTOMER.value
+			? `toldoperfil/privatecostumer`
+			: `toldoperfil/enterprise/${title}`;
 
-	const responses = [];
+	// SUBIDA DE IMAGENES
+	const images_urls = [];
 	for (const file of files) {
 		const arrayBuffer = await file.arrayBuffer();
 		const uint8Array = new Uint8Array(arrayBuffer);
 
 		// Define la subcarpeta
-
 		const response = await uploadStream(uint8Array, {
-			folder: `toldoperfil/${subfolder}`,
+			folder: folder,
 		});
 
-		responses.push(response);
+		images_urls.push(response.url);
 	}
 
-	uploadedFiles = responses;
+	// SUBIDA A DB - TODO: Cambiar para hacerlo por API
+	try {
+		await db.insert(Customers).values({
+			title: title,
+			description: description,
+			category: category,
+			images: images_urls,
+		});
+	} catch (e) {
+		if (isDbError(e)) {
+			return new Response(`No se puede insertar \n\n${e.message}`, {
+				status: 400,
+			});
+		}
+
+		return new Response("Se ha producido un error inesperado", { status: 500 });
+	}
 }
 ---
 
@@ -68,12 +87,17 @@ if (Astro.request.method === "POST") {
 	title="Toldo Perfil - Añadir imagenes"
 	canonical="https://toldoperfil.es"
 >
-	<header class="font-sans border-b px-4 py-6">
-		<h2 class="text-2xl sm:text-3xl text-white font-bold">Add Image</h2>
+	<header class="relative flex justify-between gap-8 items-center font-sans px-4 py-6">
+		<ReturnButton href="/admin/manager" label="Enlace a la pagina de gestion de Toldo Perfil" />
 	</header>
 	<main class="font-sans grid grid-cols-3 gap-3">
 		<form class="" method="POST" enctype="multipart/form-data">
-			<fieldset class="fixed top-1/2 left-1/2 w-72 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4 text-sm">
+			<fieldset
+				class="fixed top-1/2 left-1/2 w-72 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4 text-sm"
+			>
+				<h2 class="pb-4 text-2xl sm:text-3xl text-white font-bold">
+					Crear imagen
+				</h2>
 				<div class="relative">
 					<label for="title" class="text-indigo-100 text-sm cursor-pointer">
 						Título
@@ -105,7 +129,14 @@ if (Astro.request.method === "POST") {
 						Imágenes:
 					</label>
 					<!-- <label for="images" class="block"></label> -->
-					<input type="file" name="images" id="images" class="relative w-full py-1 px-4 outline-none text-indigo-100 placeholder-indigo-100 cursor-pointer bg-transparent" required multiple />
+					<input
+						type="file"
+						name="images"
+						id="images"
+						class="relative w-full py-1 px-4 outline-none text-indigo-100 placeholder-indigo-100 cursor-pointer bg-transparent"
+						required
+						multiple
+					/>
 				</div>
 
 				<div class="relative">
@@ -136,3 +167,6 @@ if (Astro.request.method === "POST") {
 		</form>
 	</main>
 </Layout>
+
+<script>
+</script>

@@ -1,13 +1,15 @@
 ---
 import Galery from "@/components/clients/Galery.astro";
 
-const { data } = Astro.props;
+const { data, path=`/img/works/${data.id}/` } = Astro.props;
 const { id, title, description, images } = data;
+
+ 
 ---
 
 <section class="w-full px-auto">
 	<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 justify-center items-start w-full md:max-w-5xl mx-auto">
-		<Galery alt=`Imagen de ${title}` path=`/img/works/${id}/` images={ images } />
+		<Galery alt=`Imagen de ${title}` path={path} images={ images } />
 
 		<article>
 			<p class="sm:pt-4 px-4 sm:px-0 text-[14px] sm:text-xl font-light text-center sm:text-justify tracking-wider">Descubre nuestra amplia variedad de toldos diseñados para satisfacer las necesidades de nuestros clientes. Desde elegantes toldos retráctiles hasta robustas estructuras fijas, nuestra galería de imágenes presenta nuestras instalaciones en diversos entornos, garantizando calidad y estilo para cualquier espacio.</p>

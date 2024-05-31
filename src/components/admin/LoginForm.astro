@@ -20,16 +20,17 @@
 				Password
 			</label>
 			<input
-				type="text"
+				type="password"
 				id="password"
 				name="password"
 				placeholder=""
 				class="relative w-full py-1 px-4 outline-none text-indigo-100 placeholder-indigo-100 border-0 border-b border-indigo-100 cursor-pointer bg-transparent"
 			/>
 		</div>
-		<div class="flex justify-center sm:justify-end">
+		<div class="flex justify-between items-center">
+			<span id="errorMsg" class="text-red-600"></span>
 			<button
-				id="contactButton"
+				id="loginButton"
 				aria-label="Boton de formulario de contacto"
 				type="submit"
 				class="w-28 py-3 px-5 opacity-100[transition-property: translate] duration-200 ease-linear hover:-translate-y-0.5 button"
@@ -39,3 +40,42 @@
 		</div>
 	</fieldset>
 </form>
+
+<!-- TODO: Cambiar esto por un login de verdad -->
+<script>
+	import { $, $$ } from "@/consts/dom-selector.ts";
+
+	const checkCredentials = () => {
+		const username = $('#username').value;
+		const password = $('#password').value;
+
+		// TODO CAMBIAR ESTO IMPORTANTISIMO
+		let isUsernameValid = username === 'admin';
+		let isPasswordValid = password === '!toldoPERFIL2024';
+
+		return {
+			isUsernameValid: isUsernameValid,
+			isPasswordValid: isPasswordValid,
+		}
+	}
+
+	const sendErrorMsg = (credentials) => {
+		$('#errorMsg').innerHTML = '¡Credenciales incorrectos!';
+
+	}
+
+	const submitForm = () => {
+		$('#errorMsg').innerHTML = '';
+		const credentials = checkCredentials();
+
+		if (!credentials.isUsernameValid || !credentials.isPasswordValid) {
+			return sendErrorMsg(credentials);
+		}
+
+		window.location = '/admin/manager';
+	}
+
+	const submitBtn = $('[type="submit"]');
+	submitBtn?.addEventListener("click", submitForm);
+	
+</script>

@@ -1,22 +1,25 @@
 import { defineConfig } from 'astro/config';
 import tailwind from "@astrojs/tailwind";
 import react from '@astrojs/react';
-
 import vercel from "@astrojs/vercel/serverless";
+
+import db from "@astrojs/db";
 
 // https://astro.build/config
 export default defineConfig({
-	integrations: [tailwind(), react({
-		experimentalReactChildren: true
-	})],
-	site: 'https://toldoperfil.es',
-	output: 'server',
-	adapter: vercel({
-    webAnalytics: { enabled: true }
+  integrations: [tailwind(), db(), react({
+    experimentalReactChildren: true
+  })],
+  site: 'https://toldoperfil.es',
+  output: 'server',
+  adapter: vercel({
+    webAnalytics: {
+      enabled: true
+    }
   }),
-	buildOptions: {
-		rollupOptions: {
-			external: ['resend']
-		}
-	}
+  buildOptions: {
+    rollupOptions: {
+      external: ['resend']
+    }
+  }
 });

@@ -1,0 +1,67 @@
+---
+import { v2 as cloudinary } from "cloudinary";
+
+import { Image } from "astro:assets";
+import EyeIcon from "@/icons/admin/eye.astro";
+import EditIcon from "@/icons/admin/edit.astro";
+import TrashIcon from "@/icons/admin/trash.astro";
+
+const { customer_id, title, category, images, isVisible, published } =
+	Astro.props;
+
+const portair_image = images[0];
+---
+
+<figure
+	class="flex flex-row gap-2 relative overflow-hidden rounded-lg p-3 border border-indigo-900/80"
+>
+	<Image
+		alt=`Imagen de ${title}`
+		src={portair_image}
+		width="200"
+		height="200"
+		decoding="async"
+		loading="lazy"
+		class:list={["object-cover rounded-lg bg-indigo-900"]}
+	/>
+	<figcaption
+		class="py-0 px-2 w-full h-full flex flex-col justify-center sm:justify-start items-center sm:items-start bg-indigo-950 bg-opacity-50 text-white text-center sm:text-left"
+	>
+		<div>
+			<span class="text-indigo-200 text-xs"> Título </span>
+			<p class="text-[1.65rem] leading-9 tracking-wider font-bold uppercase">
+				{title}
+			</p>
+		</div>
+		<div>
+			<span class="text-indigo-200 text-xs"> Categoria </span>
+			<p class="text-[1rem] leading-9 tracking-wider font-bold">
+				{category}
+			</p>
+		</div>
+		<div>
+			<span class="text-indigo-200 text-xs"> Acciones </span>
+			<div class="flex flex-row gap-2 justify-center items-center">
+				<a
+					href=`/productsDB/${customer_id}`
+					aria-label=`Enlace para ver los toldos montados para ${title}`
+				>
+					<EyeIcon class:list={["cursor-pointer"]} />
+				</a>
+				<!-- <EditIcon class:list={['cursor-pointer']}/> -->
+				<button id="removeButton" data-id={ customer_id }>
+					<TrashIcon class:list={["cursor-pointer"]} />
+				</button>
+			</div>
+		</div>
+	</figcaption>
+</figure>
+
+
+<script>
+	import { $, $$ } from "@/consts/dom-selector.ts";
+
+	$('#removeButton').addEventListener('click', function () {
+		$('#removeDialog').showModal();
+	});
+</script>
