@@ -1,0 +1,172 @@
+---
+import ReturnButton from "@/components/clients/ReturnButton.astro";
+import Layout from "@/layouts/AdminLayout.astro";
+import { db, Customers, isDbError } from "astro:db";
+import { v2 as cloudinary } from "cloudinary";
+
+let uploadedFiles: any[] = [];
+const CATEGORIES = {
+	ENTERPRISE: {
+		key: "Enterprise",
+		value: "enterprise",
+	},
+	PRIVATECUSTOMER: {
+		key: "Private customer",
+		value: "privateCustomer",
+	},
+};
+
+// Configurar Cloudinary
+cloudinary.config({
+	api_key: import.meta.env.CLOUDINARY_API_KEY,
+	api_secret: import.meta.env.CLOUDINARY_API_SECRET,
+	cloud_name: import.meta.env.CLOUDINARY_CLOUD_NAME,
+});
+
+// Función para subir archivos a Cloudinary
+const uploadStream = async (buffer: Uint8Array, options: any) => {
+	return new Promise((resolve, reject) => {
+		cloudinary.uploader
+			.upload_stream(options, (error: any, result: unknown) => {
+				if (error) return reject(error);
+				resolve(result);
+			})
+			.end(buffer);
+	});
+};
+
+// Manejar la solicitud POST para subir archivos
+if (Astro.request.method === "POST") {
+	const data = await Astro.request.formData();
+
+	const title = data.get("title");
+	const description = data.get("description");
+	const category = data.get("category");
+	const files = data.getAll("images") as File[];
+	const folder =
+		category === CATEGORIES.PRIVATECUSTOMER.value
+			? `toldoperfil/privatecostumer`
+			: `toldoperfil/enterprise/${title}`;
+
+	// SUBIDA DE IMAGENES
+	const images_urls = [];
+	for (const file of files) {
+		const arrayBuffer = await file.arrayBuffer();
+		const uint8Array = new Uint8Array(arrayBuffer);
+
+		// Define la subcarpeta
+		const response = await uploadStream(uint8Array, {
+			folder: folder,
+		});
+
+		images_urls.push(response.url);
+	}
+
+	// SUBIDA A DB - TODO: Cambiar para hacerlo por API
+	try {
+		await db.insert(Customers).values({
+			title: title,
+			description: description,
+			category: category,
+			images: images_urls,
+		});
+	} catch (e) {
+		if (isDbError(e)) {
+			return new Response(`No se puede insertar \n\n${e.message}`, {
+				status: 400,
+			});
+		}
+
+		return new Response("Se ha producido un error inesperado", { status: 500 });
+	}
+}
+---
+
+<Layout
+	description="Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!"
+	title="Toldo Perfil - Añadir imagenes"
+	canonical="https://toldoperfil.es"
+>
+	<header class="relative flex justify-between gap-8 items-center font-sans px-4 py-6">
+		<ReturnButton href="/admin/manager" label="Enlace a la pagina de gestion de Toldo Perfil" />
+	</header>
+	<main class="font-sans grid grid-cols-3 gap-3">
+		<form class="" method="POST" enctype="multipart/form-data">
+			<fieldset
+				class="fixed top-1/2 left-1/2 w-72 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-4 text-sm"
+			>
+				<h2 class="pb-4 text-2xl sm:text-3xl text-white font-bold">
+					Crear imagen
+				</h2>
+				<div class="relative">
+					<label for="title" class="text-indigo-100 text-sm cursor-pointer">
+						Título
+					</label>
+					<input
+						type="text"
+						id="title"
+						name="title"
+						placeholder=""
+						class="relative w-full py-1 px-4 outline-none text-indigo-100 placeholder-indigo-100 border-0 border-b border-indigo-100 cursor-pointer bg-transparent"
+					/>
+				</div>
+				<div class="relative">
+					<label for="category" class="text-indigo-100 text-sm cursor-pointer">
+						Categoría
+					</label>
+					<select
+						name="category"
+						id="category"
+						class="relative w-full py-1 px-4 outline-none text-indigo-100 placeholder-indigo-100 border-0 border-b border-indigo-100 cursor-pointer bg-transparent"
+					>
+						<option value="">Selecciona una opción</option>
+						<option value="enterprise">Enterprise</option>
+						<option value="privateCustomer">Private customers</option>
+					</select>
+				</div>
+				<div class="relative">
+					<label for="images" class="text-indigo-100 text-sm cursor-pointer">
+						Imágenes:
+					</label>
+					<!-- <label for="images" class="block"></label> -->
+					<input
+						type="file"
+						name="images"
+						id="images"
+						class="relative w-full py-1 px-4 outline-none text-indigo-100 placeholder-indigo-100 cursor-pointer bg-transparent"
+						required
+						multiple
+					/>
+				</div>
+
+				<div class="relative">
+					<label
+						for="description"
+						class="text-indigo-100 text-sm cursor-pointer"
+					>
+						Descripción
+					</label>
+					<textarea
+						name="description"
+						id="description"
+						placeholder=""
+						class="relative w-full py-1 px-4 outline-none text-indigo-100 placeholder-indigo-400 border-0 border-b border-indigo-100 cursor-pointer bg-transparent resize-none"
+					></textarea>
+				</div>
+				<div>
+					<button
+						id="contactButton"
+						aria-label="Boton de formulario de contacto"
+						type="submit"
+						class="w-28 py-3 px-5 opacity-100[transition-property: translate] duration-200 ease-linear hover:-translate-y-0.5 button"
+					>
+						Subir
+					</button>
+				</div>
+			</fieldset>
+		</form>
+	</main>
+</Layout>
+
+<script>
+</script>
