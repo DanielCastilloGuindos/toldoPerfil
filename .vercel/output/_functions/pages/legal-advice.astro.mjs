@@ -1,7 +1,7 @@
 /* empty css                                  */
 import { a as createComponent, r as renderComponent, b as renderTemplate, m as maybeRenderHead } from '../chunks/astro/server_ZnJZev0u.mjs';
 import 'piccolore';
-import { a as $$Layout } from '../chunks/Layout_CxQaALMe.mjs';
+import { a as $$Layout } from '../chunks/Layout_D-1hPrl6.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$LegalAdvice = createComponent(($$result, $$props, $$slots) => {

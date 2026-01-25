@@ -1,25 +1,36 @@
 ---
 import Layout from "@/layouts/AdminLayout.astro";
-import CostumerCard from "@/components/admin/CostumerCard.astro";
-import { db, Customers, eq } from "astro:db";
+import { db, Customers, Analytics, eq, desc } from "astro:db";
+import EditIcon from "@/icons/admin/edit.astro";
+import TrashIcon from "@/icons/admin/trash.astro";
+import EyeIcon from "@/icons/admin/eye.astro";
 
 // Fetch data
-const enterprisesData = await db
+const customersData = await db
     .select()
     .from(Customers)
-    .where(eq(Customers.category, "enterprise"));
+    .orderBy(desc(Customers.created_at));
 
-const privateCustomersData = await db
-    .select()
-    .from(Customers)
-    .where(eq(Customers.category, "privateCustomer"));
+// Analytics Data
+const analyticsData = await db.select().from(Analytics);
+const totalViews = analyticsData.filter((a) => a.type === "page_view").length;
+const contactClicks = analyticsData.filter(
+    (a) => a.type === "contact_click",
+).length;
+const whatsappClicks = analyticsData.filter(
+    (a) => a.type === "whatsapp_click",
+).length; // If added later
 
-// Stats
-const totalEnterprise = enterprisesData.length;
-const totalPrivate = privateCustomersData.length;
+// Separate customers for potential filtering if needed, though table handles all
+const enterprisesData = customersData.filter(
+    (c) => c.category === "enterprise",
+);
+const privateCustomersData = customersData.filter(
+    (c) => c.category === "privateCustomer",
+);
 ---
 
-<!-- Background similar to Login -->
+<!-- Background -->
 <div class="fixed inset-0 -z-10 bg-neutral-900">
     <div
         class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"
@@ -29,7 +40,7 @@ const totalPrivate = privateCustomersData.length;
 </div>
 
 <div class="min-h-screen font-sans text-white p-6">
-    <!-- Navbar / HUD -->
+    <!-- Navbar -->
     <header
         class="sticky top-4 z-50 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-4 mb-8 flex flex-col md:flex-row justify-between items-center gap-4"
     >
@@ -48,15 +59,17 @@ const totalPrivate = privateCustomersData.length;
                         stroke-linecap="round"
                         stroke-linejoin="round"
                         stroke-width="2"
-                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"
                     ></path>
                 </svg>
             </div>
             <div>
                 <h1 class="text-xl font-bold tracking-tight">
-                    Panel de Control
+                    Dashboard & Analítica
                 </h1>
-                <p class="text-xs text-indigo-200">Gestión de ToldoPerfil</p>
+                <p class="text-xs text-indigo-200">
+                    Visión general del negocio
+                </p>
             </div>
         </div>
 
@@ -65,20 +78,6 @@ const totalPrivate = privateCustomersData.length;
                 href="/"
                 class="px-4 py-2 rounded-lg bg-neutral-800/50 hover:bg-neutral-800 border border-white/5 text-sm font-medium transition-all hover:text-indigo-300 flex items-center gap-2"
             >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                    ></path>
-                </svg>
                 Ir a Inicio
             </a>
             <form action="/api/auth/logout" method="POST">
@@ -86,186 +85,273 @@ const totalPrivate = privateCustomersData.length;
                     type="submit"
                     class="px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-300 text-sm font-medium transition-all flex items-center gap-2"
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-4 w-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                        ></path>
-                    </svg>
                     Cerrar Sesión
                 </button>
             </form>
         </nav>
     </header>
 
-    <!-- Stats Review (Optional HUD Element) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 max-w-7xl mx-auto">
+    <!-- Analytics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-7xl mx-auto">
+        <!-- Views -->
         <div
-            class="bg-indigo-900/40 border border-indigo-500/20 rounded-xl p-6 flex items-center justify-between"
+            class="bg-indigo-900/40 border border-indigo-500/20 rounded-xl p-6 flex flex-col relative overflow-hidden group"
         >
-            <div>
-                <p
-                    class="text-indigo-200 text-sm font-medium uppercase tracking-wider"
-                >
-                    Primeras Marcas
-                </p>
-                <p class="text-3xl font-bold text-white mt-1">
-                    {totalEnterprise}
-                </p>
-            </div>
-            <a
-                href="/admin/create?category=enterprise"
-                class="p-3 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white shadow-lg shadow-indigo-500/20 transition-all"
+            <div
+                class="absolute -right-6 -top-6 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all"
             >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 4v16m8-8H4"></path>
-                </svg>
-            </a>
+            </div>
+            <p
+                class="text-indigo-200 text-xs font-medium uppercase tracking-wider mb-2"
+            >
+                Visitas Totales
+            </p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-4xl font-bold text-white">{totalViews}</p>
+                <span class="text-xs text-indigo-300">páginas vistas</span>
+            </div>
         </div>
+
+        <!-- Contact Clicks -->
         <div
-            class="bg-purple-900/40 border border-purple-500/20 rounded-xl p-6 flex items-center justify-between"
+            class="bg-green-900/40 border border-green-500/20 rounded-xl p-6 flex flex-col relative overflow-hidden group"
         >
-            <div>
-                <p
-                    class="text-purple-200 text-sm font-medium uppercase tracking-wider"
-                >
-                    Particulares
-                </p>
-                <p class="text-3xl font-bold text-white mt-1">{totalPrivate}</p>
-            </div>
-            <a
-                href="/admin/create?category=privateCustomer"
-                class="p-3 bg-purple-600 hover:bg-purple-500 rounded-lg text-white shadow-lg shadow-purple-500/20 transition-all"
+            <div
+                class="absolute -right-6 -top-6 w-24 h-24 bg-green-500/10 rounded-full blur-xl group-hover:bg-green-500/20 transition-all"
             >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 4v16m8-8H4"></path>
-                </svg>
-            </a>
+            </div>
+            <p
+                class="text-green-200 text-xs font-medium uppercase tracking-wider mb-2"
+            >
+                Interés de Contacto
+            </p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-4xl font-bold text-white">{contactClicks}</p>
+                <span class="text-xs text-green-300">clics en forms</span>
+            </div>
+        </div>
+
+        <!-- Inventory Stats -->
+        <div
+            class="bg-purple-900/40 border border-purple-500/20 rounded-xl p-6 flex flex-col relative overflow-hidden group"
+        >
+            <div
+                class="absolute -right-6 -top-6 w-24 h-24 bg-purple-500/10 rounded-full blur-xl group-hover:bg-purple-500/20 transition-all"
+            >
+            </div>
+            <p
+                class="text-purple-200 text-xs font-medium uppercase tracking-wider mb-2"
+            >
+                Total Proyectos
+            </p>
+            <div class="flex items-baseline gap-2">
+                <p class="text-4xl font-bold text-white">
+                    {customersData.length}
+                </p>
+                <span class="text-xs text-purple-300">activos</span>
+            </div>
+            <div class="mt-auto pt-2 flex gap-2 text-xs text-white/50">
+                <span>{enterprisesData.length} Empresas</span>
+                <span>•</span>
+                <span>{privateCustomersData.length} Particulares</span>
+            </div>
         </div>
     </div>
 
-    <!-- Content Sections -->
-    <main class="max-w-7xl mx-auto space-y-12">
-        <!-- Enterprise Section -->
-        <section>
-            <div class="flex items-center gap-4 mb-6">
-                <h2 class="text-2xl font-bold text-white">Primeras Marcas</h2>
-                <div
-                    class="h-px flex-1 bg-gradient-to-r from-indigo-500/50 to-transparent"
+    <!-- Data Table Section -->
+    <main class="max-w-7xl mx-auto space-y-6">
+        <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-white">Gestión de Contenido</h2>
+            <div class="flex gap-2">
+                <a
+                    href="/admin/create?category=enterprise"
+                    class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2"
                 >
-                </div>
-            </div>
-
-            <div
-                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-            >
-                {
-                    enterprisesData.length > 0 ? (
-                        enterprisesData.map((info) => (
-                            <CostumerCard {...info} />
-                        ))
-                    ) : (
-                        <div class="col-span-full py-12 text-center text-white/30 border-2 border-dashed border-white/5 rounded-xl">
-                            No hay elementos en esta categoría
-                        </div>
-                    )
-                }
-            </div>
-        </section>
-
-        <!-- Private Customer Section -->
-        <section>
-            <div class="flex items-center gap-4 mb-6">
-                <h2 class="text-2xl font-bold text-white">Particulares</h2>
-                <div
-                    class="h-px flex-1 bg-gradient-to-r from-purple-500/50 to-transparent"
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        ><path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 4v16m8-8H4"></path></svg
+                    >
+                    Añadir Empresa
+                </a>
+                <a
+                    href="/admin/create?category=privateCustomer"
+                    class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-purple-500/20 transition-all flex items-center gap-2"
                 >
-                </div>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        ><path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 4v16m8-8H4"></path></svg
+                    >
+                    Añadir Particular
+                </a>
             </div>
+        </div>
 
-            <div
-                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-            >
-                {
-                    privateCustomersData.length > 0 ? (
-                        privateCustomersData.map((info) => (
-                            <CostumerCard {...info} />
-                        ))
-                    ) : (
-                        <div class="col-span-full py-12 text-center text-white/30 border-2 border-dashed border-white/5 rounded-xl">
-                            No hay elementos en esta categoría
-                        </div>
-                    )
-                }
+        <div
+            class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-xl"
+        >
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-indigo-100">
+                    <thead
+                        class="bg-white/5 text-xs uppercase text-indigo-300 font-bold tracking-wider"
+                    >
+                        <tr>
+                            <th class="px-6 py-4">Imagen</th>
+                            <th class="px-6 py-4">Título / ID</th>
+                            <th class="px-6 py-4">Categoría</th>
+                            <th class="px-6 py-4 text-center">Estado</th>
+                            <th class="px-6 py-4">Fecha</th>
+                            <th class="px-6 py-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">
+                        {
+                            customersData.map((customer) => (
+                                <tr class="hover:bg-white/5 transition-colors group">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="h-10 w-16 relative rounded overflow-hidden border border-white/10 bg-neutral-800">
+                                            <img
+                                                src={
+                                                    ((customer.images as string[]) ||
+                                                        [])[0] ||
+                                                    "/img/placeholder.webp"
+                                                }
+                                                class="w-full h-full object-cover"
+                                                loading="lazy"
+                                            />
+                                            <span class="absolute bottom-0 right-0 bg-black/60 text-[10px] text-white px-1 leading-none rounded-tl">
+                                                {
+                                                    (
+                                                        (customer.images as string[]) ||
+                                                        []
+                                                    ).length
+                                                }
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="font-medium text-white">
+                                            {customer.title}
+                                        </div>
+                                        <div class="text-xs text-indigo-300/50">
+                                            ID: {customer.customer_id}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
+                                                customer.category ===
+                                                "enterprise"
+                                                    ? "bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
+                                                    : "bg-purple-500/10 text-purple-300 border border-purple-500/20"
+                                            }`}
+                                        >
+                                            {customer.category === "enterprise"
+                                                ? "Empresa"
+                                                : "Particular"}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <form
+                                            action="/api/customers/toggle-visibility"
+                                            method="POST"
+                                            class="inline-block"
+                                        >
+                                            <input
+                                                type="hidden"
+                                                name="id"
+                                                value={customer.customer_id}
+                                            />
+                                            <button
+                                                type="submit"
+                                                class={`px-2 py-1 rounded text-[0.65rem] font-bold uppercase tracking-wider border transition-all ${
+                                                    customer.isVisible
+                                                        ? "bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20"
+                                                        : "bg-neutral-500/10 text-neutral-500 border-neutral-500/20 hover:bg-neutral-500/20"
+                                                }`}
+                                            >
+                                                {customer.isVisible
+                                                    ? "Visible"
+                                                    : "Oculto"}
+                                            </button>
+                                        </form>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-indigo-200/50">
+                                        {new Date(
+                                            customer.published,
+                                        ).toLocaleDateString()}
+                                    </td>
+                                    <td class="px-6 py-4 text-right whitespace-nowrap">
+                                        <div class="flex justify-end gap-2">
+                                            <a
+                                                href={`/productsDB/${customer.customer_id}`}
+                                                target="_blank"
+                                                class="p-1.5 rounded-lg hover:bg-white/10 text-indigo-300 hover:text-white transition-colors"
+                                                title="Ver"
+                                            >
+                                                <EyeIcon class="w-4 h-4" />
+                                            </a>
+                                            <a
+                                                href={`/admin/edit/${customer.customer_id}`}
+                                                class="p-1.5 rounded-lg hover:bg-blue-500/20 text-blue-300 hover:text-blue-100 transition-colors"
+                                                title="Editar"
+                                            >
+                                                <EditIcon class="w-4 h-4" />
+                                            </a>
+                                            <button
+                                                data-id={customer.customer_id}
+                                                class="delete-btn p-1.5 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-100 transition-colors"
+                                                title="Eliminar"
+                                            >
+                                                <TrashIcon class="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        }
+                    </tbody>
+                </table>
             </div>
-        </section>
+        </div>
     </main>
 
-    <!-- Delete Confirmation Dialog -->
+    <!-- Delete Dialog -->
     <dialog
         id="removeDialog"
-        class="fixed inset-0 m-auto bg-neutral-900/90 backdrop-blur-sm border border-white/10 text-white rounded-2xl p-0 shadow-2xl max-w-sm w-full overflow-hidden open:animate-fade-in"
+        class="fixed inset-0 m-auto bg-neutral-900/90 backdrop-blur-sm border border-white/10 text-white rounded-2xl p-0 shadow-2xl max-w-sm w-full overflow-hidden"
     >
         <div class="p-6 text-center">
             <div
                 class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4"
             >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-8 w-8 text-red-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    ></path>
-                </svg>
+                <TrashIcon class="w-8 h-8 text-red-500" />
             </div>
             <h3 class="text-xl font-bold mb-2">¿Eliminar elemento?</h3>
             <p class="text-neutral-400 text-sm mb-6">
-                Esta acción no se puede deshacer. ¿Estás seguro de que quieres
-                continuar?
+                Esta acción no se puede deshacer.
             </p>
-
             <footer class="flex gap-3 justify-center">
                 <button
                     id="confirmNo"
                     class="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-medium transition-colors"
+                    >Cancelar</button
                 >
-                    Cancelar
-                </button>
                 <form action="/api/customers/delete" method="POST">
                     <input
                         type="hidden"
@@ -275,68 +361,37 @@ const totalPrivate = privateCustomersData.length;
                     />
                     <button
                         type="submit"
-                        id="confirmYes"
                         class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium shadow-lg shadow-red-500/20 transition-colors"
+                        >Sí, eliminar</button
                     >
-                        Sí, eliminar
-                    </button>
                 </form>
             </footer>
         </div>
     </dialog>
 </div>
 
-<style>
-    dialog[open] {
-        animation: fadeIn 0.2s ease-out;
-    }
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            scale: 0.95;
-        }
-        to {
-            opacity: 1;
-            scale: 1;
-        }
-    }
-</style>
-
 <script>
-    import { $ } from "@/consts/dom-selector.ts";
+    import { $ } from "@/consts/dom-selector";
 
-    // const confirmYes = $("#confirmYes"); // Handled by form now
-    const confirmNo = $("#confirmNo");
     const removeDialog = $("#removeDialog") as HTMLDialogElement;
     const deleteInputId = $("#deleteInputId") as HTMLInputElement;
-
-    // Delegate event listener for delete buttons (assuming they have class 'delete-btn' or similar,
-    // but CostumerCard currently uses `button id="removeButton"` which is invalid for multiple elements)
-    // We need to listen to clicks on the main container and check for delete button
+    const confirmNo = $("#confirmNo");
 
     document.addEventListener("click", (e) => {
         const target = e.target as HTMLElement;
-        // Find closest button with data-id
-        const removeBtn = target.closest("button[data-id]");
-        if (removeBtn && removeBtn.id === "removeButton") {
-            const id = removeBtn.getAttribute("data-id");
-            if (id && deleteInputId) {
+        const deleteBtn = target.closest(".delete-btn"); // Class based selector
+
+        if (deleteBtn) {
+            const id = deleteBtn.getAttribute("data-id");
+            if (id) {
                 deleteInputId.value = id;
                 removeDialog?.showModal();
             }
         }
     });
 
-    if (confirmNo) {
-        confirmNo.addEventListener("click", () => {
-            removeDialog?.close();
-        });
-    }
-
-    // Close on backdrop click
-    removeDialog?.addEventListener("click", (event) => {
-        if (event.target === removeDialog) {
-            removeDialog.close();
-        }
+    confirmNo?.addEventListener("click", () => removeDialog?.close());
+    removeDialog?.addEventListener("click", (e) => {
+        if (e.target === removeDialog) removeDialog.close();
     });
 </script>

@@ -1,4 +1,4 @@
-import { d as db, C as Customers } from '../../../chunks/_astro_db_ChF5lYrH.mjs';
+import { d as db, C as Customers } from '../../../chunks/_astro_db_Cb5B9jDV.mjs';
 import { isDbError } from '@astrojs/db/dist/runtime/virtual.js';
 export { renderers } from '../../../renderers.mjs';
 

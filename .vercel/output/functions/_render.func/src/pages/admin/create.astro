@@ -58,6 +58,10 @@ if (Astro.request.method === "POST") {
 		// Define la subcarpeta
 		const response: any = await uploadStream(uint8Array, {
 			folder: folder,
+			transformation: [
+				{ quality: "auto:best", fetch_format: "auto" },
+				{ width: 1920, crop: "limit" }, // Prevent upscale, limit max width
+			],
 		});
 
 		images_urls.push(response.url);

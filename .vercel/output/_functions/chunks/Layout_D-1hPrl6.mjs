@@ -148,11 +148,17 @@ const $$Footer = createComponent(($$result, $$props, $$slots) => {
 }, "C:/Users/Daniel/Desktop/ToldoPerfil/src/sections/Footer.astro", void 0);
 
 const $$Astro = createAstro("https://toldoperfil.es");
-const $$Layout = createComponent(($$result, $$props, $$slots) => {
+const $$Layout = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
   Astro2.self = $$Layout;
-  const { title, description, preload, image, canonical = "https://toldoperfil.es" } = Astro2.props;
-  return renderTemplate`<html lang="es"${addAttribute(renderTransition($$result, "smooz4hq", "none", ""), "data-astro-transition-scope")}> <head>${renderComponent($$result, "SEO", $$SEO, { "canonical": canonical, "description": description, "image": image, "preload": preload, "title": title })}${renderComponent($$result, "ViewTransitions", $$ClientRouter, {})}${renderHead()}</head> <body${addAttribute(renderTransition($$result, "yxpohs6f", "", "body"), "data-astro-transition-scope")}> ${renderComponent($$result, "Header", $$Header, { "isVisibleNav": Astro2.props.isVisibleNav || false })} ${renderSlot($$result, $$slots["default"])} ${renderComponent($$result, "Footer", $$Footer, {})} </body></html>`;
+  const {
+    title,
+    description,
+    preload,
+    image,
+    canonical = "https://toldoperfil.es"
+  } = Astro2.props;
+  return renderTemplate`<html lang="es"${addAttribute(renderTransition($$result, "smooz4hq", "none", ""), "data-astro-transition-scope")}> <head>${renderComponent($$result, "SEO", $$SEO, { "canonical": canonical, "description": description, "image": image, "preload": preload, "title": title })}${renderComponent($$result, "ViewTransitions", $$ClientRouter, {})}${renderHead()}</head> <body${addAttribute(renderTransition($$result, "yxpohs6f", "", "body"), "data-astro-transition-scope")}> ${renderComponent($$result, "Header", $$Header, { "isVisibleNav": Astro2.props.isVisibleNav || false })} ${renderSlot($$result, $$slots["default"])} ${renderComponent($$result, "Footer", $$Footer, {})}  ${renderScript($$result, "C:/Users/Daniel/Desktop/ToldoPerfil/src/layouts/Layout.astro?astro&type=script&index=0&lang.ts")}</body></html>`;
 }, "C:/Users/Daniel/Desktop/ToldoPerfil/src/layouts/Layout.astro", "self");
 
 export { $$Typography as $, $$Layout as a, $$SocialButtons as b };

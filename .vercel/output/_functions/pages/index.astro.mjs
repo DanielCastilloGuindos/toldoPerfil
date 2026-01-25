@@ -1,12 +1,12 @@
 /* empty css                                  */
 import { a as createComponent, m as maybeRenderHead, r as renderComponent, b as renderTemplate, c as createAstro, e as addAttribute, g as renderTransition, f as renderScript } from '../chunks/astro/server_ZnJZev0u.mjs';
 import 'piccolore';
-import { b as $$SocialButtons, a as $$Layout } from '../chunks/Layout_CxQaALMe.mjs';
+import { b as $$SocialButtons, a as $$Layout } from '../chunks/Layout_D-1hPrl6.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useState, useRef, useEffect } from 'react';
 import 'clsx';
 /* empty css                                 */
-import { d as db, C as Customers } from '../chunks/_astro_db_ChF5lYrH.mjs';
+import { d as db, C as Customers } from '../chunks/_astro_db_Cb5B9jDV.mjs';
 import { eq } from '@astrojs/db/dist/runtime/virtual.js';
 import { $ as $$Image } from '../chunks/_astro_assets_BP655fp3.mjs';
 import { F as FAQs } from '../chunks/SEO_VZXw4oM8.mjs';
@@ -159,9 +159,9 @@ Unete a nuestra familia y transforma tu espacio exterior con estilo y funcionali
 </p> </article> </div> </section>`;
 }, "C:/Users/Daniel/Desktop/ToldoPerfil/src/sections/Info.astro", void 0);
 
-const $$Astro$2 = createAstro("https://toldoperfil.es");
+const $$Astro$1 = createAstro("https://toldoperfil.es");
 const $$ProductCardDB = createComponent(($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro$2, $$props, $$slots);
+  const Astro2 = $$result.createAstro($$Astro$1, $$props, $$slots);
   Astro2.self = $$ProductCardDB;
   const { id, title, description, image = "/img/example.jpg", linked = true } = Astro2.props;
   return renderTemplate`${maybeRenderHead()}<a class="group"${addAttribute(`/productsDB/${id}`, "href")}${addAttribute(`Enlace para ver los toldos montados para ${title}`, "aria-label")}> <figure class="relative overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear scroll-effect"> <img class="w-full object-cover aspect-[1.82/1]"${addAttribute(`Imagen de ${title}`, "alt")}${addAttribute(image, "src")} loading="lazy"${addAttribute(renderTransition($$result, "kyzh43ip", "", "image_" + image), "data-astro-transition-scope")}> <figcaption class="absolute top-0 left-0 py-10 px-8 w-full h-full flex flex-col justify-center sm:justify-start items-center sm:items-start bg-indigo-950 bg-opacity-50 sm:bg-opacity-0 sm:group-hover:bg-opacity-50 text-white text-center sm:text-left transition-all duration-500 group-hover:duration-200 delay-500 group-hover:delay-0 leading-[4rem]"> <h5 class="text-[1.65rem] leading-9 tracking-wider font-bold uppercase opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500"${addAttribute(renderTransition($$result, "npemx7e4", "slide", "title_" + id), "data-astro-transition-scope")}> ${title} </h5> <span class="text-[0.95rem] font-[Helvetica] tracking-wider opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500"> ${description} </span> </figcaption> </figure> </a>`;
@@ -217,9 +217,9 @@ Asesoramos a nuestros clientes el tipo de toldo que le conviene
   )} </article> </div> </section>`;
 }, "C:/Users/Daniel/Desktop/ToldoPerfil/src/sections/PrivateCustomers.astro", void 0);
 
-const $$Astro$1 = createAstro("https://toldoperfil.es");
+const $$Astro = createAstro("https://toldoperfil.es");
 const $$Check = createComponent(($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro$1, $$props, $$slots);
+  const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
   Astro2.self = $$Check;
   return renderTemplate`${maybeRenderHead()}<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"${addAttribute(Astro2.props.class, "class:list")} role="img" aria-label="Icono check"> <path fill="currentColor" d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm-1.999 14.413-3.713-3.705L7.7 11.292l2.299 2.295 5.294-5.294 1.414 1.414-6.706 6.706z"></path> </svg>`;
 }, "C:/Users/Daniel/Desktop/ToldoPerfil/src/icons/check.astro", void 0);
@@ -250,26 +250,19 @@ const $$FAQs = createComponent(($$result, $$props, $$slots) => {
 ¿Tienes una pregunta? Mándanos un mensaje a través de <a href="#contact-us" class="text-indigo-800 font-semibold" aria-label="Enlace a la sección &quot;Formulario&quot;">nuestro formulario</a> </h4> </header> <article> ${renderComponent($$result, "FAQComponent", $$FAQComponent, {})} </article> </div> </section>`;
 }, "C:/Users/Daniel/Desktop/ToldoPerfil/src/sections/FAQs.astro", void 0);
 
-const $$Astro = createAstro("https://toldoperfil.es");
 const $$FormContact = createComponent(async ($$result, $$props, $$slots) => {
-  const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
-  Astro2.self = $$FormContact;
   return renderTemplate`${maybeRenderHead()}<form class="w-full" onsubmit="event => event.preventDefault();return false"> <fieldset class="flex flex-col gap-4 text-sm w-full"> <div class="relative"> <label for="fullname" class="text-indigo-950 text-sm cursor-pointer">
 ¡Hola! ¿Cómo te llamas?
-</label> <input type="text" id="fullname" name="fullname" placeholder="" class="relative w-full py-1 px-4 outline-none text-indigo-900 placeholder-indigo-400 border-0 border-b border-indigo-900 cursor-pointer bg-transparent"> <!-- <label
-				for="fullname"
-				class="absolute top-0 left-0 transition-all duration-300  scale-75 -top-1/2 peer-focus: peer-focus:scale-75 peer-placeholder-shown:-translate-y-0 peer-placeholder-shown:scale-100 -z-0 cursor-pointer"
-				>¡Hola! ¿Cómo te llamas?</label
-			> --> </div> <div class="relative"> <label for="email" class="text-indigo-950 text-sm cursor-pointer">
+</label> <input type="text" id="fullname" name="fullname" required placeholder="" class="relative w-full py-1 px-4 outline-none text-indigo-900 placeholder-indigo-400 border-0 border-b border-indigo-900 cursor-pointer bg-transparent"> </div> <div class="relative"> <label for="email" class="text-indigo-950 text-sm cursor-pointer">
 ¿Cuál es tu correo?
-</label> <input type="email" id="email" name="email" placeholder="" class="relative w-full py-1 px-4 outline-none text-indigo-900 placeholder-indigo-400 border-0 border-b border-indigo-900 cursor-pointer bg-transparent"> </div> <div class="relative"> <label for="phone" class="text-indigo-950 text-sm cursor-pointer">
+</label> <input type="email" id="email" name="email" required placeholder="" class="relative w-full py-1 px-4 outline-none text-indigo-900 placeholder-indigo-400 border-0 border-b border-indigo-900 cursor-pointer bg-transparent"> </div> <div class="relative"> <label for="phone" class="text-indigo-950 text-sm cursor-pointer">
 ¿A qué número podemos llamarte?
 </label> <input type="tel" id="phone" name="phone" placeholder="" class="relative w-full py-1 px-4 outline-none text-indigo-900 placeholder-indigo-400 border-0 border-b border-indigo-900 cursor-pointer bg-transparent"> </div> <div class="relative"> <label for="category" class="text-indigo-950 text-sm cursor-pointer">
 Lo que necesitas de nosotros es...
 </label> <select name="category" id="category" class="relative w-full py-1 px-4 outline-none text-indigo-900 placeholder-indigo-400 border-0 border-b border-indigo-900 cursor-pointer bg-transparent"> <option value="">Selecciona una opción</option> <option value="Pedir presupuesto">Pedir presupuesto</option> <option value="Información">Información</option> </select> </div> <div class="relative"> <label for="description" class="text-indigo-950 text-sm cursor-pointer">
 ¡Escribenos! Estaremos encantados de leerte
-</label> <textarea name="description" id="description" placeholder="" class="relative w-full py-1 px-4 outline-none text-indigo-900 placeholder-indigo-400 border-0 border-b border-indigo-900 cursor-pointer bg-transparent resize-none"></textarea> </div> <div class="flex justify-center sm:justify-end"> <button id="contactButton" aria-label="Boton de formulario de contacto" type="submit" class="w-28 py-3 px-5 opacity-100[transition-property: translate] duration-200 ease-linear hover:-translate-y-0.5 button">
-Contactar
+</label> <textarea name="description" id="description" placeholder="" class="relative w-full py-1 px-4 outline-none text-indigo-900 placeholder-indigo-400 border-0 border-b border-indigo-900 cursor-pointer bg-transparent resize-none"></textarea> </div> <div class="flex justify-center sm:justify-end"> <button id="contactButton" aria-label="Contactar por WhatsApp" type="submit" class="w-auto py-3 px-5 opacity-100[transition-property: translate] duration-200 ease-linear hover:-translate-y-0.5 button flex items-center gap-2 bg-green-600 text-white border-green-700 shadow-md"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"> <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.894-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"></path> </svg>
+Contactar por WhatsApp
 </button> </div> </fieldset> </form> ${renderScript($$result, "C:/Users/Daniel/Desktop/ToldoPerfil/src/components/FormContact.astro?astro&type=script&index=0&lang.ts")}`;
 }, "C:/Users/Daniel/Desktop/ToldoPerfil/src/components/FormContact.astro", void 0);
 

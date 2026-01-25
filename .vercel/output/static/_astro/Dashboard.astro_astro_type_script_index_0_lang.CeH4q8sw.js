@@ -1,0 +1,1 @@
+import{$ as o}from"./dom-selector.CC0qcKcF.js";const e=o("#removeDialog"),d=o("#deleteInputId"),i=o("#confirmNo");document.addEventListener("click",t=>{const n=t.target.closest(".delete-btn");if(n){const c=n.getAttribute("data-id");c&&(d.value=c,e?.showModal())}});i?.addEventListener("click",()=>e?.close());e?.addEventListener("click",t=>{t.target===e&&e.close()});

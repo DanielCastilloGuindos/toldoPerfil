@@ -40,6 +40,10 @@
 			"dest": "_render"
 		},
 		{
+			"src": "^/api/analytics/track/?$",
+			"dest": "_render"
+		},
+		{
 			"src": "^/api/auth/login/?$",
 			"dest": "_render"
 		},
@@ -57,6 +61,10 @@
 		},
 		{
 			"src": "^/api/customers/select\\.json/?$",
+			"dest": "_render"
+		},
+		{
+			"src": "^/api/customers/toggle-visibility/?$",
 			"dest": "_render"
 		},
 		{

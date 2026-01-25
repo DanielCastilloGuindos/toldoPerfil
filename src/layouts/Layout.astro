@@ -1,20 +1,25 @@
 ---
-import { ViewTransitions } from 'astro:transitions';
+import { ViewTransitions } from "astro:transitions";
 
-import SEO, { type Preload } from "@/components/SEO.astro"
-import Header from '@/sections/Header.astro'
-import Footer from '@/sections/Footer.astro'
+import SEO, { type Preload } from "@/components/SEO.astro";
+import Header from "@/sections/Header.astro";
+import Footer from "@/sections/Footer.astro";
 
 interface Props {
-	title: string
-	description: string
-	preload?: Array<Preload>
-	canonical?: string
-	image?: string
+	title: string;
+	description: string;
+	preload?: Array<Preload>;
+	canonical?: string;
+	image?: string;
 }
 
-
-const { title, description, preload, image, canonical = 'https://toldoperfil.es' } = Astro.props
+const {
+	title,
+	description,
+	preload,
+	image,
+	canonical = "https://toldoperfil.es",
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -28,10 +33,10 @@ const { title, description, preload, image, canonical = 'https://toldoperfil.es'
 			title={title}
 		/>
 
-    <ViewTransitions />
+		<ViewTransitions />
 	</head>
-	<body transition:name="body" >
-		<Header isVisibleNav={ Astro.props.isVisibleNav || false } />
+	<body transition:name="body">
+		<Header isVisibleNav={Astro.props.isVisibleNav || false} />
 		<slot />
 		<Footer />
 	</body>
@@ -97,24 +102,26 @@ const { title, description, preload, image, canonical = 'https://toldoperfil.es'
 			scrollbar-width: thin;
 		}
 	}
-	.button, dialog {
+	.button,
+	dialog {
 		@apply text-indigo-900 border-2 border-indigo-900 rounded;
 		box-shadow:
-			0 2px 4px 0 rgba(136,144,195,0.2),
-			0 5px 15px 0 rgba(37,44,97,0.15);
+			0 2px 4px 0 rgba(136, 144, 195, 0.2),
+			0 5px 15px 0 rgba(37, 44, 97, 0.15);
 	}
- .secondary-button {
+	.secondary-button {
 		@apply text-white border-2 border-indigo-900 bg-indigo-950 rounded;
 		box-shadow:
-			0 2px 4px 0 rgba(136,144,195,0.2),
-			0 5px 15px 0 rgba(37,44,97,0.15);
+			0 2px 4px 0 rgba(136, 144, 195, 0.2),
+			0 5px 15px 0 rgba(37, 44, 97, 0.15);
 	}
 
 	@keyframes scrollEffect {
 		from {
 			opacity: 0;
 			scale: 25%;
-		},
+		}
+		,
 		to {
 			opacity: 1;
 			scale: 100%;
@@ -130,3 +137,31 @@ const { title, description, preload, image, canonical = 'https://toldoperfil.es'
 		animation-fill-mode: both;
 	}
 </style>
+
+<script>
+	// Simple Analytics Tracking
+	const trackPageView = async () => {
+		try {
+			await fetch("/api/analytics/track", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					type: "page_view",
+					data: {
+						path: window.location.pathname,
+						referrer: document.referrer,
+					},
+				}),
+			});
+		} catch (e) {
+			console.error("Analytics Error", e);
+		}
+	};
+
+	// Run on load (and on view transitions if used, but simple is fine for now)
+	document.addEventListener("astro:page-load", trackPageView);
+	// Fallback if view transitions are not fully active or for initial load
+	if (!document.documentElement.dataset.astroTransitionInitial) {
+		trackPageView();
+	}
+</script>

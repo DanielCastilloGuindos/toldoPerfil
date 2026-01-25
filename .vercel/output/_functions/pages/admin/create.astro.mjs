@@ -2,7 +2,7 @@
 import { c as createAstro, a as createComponent, r as renderComponent, b as renderTemplate, m as maybeRenderHead, e as addAttribute } from '../../chunks/astro/server_ZnJZev0u.mjs';
 import 'piccolore';
 import { $ as $$AdminLayout } from '../../chunks/AdminLayout_2uX_sDBs.mjs';
-import { d as db, C as Customers } from '../../chunks/_astro_db_ChF5lYrH.mjs';
+import { d as db, C as Customers } from '../../chunks/_astro_db_Cb5B9jDV.mjs';
 import { v2 } from 'cloudinary';
 import { isDbError } from '@astrojs/db/dist/runtime/virtual.js';
 export { renderers } from '../../renderers.mjs';
@@ -42,7 +42,12 @@ const $$Create = createComponent(async ($$result, $$props, $$slots) => {
       const arrayBuffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
       const response = await uploadStream(uint8Array, {
-        folder
+        folder,
+        transformation: [
+          { quality: "auto:best", fetch_format: "auto" },
+          { width: 1920, crop: "limit" }
+          // Prevent upscale, limit max width
+        ]
       });
       images_urls.push(response.url);
     }
