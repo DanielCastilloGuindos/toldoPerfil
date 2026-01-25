@@ -1,15 +1,19 @@
 ---
-import Layout from '@/layouts/AdminLayout.astro';
-import LoginForm from '@/components/admin/LoginForm.astro';
+import Layout from "@/layouts/AdminLayout.astro";
+import LoginForm from "@/components/admin/LoginForm.astro";
+import Dashboard from "@/components/admin/Dashboard.astro";
+
+const cookie = Astro.cookies.get("admin_session");
+const isAuthenticated = cookie?.value === "authenticated";
 ---
 
 <Layout
-description="Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!"
-title="Toldo Perfil - Especialistas en toldos personalizados de alta calidad"
-canonical="https://toldoperfil.es"
-isVisibleNav={true}
+	description="Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!"
+	title="Toldo Perfil - Especialistas en toldos personalizados de alta calidad"
+	canonical="https://toldoperfil.es"
+	canonical="https://toldoperfil.es"
 >
 	<main class="font-sans">
-		<LoginForm />
+		{isAuthenticated ? <Dashboard /> : <LoginForm />}
 	</main>
 </Layout>

@@ -1,6 +1,7 @@
 ---
 import Typography from "@/components/Typography.astro";
 import SocialButtons from "@/components/SocialButtons.astro";
+import Lock from "@/icons/lock.astro";
 ---
 
 <div class="w-full flex flex-col justify-center items-center">
@@ -16,14 +17,16 @@ import SocialButtons from "@/components/SocialButtons.astro";
 					<a
 						href="#brandsAndFranchises"
 						class="hover:underline"
-						aria-label='Enlace a la sección "Productos"'>Productos</a
+						aria-label='Enlace a la sección "Productos"'
+						>Productos</a
 					>
 				</li>
 				<li class="mb-4">
 					<a
 						href="#services"
 						class="hover:underline"
-						aria-label='Enlace a la sección "Servicios"'>Servicios</a
+						aria-label='Enlace a la sección "Servicios"'
+						>Servicios</a
 					>
 				</li>
 				<li class="mb-4">
@@ -37,7 +40,8 @@ import SocialButtons from "@/components/SocialButtons.astro";
 					<a
 						href="#get-a-quote"
 						class="hover:underline"
-						aria-label='Enlace a la sección "Tu prespuesto"'>Tu prespuesto</a
+						aria-label='Enlace a la sección "Tu prespuesto"'
+						>Tu prespuesto</a
 					>
 				</li>
 			</ul>
@@ -61,7 +65,8 @@ import SocialButtons from "@/components/SocialButtons.astro";
 					<a
 						href="/legal-advice"
 						class="hover:underline"
-						aria-label='Enlace a la sección "Aviso Legal"'>Aviso Legal</a
+						aria-label='Enlace a la sección "Aviso Legal"'
+						>Aviso Legal</a
 					>
 				</li>
 			</ul>
@@ -84,12 +89,16 @@ import SocialButtons from "@/components/SocialButtons.astro";
 		>
 			&copy; {new Date().getFullYear()}
 			Toldo Perfil
-			<span
-				aria-hidden="true"
-				class="hidden md:inline">|
-			</span>
+			<span aria-hidden="true" class="hidden md:inline">| </span>
 			<br aria-hidden="true" class="block md:hidden" />
 			Todos los derechos reservados.
+			<a
+				href="/admin"
+				aria-label="Area privada"
+				class="inline-block ml-2 opacity-30 hover:opacity-100 transition-opacity duration-300 align-middle"
+			>
+				<Lock class="w-4 h-4" />
+			</a>
 		</Typography>
 
 		<SocialButtons />

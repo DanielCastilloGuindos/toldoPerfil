@@ -1,0 +1,322 @@
+---
+import Layout from "@/layouts/AdminLayout.astro";
+import CostumerCard from "@/components/admin/CostumerCard.astro";
+import { db, Customers, eq } from "astro:db";
+
+// Fetch data
+const enterprisesData = await db
+    .select()
+    .from(Customers)
+    .where(eq(Customers.category, "enterprise"));
+
+const privateCustomersData = await db
+    .select()
+    .from(Customers)
+    .where(eq(Customers.category, "privateCustomer"));
+
+// Stats
+const totalEnterprise = enterprisesData.length;
+const totalPrivate = privateCustomersData.length;
+---
+
+<!-- Background similar to Login -->
+<div class="fixed inset-0 -z-10 bg-neutral-900">
+    <div
+        class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"
+    >
+    </div>
+    <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div>
+</div>
+
+<div class="min-h-screen font-sans text-white p-6">
+    <!-- Navbar / HUD -->
+    <header
+        class="sticky top-4 z-50 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-4 mb-8 flex flex-col md:flex-row justify-between items-center gap-4"
+    >
+        <div class="flex items-center gap-4">
+            <div
+                class="p-2 bg-indigo-600/20 rounded-lg border border-indigo-500/30"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6 text-indigo-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                    ></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight">
+                    Panel de Control
+                </h1>
+                <p class="text-xs text-indigo-200">Gestión de ToldoPerfil</p>
+            </div>
+        </div>
+
+        <nav class="flex items-center gap-3">
+            <a
+                href="/"
+                class="px-4 py-2 rounded-lg bg-neutral-800/50 hover:bg-neutral-800 border border-white/5 text-sm font-medium transition-all hover:text-indigo-300 flex items-center gap-2"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                    ></path>
+                </svg>
+                Ir a Inicio
+            </a>
+            <form action="/api/auth/logout" method="POST">
+                <button
+                    type="submit"
+                    class="px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-300 text-sm font-medium transition-all flex items-center gap-2"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        ></path>
+                    </svg>
+                    Cerrar Sesión
+                </button>
+            </form>
+        </nav>
+    </header>
+
+    <!-- Stats Review (Optional HUD Element) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 max-w-7xl mx-auto">
+        <div
+            class="bg-indigo-900/40 border border-indigo-500/20 rounded-xl p-6 flex items-center justify-between"
+        >
+            <div>
+                <p
+                    class="text-indigo-200 text-sm font-medium uppercase tracking-wider"
+                >
+                    Primeras Marcas
+                </p>
+                <p class="text-3xl font-bold text-white mt-1">
+                    {totalEnterprise}
+                </p>
+            </div>
+            <a
+                href="/admin/create?category=enterprise"
+                class="p-3 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white shadow-lg shadow-indigo-500/20 transition-all"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4"></path>
+                </svg>
+            </a>
+        </div>
+        <div
+            class="bg-purple-900/40 border border-purple-500/20 rounded-xl p-6 flex items-center justify-between"
+        >
+            <div>
+                <p
+                    class="text-purple-200 text-sm font-medium uppercase tracking-wider"
+                >
+                    Particulares
+                </p>
+                <p class="text-3xl font-bold text-white mt-1">{totalPrivate}</p>
+            </div>
+            <a
+                href="/admin/create?category=privateCustomer"
+                class="p-3 bg-purple-600 hover:bg-purple-500 rounded-lg text-white shadow-lg shadow-purple-500/20 transition-all"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 4v16m8-8H4"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Content Sections -->
+    <main class="max-w-7xl mx-auto space-y-12">
+        <!-- Enterprise Section -->
+        <section>
+            <div class="flex items-center gap-4 mb-6">
+                <h2 class="text-2xl font-bold text-white">Primeras Marcas</h2>
+                <div
+                    class="h-px flex-1 bg-gradient-to-r from-indigo-500/50 to-transparent"
+                >
+                </div>
+            </div>
+
+            <div
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            >
+                {
+                    enterprisesData.length > 0 ? (
+                        enterprisesData.map((info) => (
+                            <CostumerCard {...info} />
+                        ))
+                    ) : (
+                        <div class="col-span-full py-12 text-center text-white/30 border-2 border-dashed border-white/5 rounded-xl">
+                            No hay elementos en esta categoría
+                        </div>
+                    )
+                }
+            </div>
+        </section>
+
+        <!-- Private Customer Section -->
+        <section>
+            <div class="flex items-center gap-4 mb-6">
+                <h2 class="text-2xl font-bold text-white">Particulares</h2>
+                <div
+                    class="h-px flex-1 bg-gradient-to-r from-purple-500/50 to-transparent"
+                >
+                </div>
+            </div>
+
+            <div
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            >
+                {
+                    privateCustomersData.length > 0 ? (
+                        privateCustomersData.map((info) => (
+                            <CostumerCard {...info} />
+                        ))
+                    ) : (
+                        <div class="col-span-full py-12 text-center text-white/30 border-2 border-dashed border-white/5 rounded-xl">
+                            No hay elementos en esta categoría
+                        </div>
+                    )
+                }
+            </div>
+        </section>
+    </main>
+
+    <!-- Delete Confirmation Dialog -->
+    <dialog
+        id="removeDialog"
+        class="fixed inset-0 m-auto bg-neutral-900/90 backdrop-blur-sm border border-white/10 text-white rounded-2xl p-0 shadow-2xl max-w-sm w-full overflow-hidden open:animate-fade-in"
+    >
+        <div class="p-6 text-center">
+            <div
+                class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-8 w-8 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    ></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">¿Eliminar elemento?</h3>
+            <p class="text-neutral-400 text-sm mb-6">
+                Esta acción no se puede deshacer. ¿Estás seguro de que quieres
+                continuar?
+            </p>
+
+            <footer class="flex gap-3 justify-center">
+                <button
+                    id="confirmNo"
+                    class="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-medium transition-colors"
+                >
+                    Cancelar
+                </button>
+                <button
+                    id="confirmYes"
+                    class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium shadow-lg shadow-red-500/20 transition-colors"
+                >
+                    Sí, eliminar
+                </button>
+            </footer>
+        </div>
+    </dialog>
+</div>
+
+<style>
+    dialog[open] {
+        animation: fadeIn 0.2s ease-out;
+    }
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            scale: 0.95;
+        }
+        to {
+            opacity: 1;
+            scale: 1;
+        }
+    }
+</style>
+
+<script>
+    import { $ } from "@/consts/dom-selector.ts";
+
+    const confirmYes = $("#confirmYes");
+    const confirmNo = $("#confirmNo");
+    const removeDialog = $("#removeDialog") as HTMLDialogElement;
+
+    if (confirmYes) {
+        confirmYes.addEventListener("click", () => {
+            // TODO: Add actual delete logic (API call) here in the future
+            removeDialog?.close();
+        });
+    }
+
+    if (confirmNo) {
+        confirmNo.addEventListener("click", () => {
+            removeDialog?.close();
+        });
+    }
+
+    // Close on backdrop click
+    removeDialog?.addEventListener("click", (event) => {
+        if (event.target === removeDialog) {
+            removeDialog.close();
+        }
+    });
+</script>
