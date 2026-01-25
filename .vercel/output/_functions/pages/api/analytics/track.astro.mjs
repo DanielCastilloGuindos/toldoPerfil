@@ -8,9 +8,23 @@ const POST = async ({ request }) => {
     if (!type) {
       return new Response("Missing type", { status: 400 });
     }
+    const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "Unknown";
+    const city = request.headers.get("x-vercel-ip-city") || "Unknown";
+    const country = request.headers.get("x-vercel-ip-country") || "Unknown";
+    const userAgent = request.headers.get("user-agent") || "Unknown";
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+    const device = isMobile ? "Mobile" : "Desktop";
     await db.insert(Analytics).values({
       type,
-      data,
+      data: {
+        ...data,
+        // Preserve existing data (like referrer, page path)
+        ip,
+        city,
+        country,
+        userAgent,
+        device
+      },
       created_at: /* @__PURE__ */ new Date()
     });
     return new Response(JSON.stringify({ success: true }), {
