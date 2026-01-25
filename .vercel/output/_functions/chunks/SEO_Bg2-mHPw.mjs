@@ -47,7 +47,47 @@ const $$RichResults = createComponent(($$result, $$props, $$slots) => {
     logo: "/img/logo.png",
     name: "Toldo Perfil",
     alternateName: "ToldoPerfil",
-    description: "Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retr\xE1ctiles para terrazas hasta p\xE9rgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. \xA1Transforma tu espacio al aire libre con estilo y protecci\xF3n con Toldo Perfil!"
+    description: "Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retr\xE1ctiles para terrazas hasta p\xE9rgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. \xA1Transforma tu espacio al aire libre con estilo y protecci\xF3n con Toldo Perfil!",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Velilla de San Antonio",
+      addressRegion: "Madrid",
+      addressCountry: "ES"
+    },
+    areaServed: "Madrid"
+  };
+  const localBusinessSchema = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: "Toldo Perfil",
+    image: "https://toldoperfil.es/img/og-seo.png",
+    url: "https://toldoperfil.es",
+    telephone: "+34628404370",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Velilla de San Antonio",
+      addressRegion: "Madrid",
+      postalCode: "28891",
+      addressCountry: "ES"
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 40.366,
+      longitude: -3.488
+    },
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "09:00",
+      closes: "18:00"
+    },
+    areaServed: [
+      "Velilla de San Antonio",
+      "Madrid",
+      "Mejorada del Campo",
+      "Rivas-Vaciamadrid"
+    ],
+    priceRange: "$$"
   };
   const FAQSchema = {
     "@context": "https://schema.org",
@@ -63,7 +103,7 @@ const $$RichResults = createComponent(($$result, $$props, $$slots) => {
       }))
     ]
   };
-  return renderTemplate(_a$1 || (_a$1 = __template$1(['<script type="application/ld+json">', '<\/script> <script type="application/ld+json">', "<\/script>"])), unescapeHTML(JSON.stringify(organizationSchema)), unescapeHTML(JSON.stringify(FAQSchema)));
+  return renderTemplate(_a$1 || (_a$1 = __template$1(['<script type="application/ld+json">', '<\/script> <script type="application/ld+json">', '<\/script> <script type="application/ld+json">', "<\/script>"])), unescapeHTML(JSON.stringify(organizationSchema)), unescapeHTML(JSON.stringify(localBusinessSchema)), unescapeHTML(JSON.stringify(FAQSchema)));
 }, "C:/Users/Daniel/Desktop/ToldoPerfil/src/components/RichResults.astro", void 0);
 
 var __freeze = Object.freeze;

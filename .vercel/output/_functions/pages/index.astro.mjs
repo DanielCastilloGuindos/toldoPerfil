@@ -1,7 +1,7 @@
 /* empty css                                  */
 import { a as createComponent, m as maybeRenderHead, r as renderComponent, b as renderTemplate, c as createAstro, e as addAttribute, g as renderTransition, f as renderScript } from '../chunks/astro/server_ZnJZev0u.mjs';
 import 'piccolore';
-import { b as $$SocialButtons, a as $$Layout } from '../chunks/Layout_D-1hPrl6.mjs';
+import { b as $$SocialButtons, a as $$Layout } from '../chunks/Layout_DViE92D5.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useState, useRef, useEffect } from 'react';
 import 'clsx';
@@ -9,7 +9,7 @@ import 'clsx';
 import { d as db, C as Customers } from '../chunks/_astro_db_Cb5B9jDV.mjs';
 import { eq } from '@astrojs/db/dist/runtime/virtual.js';
 import { $ as $$Image } from '../chunks/_astro_assets_BP655fp3.mjs';
-import { F as FAQs } from '../chunks/SEO_VZXw4oM8.mjs';
+import { F as FAQs } from '../chunks/SEO_Bg2-mHPw.mjs';
 export { renderers } from '../renderers.mjs';
 
 const CarouselSlide = ({ title, description, image, content, isActive = false }) => {
@@ -283,7 +283,7 @@ jfcabezas@toldoperfil.es
 }, "C:/Users/Daniel/Desktop/ToldoPerfil/src/sections/Form.astro", void 0);
 
 const $$Index = createComponent(($$result, $$props, $$slots) => {
-  return renderTemplate`${renderComponent($$result, "Layout", $$Layout, { "description": "Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retr\xE1ctiles para terrazas hasta p\xE9rgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. \xA1Transforma tu espacio al aire libre con estilo y protecci\xF3n con Toldo Perfil!", "title": "Toldo Perfil - Especialistas en toldos personalizados de alta calidad", "canonical": "https://toldoperfil.es", "isVisibleNav": true }, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "Hero", $$Hero, {})} ${maybeRenderHead()}<main class="font-sans"> ${renderComponent($$result2, "Info", $$Info, {})} ${renderComponent($$result2, "BrandsAndFranchises", $$BrandsAndFranchises, {})} ${renderComponent($$result2, "Communities", $$Communities, {})} ${renderComponent($$result2, "Individuals", $$PrivateCustomers, {})} ${renderComponent($$result2, "Products", $$Products, {})} ${renderComponent($$result2, "FAQs", $$FAQs, {})} ${renderComponent($$result2, "Form", $$Form, {})} </main> ` })}`;
+  return renderTemplate`${renderComponent($$result, "Layout", $$Layout, { "description": "Expertos en instalaci\xF3n y reparaci\xF3n de toldos en Velilla de San Antonio y todo Madrid. Toldo Perfil ofrece p\xE9rgolas, capotas y cerramientos de alta calidad y precios competitivos.", "title": "Toldo Perfil - Toldos en Velilla de San Antonio y Madrid", "canonical": "https://toldoperfil.es", "image": "/img/og-seo.png", "isVisibleNav": true }, { "default": ($$result2) => renderTemplate` ${renderComponent($$result2, "Hero", $$Hero, {})} ${maybeRenderHead()}<main class="font-sans"> ${renderComponent($$result2, "Info", $$Info, {})} ${renderComponent($$result2, "BrandsAndFranchises", $$BrandsAndFranchises, {})} ${renderComponent($$result2, "Communities", $$Communities, {})} ${renderComponent($$result2, "Individuals", $$PrivateCustomers, {})} ${renderComponent($$result2, "Products", $$Products, {})} ${renderComponent($$result2, "FAQs", $$FAQs, {})} ${renderComponent($$result2, "Form", $$Form, {})} </main> ` })}`;
 }, "C:/Users/Daniel/Desktop/ToldoPerfil/src/pages/index.astro", void 0);
 
 const $$file = "C:/Users/Daniel/Desktop/ToldoPerfil/src/pages/index.astro";

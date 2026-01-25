@@ -9,7 +9,7 @@ import EyeIcon from "@/icons/admin/eye.astro";
 const customersData = await db
     .select()
     .from(Customers)
-    .orderBy(desc(Customers.created_at));
+    .orderBy(desc(Customers.published));
 
 // Analytics Data
 const analyticsData = await db.select().from(Analytics);

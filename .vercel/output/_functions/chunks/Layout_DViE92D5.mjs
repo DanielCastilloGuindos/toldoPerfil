@@ -1,6 +1,6 @@
 import { c as createAstro, a as createComponent, m as maybeRenderHead, e as addAttribute, f as renderScript, b as renderTemplate, i as createTransitionScope, r as renderComponent, F as Fragment, d as renderSlot, s as spreadAttributes, g as renderTransition, h as renderHead } from './astro/server_ZnJZev0u.mjs';
 import 'piccolore';
-import { $ as $$SEO, a as $$ClientRouter } from './SEO_VZXw4oM8.mjs';
+import { $ as $$SEO, a as $$ClientRouter } from './SEO_Bg2-mHPw.mjs';
 import 'clsx';
 import { $ as $$Image } from './_astro_assets_BP655fp3.mjs';
 /* empty css                         */

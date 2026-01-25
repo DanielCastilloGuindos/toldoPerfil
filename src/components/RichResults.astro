@@ -15,6 +15,47 @@ const organizationSchema = {
 	alternateName: "ToldoPerfil",
 	description:
 		"Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!",
+	address: {
+		"@type": "PostalAddress",
+		addressLocality: "Velilla de San Antonio",
+		addressRegion: "Madrid",
+		addressCountry: "ES",
+	},
+	areaServed: "Madrid",
+};
+
+const localBusinessSchema = {
+	"@context": "https://schema.org",
+	"@type": "LocalBusiness",
+	name: "Toldo Perfil",
+	image: "https://toldoperfil.es/img/og-seo.png",
+	url: "https://toldoperfil.es",
+	telephone: "+34628404370",
+	address: {
+		"@type": "PostalAddress",
+		addressLocality: "Velilla de San Antonio",
+		addressRegion: "Madrid",
+		postalCode: "28891",
+		addressCountry: "ES",
+	},
+	geo: {
+		"@type": "GeoCoordinates",
+		latitude: 40.366,
+		longitude: -3.488,
+	},
+	openingHoursSpecification: {
+		"@type": "OpeningHoursSpecification",
+		dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+		opens: "09:00",
+		closes: "18:00",
+	},
+	areaServed: [
+		"Velilla de San Antonio",
+		"Madrid",
+		"Mejorada del Campo",
+		"Rivas-Vaciamadrid",
+	],
+	priceRange: "$$",
 };
 
 export const FAQs = [
@@ -59,5 +100,9 @@ const FAQSchema = {
 <script
 	type="application/ld+json"
 	set:html={JSON.stringify(organizationSchema)}
+/>
+<script
+	type="application/ld+json"
+	set:html={JSON.stringify(localBusinessSchema)}
 />
 <script type="application/ld+json" set:html={JSON.stringify(FAQSchema)} />

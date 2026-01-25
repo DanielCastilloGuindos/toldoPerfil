@@ -1,7 +1,7 @@
 /* empty css                                  */
 import { a as createComponent, m as maybeRenderHead, f as renderScript, b as renderTemplate, c as createAstro, e as addAttribute, r as renderComponent } from '../chunks/astro/server_ZnJZev0u.mjs';
 import 'piccolore';
-import { $ as $$AdminLayout } from '../chunks/AdminLayout_2uX_sDBs.mjs';
+import { $ as $$AdminLayout } from '../chunks/AdminLayout_BDTdkdy6.mjs';
 import 'clsx';
 import { d as db, C as Customers, A as Analytics } from '../chunks/_astro_db_Cb5B9jDV.mjs';
 import { desc } from '@astrojs/db/dist/runtime/virtual.js';
@@ -41,7 +41,7 @@ const $$Eye = createComponent(($$result, $$props, $$slots) => {
 }, "C:/Users/Daniel/Desktop/ToldoPerfil/src/icons/admin/eye.astro", void 0);
 
 const $$Dashboard = createComponent(async ($$result, $$props, $$slots) => {
-  const customersData = await db.select().from(Customers).orderBy(desc(Customers.created_at));
+  const customersData = await db.select().from(Customers).orderBy(desc(Customers.published));
   const analyticsData = await db.select().from(Analytics);
   const totalViews = analyticsData.filter((a) => a.type === "page_view").length;
   const contactClicks = analyticsData.filter(
