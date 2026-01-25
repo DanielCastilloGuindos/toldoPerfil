@@ -1,0 +1,54 @@
+---
+import Layout from "@/layouts/AdminLayout.astro";
+import ContentTable from "@/components/admin/ContentTable.astro";
+import LoginForm from "@/components/admin/LoginForm.astro";
+
+const cookie = Astro.cookies.get("admin_session");
+const isAuthenticated = cookie?.value === "authenticated";
+---
+
+<Layout
+    description="Gestión de Contenido - Toldo Perfil"
+    title="Gestionar Contenido - Toldo Perfil"
+    canonical="https://toldoperfil.es"
+>
+    <main class="font-sans min-h-screen">
+        {isAuthenticated ? (
+             <div class="fixed inset-0 -z-10 bg-neutral-900">
+                <div class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"></div>
+                <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div>
+            </div>
+            
+            <div class="text-white p-6 max-w-7xl mx-auto space-y-8">
+                 <header class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-4">
+                    <div class="flex items-center gap-4">
+                        <a href="/admin" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                        </a>
+                        <div>
+                            <h1 class="text-xl font-bold tracking-tight">Gestión de Contenido</h1>
+                            <p class="text-xs text-indigo-200">Base de datos de ToldoPerfil</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                         <a href="/admin/create?category=enterprise" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                            Empresa
+                        </a>
+                        <a href="/admin/create?category=privateCustomer" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-purple-500/20 transition-all flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                            Particular
+                        </a>
+                    </div>
+                </header>
+                
+                <ContentTable />
+            </div>
+        ) : (
+            <LoginForm />
+        )}
+    </main>
+</Layout>

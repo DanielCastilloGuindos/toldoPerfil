@@ -1,7 +1,7 @@
-/* empty css                                  */
+/* empty css                                   */
 import { c as createAstro, a as createComponent, r as renderComponent, b as renderTemplate, m as maybeRenderHead, d as renderSlot } from '../chunks/astro/server_ZnJZev0u.mjs';
 import 'piccolore';
-import { $ as $$Typography, a as $$Layout } from '../chunks/Layout_DViE92D5.mjs';
+import { $ as $$Typography, a as $$Layout } from '../chunks/Layout_Cs968HcG.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$Astro$1 = createAstro("https://toldoperfil.es");

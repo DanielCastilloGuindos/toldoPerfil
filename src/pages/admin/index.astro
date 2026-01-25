@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layouts/AdminLayout.astro";
 import LoginForm from "@/components/admin/LoginForm.astro";
-import Dashboard from "@/components/admin/Dashboard.astro";
+import DashboardHub from "@/components/admin/DashboardHub.astro";
 
 const cookie = Astro.cookies.get("admin_session");
 const isAuthenticated = cookie?.value === "authenticated";
@@ -14,6 +14,6 @@ const isAuthenticated = cookie?.value === "authenticated";
 	canonical="https://toldoperfil.es"
 >
 	<main class="font-sans">
-		{isAuthenticated ? <Dashboard /> : <LoginForm />}
+		{isAuthenticated ? <DashboardHub /> : <LoginForm />}
 	</main>
 </Layout>

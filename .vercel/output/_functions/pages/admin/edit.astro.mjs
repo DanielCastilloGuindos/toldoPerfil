@@ -1,4 +1,4 @@
-/* empty css                                     */
+/* empty css                                      */
 import { a as createComponent, b as renderTemplate } from '../../chunks/astro/server_ZnJZev0u.mjs';
 import 'piccolore';
 import 'clsx';

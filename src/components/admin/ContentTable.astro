@@ -1,0 +1,199 @@
+---
+import { db, Customers, Analytics, eq, desc } from "astro:db";
+import EditIcon from "@/icons/admin/edit.astro";
+import TrashIcon from "@/icons/admin/trash.astro";
+import EyeIcon from "@/icons/admin/eye.astro";
+
+// Fetch data
+const customersData = await db
+    .select()
+    .from(Customers)
+    .orderBy(desc(Customers.published));
+---
+
+<div
+    class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-xl"
+>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-indigo-100">
+            <thead
+                class="bg-white/5 text-xs uppercase text-indigo-300 font-bold tracking-wider"
+            >
+                <tr>
+                    <th class="px-6 py-4">Imagen</th>
+                    <th class="px-6 py-4">Título / ID</th>
+                    <th class="px-6 py-4">Categoría</th>
+                    <th class="px-6 py-4 text-center">Estado</th>
+                    <th class="px-6 py-4">Fecha</th>
+                    <th class="px-6 py-4 text-right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+                {
+                    customersData.map((customer) => (
+                        <tr class="hover:bg-white/5 transition-colors group">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="h-10 w-16 relative rounded overflow-hidden border border-white/10 bg-neutral-800">
+                                    <img
+                                        src={
+                                            ((customer.images as string[]) ||
+                                                [])[0] ||
+                                            "/img/placeholder.webp"
+                                        }
+                                        class="w-full h-full object-cover"
+                                        loading="lazy"
+                                    />
+                                    <span class="absolute bottom-0 right-0 bg-black/60 text-[10px] text-white px-1 leading-none rounded-tl">
+                                        {
+                                            (
+                                                (customer.images as string[]) ||
+                                                []
+                                            ).length
+                                        }
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="font-medium text-white">
+                                    {customer.title}
+                                </div>
+                                <div class="text-xs text-indigo-300/50">
+                                    ID: {customer.customer_id}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span
+                                    class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
+                                        customer.category === "enterprise"
+                                            ? "bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
+                                            : "bg-purple-500/10 text-purple-300 border border-purple-500/20"
+                                    }`}
+                                >
+                                    {customer.category === "enterprise"
+                                        ? "Empresa"
+                                        : "Particular"}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <form
+                                    action="/api/customers/toggle-visibility"
+                                    method="POST"
+                                    class="inline-block"
+                                >
+                                    <input
+                                        type="hidden"
+                                        name="id"
+                                        value={customer.customer_id}
+                                    />
+                                    <button
+                                        type="submit"
+                                        class={`px-2 py-1 rounded text-[0.65rem] font-bold uppercase tracking-wider border transition-all ${
+                                            customer.isVisible
+                                                ? "bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20"
+                                                : "bg-neutral-500/10 text-neutral-500 border-neutral-500/20 hover:bg-neutral-500/20"
+                                        }`}
+                                    >
+                                        {customer.isVisible
+                                            ? "Visible"
+                                            : "Oculto"}
+                                    </button>
+                                </form>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-indigo-200/50">
+                                {new Date(
+                                    customer.published,
+                                ).toLocaleDateString()}
+                            </td>
+                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                <div class="flex justify-end gap-2">
+                                    <a
+                                        href={`/productsDB/${customer.customer_id}`}
+                                        target="_blank"
+                                        class="p-1.5 rounded-lg hover:bg-white/10 text-indigo-300 hover:text-white transition-colors"
+                                        title="Ver"
+                                    >
+                                        <EyeIcon class="w-4 h-4" />
+                                    </a>
+                                    <a
+                                        href={`/admin/edit/${customer.customer_id}`}
+                                        class="p-1.5 rounded-lg hover:bg-blue-500/20 text-blue-300 hover:text-blue-100 transition-colors"
+                                        title="Editar"
+                                    >
+                                        <EditIcon class="w-4 h-4" />
+                                    </a>
+                                    <button
+                                        data-id={customer.customer_id}
+                                        class="delete-btn p-1.5 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-100 transition-colors"
+                                        title="Eliminar"
+                                    >
+                                        <TrashIcon class="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    ))
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Delete Dialog -->
+<dialog
+    id="removeDialog"
+    class="fixed inset-0 m-auto bg-neutral-900/90 backdrop-blur-sm border border-white/10 text-white rounded-2xl p-0 shadow-2xl max-w-sm w-full overflow-hidden"
+>
+    <div class="p-6 text-center">
+        <div
+            class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4"
+        >
+            <TrashIcon class="w-8 h-8 text-red-500" />
+        </div>
+        <h3 class="text-xl font-bold mb-2">¿Eliminar elemento?</h3>
+        <p class="text-neutral-400 text-sm mb-6">
+            Esta acción no se puede deshacer.
+        </p>
+        <footer class="flex gap-3 justify-center">
+            <button
+                id="confirmNo"
+                class="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-medium transition-colors"
+                >Cancelar</button
+            >
+            <form action="/api/customers/delete" method="POST">
+                <input type="hidden" name="id" id="deleteInputId" value="" />
+                <button
+                    type="submit"
+                    class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium shadow-lg shadow-red-500/20 transition-colors"
+                    >Sí, eliminar</button
+                >
+            </form>
+        </footer>
+    </div>
+</dialog>
+
+<script>
+    import { $ } from "@/consts/dom-selector";
+
+    const removeDialog = $("#removeDialog") as HTMLDialogElement;
+    const deleteInputId = $("#deleteInputId") as HTMLInputElement;
+    const confirmNo = $("#confirmNo");
+
+    document.addEventListener("click", (e) => {
+        const target = e.target as HTMLElement;
+        const deleteBtn = target.closest(".delete-btn"); // Class based selector
+
+        if (deleteBtn) {
+            // Get ID from the button itself (since we moved data-id there in the loop)
+            const id = deleteBtn.getAttribute("data-id");
+            if (id) {
+                deleteInputId.value = id;
+                removeDialog?.showModal();
+            }
+        }
+    });
+
+    confirmNo?.addEventListener("click", () => removeDialog?.close());
+    removeDialog?.addEventListener("click", (e) => {
+        if (e.target === removeDialog) removeDialog.close();
+    });
+</script>

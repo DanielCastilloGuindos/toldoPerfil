@@ -1,7 +1,7 @@
-/* empty css                                  */
+/* empty css                                   */
 import { a as createComponent, m as maybeRenderHead, r as renderComponent, b as renderTemplate, c as createAstro, e as addAttribute, g as renderTransition, f as renderScript } from '../chunks/astro/server_ZnJZev0u.mjs';
 import 'piccolore';
-import { b as $$SocialButtons, a as $$Layout } from '../chunks/Layout_DViE92D5.mjs';
+import { b as $$SocialButtons, a as $$Layout } from '../chunks/Layout_Cs968HcG.mjs';
 import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { useState, useRef, useEffect } from 'react';
 import 'clsx';
@@ -9,7 +9,7 @@ import 'clsx';
 import { d as db, C as Customers } from '../chunks/_astro_db_Cb5B9jDV.mjs';
 import { eq } from '@astrojs/db/dist/runtime/virtual.js';
 import { $ as $$Image } from '../chunks/_astro_assets_BP655fp3.mjs';
-import { F as FAQs } from '../chunks/SEO_Bg2-mHPw.mjs';
+import { F as FAQs } from '../chunks/SEO_CiMFjyN4.mjs';
 export { renderers } from '../renderers.mjs';
 
 const CarouselSlide = ({ title, description, image, content, isActive = false }) => {

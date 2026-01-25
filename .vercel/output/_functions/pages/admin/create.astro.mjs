@@ -1,7 +1,7 @@
-/* empty css                                     */
+/* empty css                                      */
 import { c as createAstro, a as createComponent, r as renderComponent, b as renderTemplate, m as maybeRenderHead, e as addAttribute } from '../../chunks/astro/server_ZnJZev0u.mjs';
 import 'piccolore';
-import { $ as $$AdminLayout } from '../../chunks/AdminLayout_BDTdkdy6.mjs';
+import { $ as $$AdminLayout } from '../../chunks/AdminLayout_DeYbIL2Q.mjs';
 import { d as db, C as Customers } from '../../chunks/_astro_db_Cb5B9jDV.mjs';
 import { v2 } from 'cloudinary';
 import { isDbError } from '@astrojs/db/dist/runtime/virtual.js';
