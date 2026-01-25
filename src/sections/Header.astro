@@ -97,19 +97,12 @@ html {
 			if ( $(targetId) ) {
 				const targetOffset = $(targetId).offsetTop;
 				const targetHeight = $(targetId).offsetHeight;
-				const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-				
-				let scrollToPosition;
-				
-				if (isMobile) {
-					const windowHeight = window.innerHeight;
-					scrollToPosition = targetOffset - (windowHeight / 3) + (targetHeight / 2);
-				} else {
-					scrollToPosition = targetOffset + targetHeight;
-				}
+				// Header height offset (approx 80px-100px)
+				const headerOffset = 100; 
+				const elementPosition = targetOffset - headerOffset;
 
 				window.scrollTo({
-					top: scrollToPosition,
+					top: elementPosition,
 					behavior: "smooth",
 				});
 			}
