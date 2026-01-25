@@ -8,20 +8,22 @@ const isAuthenticated = cookie?.value === "authenticated";
 
 // Range handling
 const range = Astro.url.searchParams.get("range") || "7d";
-const days = range === "30d" ? 30 : range === "90d" ? 90 : range === "365d" ? 365 : 7;
+const logType = Astro.url.searchParams.get("logType") || "interactions"; // 'all' | 'interactions' | 'views'
 
+const days = range === "30d" ? 30 : range === "90d" ? 90 : range === "365d" ? 365 : 7;
 const dateLimit = new Date();
 dateLimit.setDate(dateLimit.getDate() - days);
 
 const allEvents = await db.select().from(Analytics).where(gte(Analytics.created_at, dateLimit));
 
-// Process Data
+// Data aggregators
 const viewsByDate: Record<string, number> = {};
 const clickByDate: Record<string, number> = {};
+const referrers: Record<string, number> = {};
+const locations: Record<string, number> = {};
+const devices: Record<string, number> = { 'Desktop': 0, 'Mobile': 0 };
 
-// Default all days/months
-const isLongRange = days > 90; // Group by month if long range? Keeping simple keying for now.
-
+// Initialize Dates
 for (let i = 0; i < days; i++) {
     const d = new Date();
     d.setDate(d.getDate() - i);
@@ -30,32 +32,34 @@ for (let i = 0; i < days; i++) {
     clickByDate[dateStr] = 0;
 }
 
-// Stats
 let totalPageViews = 0;
 let totalContacts = 0;
 let totalWhatsApp = 0;
-const referrers: Record<string, number> = {};
-const devices: Record<string, number> = { 'Desktop': 0, 'Mobile': 0 };
 
-// Activity Log Array
 const activityLog: any[] = [];
 
 allEvents.forEach(event => {
     const d = new Date(event.created_at);
-    // Formatting date matches the Key format above
     const dateStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
     const eventData = event.data as any;
 
+    // Common Data extraction
+    const city = eventData?.city && eventData?.city !== 'Unknown' ? eventData.city : null;
+    const country = eventData?.country && eventData?.country !== 'Unknown' ? eventData.country : null;
+    const locString = city ? `${city}, ${country}` : 'Desconocido';
+    const dev = eventData?.device || 'Unknown';
+    const ip = eventData?.ip || '-';
+
+    // 1. Counters & Charts
     if (event.type === 'page_view') {
         totalPageViews++;
         if (viewsByDate[dateStr] !== undefined) viewsByDate[dateStr]++;
         
-        // Referrer Logic
-        const ref = eventData?.referrer;
+        // Referrer
         let source = 'Directo';
-        if (ref) {
+        if (eventData?.referrer) {
            try {
-               const url = new URL(ref);
+               const url = new URL(eventData.referrer);
                source = url.hostname.replace('www.', '');
                if (source.includes('google')) source = 'Google';
                else if (source.includes('facebook') || source.includes('instagram')) source = 'Social';
@@ -63,11 +67,13 @@ allEvents.forEach(event => {
            } catch(e) { source = 'Externo' }
         }
         if(source !== 'Interno') referrers[source] = (referrers[source] || 0) + 1;
+        
+        // Location
+        if(city) locations[locString] = (locations[locString] || 0) + 1;
 
-        // Device Logic
-        const dev = eventData?.device || 'Unknown';
+        // Device
         if (dev === 'Mobile' || dev === 'Desktop') devices[dev]++;
-        else devices['Desktop']++; // Default fallback
+        else devices['Desktop']++;
 
     } else if (event.type === 'contact_click' || event.type === 'whatsapp_click') {
         if (event.type === 'contact_click') {
@@ -76,36 +82,63 @@ allEvents.forEach(event => {
         } else {
              totalWhatsApp++;
         }
+    }
 
-        // Add to Activity Log
+    // 2. Activity Log Logic
+    // Filter based on param
+    let includeInLog = false;
+    let actionDescription = '';
+    let typeLabel = '';
+    let typeColor = '';
+
+    if (logType === 'all') includeInLog = true;
+    else if (logType === 'interactions') includeInLog = ['contact_click', 'whatsapp_click', 'faq_click'].includes(event.type);
+    else if (logType === 'views') includeInLog = event.type === 'page_view';
+
+    if (includeInLog) {
+        if(event.type === 'page_view') {
+            typeLabel = 'Vista';
+            typeColor = 'text-gray-400 bg-gray-500/10 border-gray-500/20';
+            actionDescription = eventData?.path || '/';
+        } else if (event.type === 'contact_click') {
+            typeLabel = 'Formulario';
+            typeColor = 'text-green-400 bg-green-500/10 border-green-500/20';
+            actionDescription = 'Inicio Formulario Contacto';
+        } else if (event.type === 'whatsapp_click') {
+            typeLabel = 'WhatsApp';
+            typeColor = 'text-green-400 bg-green-500/10 border-green-500/20';
+            actionDescription = 'Clic en botón WhatsApp';
+        } else if (event.type === 'faq_click') {
+            typeLabel = 'FAQ';
+            typeColor = 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+            actionDescription = `Leyó: "${eventData?.question || 'Pregunta'}"`;
+        }
+
         activityLog.push({
-            type: event.type === 'contact_click' ? 'Formulario' : 'WhatsApp',
             date: d.toLocaleString(),
-            ip: eventData?.ip || 'N/A',
-            location: eventData?.city && eventData?.city !== 'Unknown' ? `${eventData.city}, ${eventData.country}` : 'Desconocido',
-            device: eventData?.device || 'N/A',
-            source: eventData?.referrer ? new URL(eventData.referrer).hostname : 'Directo'
+            type: typeLabel,
+            typeColor,
+            action: actionDescription,
+            location: locString,
+            ip,
+            device: dev
         });
     }
 });
 
-// Chart Data
+// Post-process
 const chartLabels = Object.keys(viewsByDate).reverse();
 const chartViews = Object.values(viewsByDate).reverse();
 const chartClicks = Object.values(clickByDate).reverse();
 
-const topReferrers = Object.entries(referrers)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 5);
-
+const topReferrers = Object.entries(referrers).sort(([, a], [, b]) => b - a).slice(0, 5);
+const topLocations = Object.entries(locations).sort(([, a], [, b]) => b - a).slice(0, 5);
 const deviceData = [devices['Desktop'], devices['Mobile']];
 
-// Sort Log by newest
-activityLog.reverse(); 
-
+activityLog.reverse(); // Newest first
 ---
 
-<Layout description="Analítica detallada" title="Analítica Avanzada" canonical="https://toldoperfil.es">
+<Layout description="Analítica completa" title="Analítica Avanzada" canonical="https://toldoperfil.es">
     <main class="font-sans min-h-screen">
         {isAuthenticated ? (
             <div class="fixed inset-0 -z-10 bg-neutral-900">
@@ -114,7 +147,6 @@ activityLog.reverse();
             </div>
 
             <div class="p-6 max-w-7xl mx-auto space-y-8">
-                
                 <!-- Header -->
                 <header class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-4">
                      <div class="flex items-center gap-4">
@@ -124,16 +156,16 @@ activityLog.reverse();
                             </svg>
                         </a>
                         <div>
-                            <h1 class="text-xl font-bold text-white tracking-tight">Analítica Avanzada</h1>
-                            <p class="text-xs text-indigo-200">Panel de Control de Tráfico</p>
+                            <h1 class="text-xl font-bold text-white tracking-tight">Analítica Total</h1>
+                            <p class="text-xs text-indigo-200">Tráfico, Eventos y Ubicaciones</p>
                         </div>
                     </div>
-                    
                      <div class="flex bg-neutral-900/50 p-1 rounded-lg border border-white/10 overflow-x-auto max-w-full">
-                        <a href="?range=7d" class={`whitespace-nowrap px-4 py-1.5 rounded-md text-sm font-medium transition-all ${range === '7d' ? 'bg-indigo-600 text-white shadow-lg' : 'text-indigo-200 hover:text-white'}`}>7 Días</a>
-                        <a href="?range=30d" class={`whitespace-nowrap px-4 py-1.5 rounded-md text-sm font-medium transition-all ${range === '30d' ? 'bg-indigo-600 text-white shadow-lg' : 'text-indigo-200 hover:text-white'}`}>30 Días</a>
-                        <a href="?range=90d" class={`whitespace-nowrap px-4 py-1.5 rounded-md text-sm font-medium transition-all ${range === '90d' ? 'bg-indigo-600 text-white shadow-lg' : 'text-indigo-200 hover:text-white'}`}>90 Días</a>
-                        <a href="?range=365d" class={`whitespace-nowrap px-4 py-1.5 rounded-md text-sm font-medium transition-all ${range === '365d' ? 'bg-indigo-600 text-white shadow-lg' : 'text-indigo-200 hover:text-white'}`}>1 Año</a>
+                        {['7d', '30d', '90d', '365d'].map(r => (
+                            <a href={`?range=${r}&logType=${logType}`} class={`whitespace-nowrap px-4 py-1.5 rounded-md text-sm font-medium transition-all ${range === r ? 'bg-indigo-600 text-white shadow-lg' : 'text-indigo-200 hover:text-white'}`}>
+                                {r === '365d' ? '1 Año' : r.toUpperCase()}
+                            </a>
+                        ))}
                     </div>
                 </header>
 
@@ -155,7 +187,7 @@ activityLog.reverse();
                         </div>
                     </div>
                     <div class="bg-purple-900/30 border border-purple-500/20 rounded-xl p-5">
-                         <span class="text-purple-200 text-xs uppercase font-bold tracking-wider">Tasa Conversión</span>
+                         <span class="text-purple-200 text-xs uppercase font-bold tracking-wider">Conversión</span>
                         <div class="flex items-baseline gap-2 mt-1">
                             <span class="text-4xl font-bold text-white">
                                 {totalPageViews > 0 ? (( (totalContacts + totalWhatsApp) / totalPageViews ) * 100).toFixed(1) : 0}%
@@ -164,7 +196,7 @@ activityLog.reverse();
                     </div>
                 </div>
 
-                <!-- Charts Row -->
+                <!-- Charts -->
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     <div class="lg:col-span-3 bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
                         <h2 class="text-lg font-bold text-white mb-6">Tendencia de Tráfico</h2>
@@ -180,57 +212,17 @@ activityLog.reverse();
                     </div>
                 </div>
 
-                <!-- Bottom Row: Activity Log & Referrers -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    <!-- Activity Log -->
-                    <div class="lg:col-span-2 bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden flex flex-col">
-                        <div class="p-6 border-b border-white/5">
-                            <h2 class="text-lg font-bold text-white">Registro de Actividad (Forms)</h2>
-                            <p class="text-xs text-indigo-200">Últimos contactos recibidos con detalle</p>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm text-indigo-100">
-                                <thead class="bg-white/5 text-xs text-indigo-300 font-bold uppercase tracking-wider">
-                                    <tr>
-                                        <th class="px-6 py-3">Fecha</th>
-                                        <th class="px-6 py-3">Tipo</th>
-                                        <th class="px-6 py-3">Ubicación</th>
-                                        <th class="px-6 py-3">Dispositivo</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-white/5">
-                                    {activityLog.length > 0 ? activityLog.slice(0, 10).map(log => (
-                                        <tr class="hover:bg-white/5">
-                                            <td class="px-6 py-3 whitespace-nowrap text-xs">{log.date}</td>
-                                            <td class="px-6 py-3">
-                                                <span class={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${log.type === 'WhatsApp' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'}`}>
-                                                    {log.type}
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-3 text-xs">
-                                                <div class="font-medium text-white">{log.location}</div>
-                                                <div class="text-[10px] text-white/30">IP: {log.ip}</div>
-                                            </td>
-                                            <td class="px-6 py-3 text-xs opacity-70">{log.device}</td>
-                                        </tr>
-                                    )) : (
-                                        <tr><td colspan="4" class="px-6 py-8 text-center text-white/30">No hay actividad reciente</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Referrers -->
+                <!-- Locations & Sources -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Top Locations -->
                      <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-                        <h2 class="text-lg font-bold text-white mb-6">Fuentes Top</h2>
+                        <h2 class="text-lg font-bold text-white mb-6">Top Ubicaciones</h2>
                          <div class="space-y-4">
-                            {topReferrers.length > 0 ? topReferrers.map(([source, count], index) => (
+                            {topLocations.length > 0 ? topLocations.map(([loc, count], index) => (
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-3">
                                         <span class="text-xs font-mono text-indigo-400 bg-indigo-500/10 w-5 h-5 flex items-center justify-center rounded">{index + 1}</span>
-                                        <span class="text-sm text-white font-medium capitalize truncate max-w-[120px]" title={source}>{source}</span>
+                                        <span class="text-sm text-white font-medium capitalize truncate max-w-[200px]" title={loc}>{loc}</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <div class="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -240,9 +232,80 @@ activityLog.reverse();
                                     </div>
                                 </div>
                             )) : (
-                                <div class="text-center text-white/30 text-sm py-8">Sin datos</div>
+                                <div class="text-center text-white/30 text-sm py-8">Sin datos de ubicación</div>
                             )}
                         </div>
+                    </div>
+
+                    <!-- Top Referrers -->
+                     <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+                        <h2 class="text-lg font-bold text-white mb-6">Top Fuentes</h2>
+                         <div class="space-y-4">
+                            {topReferrers.length > 0 ? topReferrers.map(([source, count], index) => (
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xs font-mono text-purple-400 bg-purple-500/10 w-5 h-5 flex items-center justify-center rounded">{index + 1}</span>
+                                        <span class="text-sm text-white font-medium capitalize truncate max-w-[120px]" title={source}>{source}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                            <div class="h-full bg-purple-500 rounded-full" style={`width: ${(count / totalPageViews) * 100}%`}></div>
+                                        </div>
+                                        <span class="text-xs text-indigo-200 w-6 text-right">{count}</span>
+                                    </div>
+                                </div>
+                            )) : (
+                                <div class="text-center text-white/30 text-sm py-8">Sin datos de fuentes</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Activity Log -->
+                 <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden flex flex-col">
+                    <div class="p-6 border-b border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-white">Registro de Actividad</h2>
+                            <p class="text-xs text-indigo-200">Historial completo de eventos</p>
+                        </div>
+                        <div class="flex bg-neutral-900 p-1 rounded border border-white/10">
+                            <a href={`?range=${range}&logType=interactions`} class={`px-3 py-1 text-xs font-medium rounded transition-colors ${logType === 'interactions' ? 'bg-white/10 text-white' : 'text-indigo-300 hover:text-white'}`}>Interacciones</a>
+                            <a href={`?range=${range}&logType=views`} class={`px-3 py-1 text-xs font-medium rounded transition-colors ${logType === 'views' ? 'bg-white/10 text-white' : 'text-indigo-300 hover:text-white'}`}>Vistas</a>
+                            <a href={`?range=${range}&logType=all`} class={`px-3 py-1 text-xs font-medium rounded transition-colors ${logType === 'all' ? 'bg-white/10 text-white' : 'text-indigo-300 hover:text-white'}`}>Todo</a>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-indigo-100">
+                            <thead class="bg-white/5 text-xs text-indigo-300 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="px-6 py-3">Fecha</th>
+                                    <th class="px-6 py-3">Evento</th>
+                                    <th class="px-6 py-3">Acción / Detalle</th>
+                                    <th class="px-6 py-3">Origen</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                {activityLog.length > 0 ? activityLog.slice(0, 20).map(log => (
+                                    <tr class="hover:bg-white/5 group transition-colors">
+                                        <td class="px-6 py-3 whitespace-nowrap text-xs text-white/50">{log.date}</td>
+                                        <td class="px-6 py-3">
+                                            <span class={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${log.typeColor}`}>
+                                                {log.type}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-3 text-xs w-full max-w-xs truncate" title={log.action}>
+                                            <span class="text-white font-medium">{log.action}</span>
+                                        </td>
+                                        <td class="px-6 py-3 text-xs text-nowrap">
+                                            <div class="text-white/80">{log.location}</div>
+                                            <div class="text-[10px] text-white/30">{log.device} • {log.ip}</div>
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr><td colspan="4" class="px-6 py-8 text-center text-white/30">No hay eventos para este filtro</td></tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -269,7 +332,7 @@ activityLog.reverse();
                                 pointHitRadius: 10
                             },
                              {
-                                label: 'Leads',
+                                label: 'Interact.',
                                 data: chartClicks,
                                 borderColor: '#4ade80',
                                 backgroundColor: 'rgba(74, 222, 128, 0.1)',
@@ -284,11 +347,7 @@ activityLog.reverse();
                         maintainAspectRatio: false,
                         plugins: { legend: { labels: { color: '#e0e7ff' } } },
                         scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                                ticks: { color: '#a5b4fc' }
-                            },
+                            y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#a5b4fc' } },
                             x: { grid: { display: false }, ticks: { color: '#a5b4fc', maxTicksLimit: 8 } }
                         }
                     }
@@ -300,19 +359,12 @@ activityLog.reverse();
                     type: 'doughnut',
                     data: {
                         labels: ['Desktop', 'Móvil'],
-                        datasets: [{
-                            data: deviceData,
-                            backgroundColor: ['#6366f1', '#a855f7'], // Indigo 500, Purple 500
-                            borderWidth: 0
-                        }]
+                        datasets: [{ data: deviceData, backgroundColor: ['#6366f1', '#a855f7'], borderWidth: 0 }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { 
-                            legend: { position: 'bottom', labels: { color: '#e0e7ff', usePointStyle: true } }
-                        },
-                        cutout: '70%'
+                        plugins: { legend: { position: 'bottom', labels: { color: '#e0e7ff', usePointStyle: true } } },
                     }
                 });
             </script>

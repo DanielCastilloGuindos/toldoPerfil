@@ -54,6 +54,8 @@ Clics en formulario
 Proyectos activos
 </div> </div> <div class="bg-purple-900/30 border border-purple-500/20 rounded-xl p-5 flex flex-col"> <span class="text-purple-200 text-xs uppercase font-bold tracking-wider">Particulares</span> <span class="text-3xl font-bold text-white mt-1">${totalPrivate}</span> <div class="mt-auto pt-2 text-[10px] text-purple-300/50">
 Proyectos activos
+</div> </div> <div class="bg-amber-900/30 border border-amber-500/20 rounded-xl p-5 flex flex-col"> <span class="text-amber-200 text-xs uppercase font-bold tracking-wider">Eventos Clave</span> <span class="text-3xl font-bold text-white mt-1">${analyticsData.filter((a) => a.type === "faq_click").length}</span> <div class="mt-auto pt-2 text-[10px] text-amber-300/50">
+Preguntas Frecuentes leídas
 </div> </div> </div> <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"> <!-- Quick Actions --> <div class="lg:col-span-1 space-y-6"> <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6"> <h2 class="text-lg font-bold text-white mb-4">
 Acciones Rápidas
 </h2> <div class="space-y-3"> <a href="/admin/content" class="block w-full p-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-between group"> <span class="flex items-center gap-3"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
