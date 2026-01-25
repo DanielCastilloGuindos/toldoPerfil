@@ -266,12 +266,21 @@ const totalPrivate = privateCustomersData.length;
                 >
                     Cancelar
                 </button>
-                <button
-                    id="confirmYes"
-                    class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium shadow-lg shadow-red-500/20 transition-colors"
-                >
-                    Sí, eliminar
-                </button>
+                <form action="/api/customers/delete" method="POST">
+                    <input
+                        type="hidden"
+                        name="id"
+                        id="deleteInputId"
+                        value=""
+                    />
+                    <button
+                        type="submit"
+                        id="confirmYes"
+                        class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium shadow-lg shadow-red-500/20 transition-colors"
+                    >
+                        Sí, eliminar
+                    </button>
+                </form>
             </footer>
         </div>
     </dialog>
@@ -296,16 +305,27 @@ const totalPrivate = privateCustomersData.length;
 <script>
     import { $ } from "@/consts/dom-selector.ts";
 
-    const confirmYes = $("#confirmYes");
+    // const confirmYes = $("#confirmYes"); // Handled by form now
     const confirmNo = $("#confirmNo");
     const removeDialog = $("#removeDialog") as HTMLDialogElement;
+    const deleteInputId = $("#deleteInputId") as HTMLInputElement;
 
-    if (confirmYes) {
-        confirmYes.addEventListener("click", () => {
-            // TODO: Add actual delete logic (API call) here in the future
-            removeDialog?.close();
-        });
-    }
+    // Delegate event listener for delete buttons (assuming they have class 'delete-btn' or similar,
+    // but CostumerCard currently uses `button id="removeButton"` which is invalid for multiple elements)
+    // We need to listen to clicks on the main container and check for delete button
+
+    document.addEventListener("click", (e) => {
+        const target = e.target as HTMLElement;
+        // Find closest button with data-id
+        const removeBtn = target.closest("button[data-id]");
+        if (removeBtn && removeBtn.id === "removeButton") {
+            const id = removeBtn.getAttribute("data-id");
+            if (id && deleteInputId) {
+                deleteInputId.value = id;
+                removeDialog?.showModal();
+            }
+        }
+    });
 
     if (confirmNo) {
         confirmNo.addEventListener("click", () => {

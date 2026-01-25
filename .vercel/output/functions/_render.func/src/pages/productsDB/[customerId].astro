@@ -1,0 +1,30 @@
+---
+import { db, Customers, eq } from 'astro:db';
+import ClientLayout from '@/layouts/ClientLayout.astro';
+
+import Header from '@/sections/clients/Header.astro';
+import InfoGalery from '@/sections/clients/Info&Galery.astro';
+
+const { customerId } = Astro.params;
+
+const customerQuery = await db.select()
+	.from(Customers)
+	.where( eq(Customers.customer_id, customerId));
+
+const customer = {
+	id: customerId,
+	title: customerQuery[0].title,
+	description: customerQuery[0].description,
+	images: customerQuery[0].images
+}
+---
+
+<ClientLayout
+description="Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!"
+title=`Toldo Perfil - ${customer.title}` 
+>
+	<main class="font-sans">
+		<Header title={ customer.title } transitionName= { "title_" + customer.id } />
+		<InfoGalery data={ customer } path='' /> 
+	</main>
+</ClientLayout>

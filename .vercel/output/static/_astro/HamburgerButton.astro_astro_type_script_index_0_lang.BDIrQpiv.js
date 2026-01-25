@@ -1,0 +1,1 @@
+import{$ as e}from"./dom-selector.CC0qcKcF.js";const t=e("#HamburgerButton"),o=e("#menu");t.addEventListener("click",()=>{t.classList.toggle("open"),o.classList.toggle("open");const n=new CustomEvent("hamburgerButtonClick");t.dispatchEvent(n)});

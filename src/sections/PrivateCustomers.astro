@@ -1,12 +1,13 @@
 ---
 import ProductCard from "@/components/ProductCard.astro";
 import ProductCardDB from "@/components/ProductCardDB.astro";
-import { PrivateCustomers } from "@/consts/customers.ts";
-import { db, Customers, eq } from 'astro:db';
 
-const customersQuery = await db.select()
+import { db, Customers, eq } from "astro:db";
+
+const customersQuery = await db
+	.select()
 	.from(Customers)
-	.where( eq(Customers.category, 'privateCustomer'));
+	.where(eq(Customers.category, "privateCustomer"));
 ---
 
 <section
@@ -19,36 +20,37 @@ const customersQuery = await db.select()
 		>
 			<h3 class="text-3xl font-bold text-center">Particulares</h3>
 			<h4 class="text-sm text-gray-100 max-w-xs text-center">
-				Asesoramos a nuestros clientes el tipo de toldo que le conviene en cada caso
+				Asesoramos a nuestros clientes el tipo de toldo que le conviene
+				en cada caso
 			</h4>
 		</header>
 
 		<article
 			class="py-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-6 px-2 sm:px-0 w-full sm:max-w-6xl"
 		>
-		{ PrivateCustomers.map(({id, title, description, images, isVisible}) => {
-			if (!isVisible) return;
-			let protrairPath = `/img/works/${id}/${images[0]}`
-			return (<ProductCard
-				id={id}
-				title={ title }
-				description='Envíanos un correo para obtener mas información'
-				image={ protrairPath }
-				key={ id }
-				linked={ false }
-			/>)
-		}) }
-		{ customersQuery.map(({customer_id, title, description, images, isVisible}) => {
-			if (!isVisible) return;
-			let protrairPath = images[0]
-			return (<ProductCardDB
-				id={customer_id}
-				title={ title }
-				description='Haz click para ver más detalles'
-				image={ protrairPath }
-				key={ 'db'+customer_id }
-			/>)
-		}) }
+			{
+				customersQuery.map(
+					({
+						customer_id,
+						title,
+						description,
+						images,
+						isVisible,
+					}) => {
+						if (!isVisible) return;
+						let protrairPath = (images as string[])[0];
+						return (
+							<ProductCardDB
+								id={customer_id}
+								title={title}
+								description="Haz click para ver más detalles"
+								image={protrairPath}
+								key={"db" + customer_id}
+							/>
+						);
+					},
+				)
+			}
 		</article>
 	</div>
 </section>

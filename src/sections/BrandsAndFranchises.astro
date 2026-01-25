@@ -1,12 +1,12 @@
 ---
 import ProductCard from "@/components/ProductCard.astro";
 import ProductCardDB from "@/components/ProductCardDB.astro";
-import { brandsAndFranchisesCustomers as bafCustomers } from "@/consts/customers"
-import { db, Customers, eq } from 'astro:db';
+import { db, Customers, eq } from "astro:db";
 
-const customersQuery = await db.select()
+const customersQuery = await db
+	.select()
 	.from(Customers)
-	.where( eq(Customers.category, 'enterprise'));
+	.where(eq(Customers.category, "enterprise"));
 ---
 
 <section
@@ -17,37 +17,41 @@ const customersQuery = await db.select()
 		<header
 			class="w-full py-4 flex flex-col gap-y-6 justify-center items-center"
 		>
-			<h3 class="text-3xl font-bold text-center">Primeras Marcas y Franquicias</h3>
+			<h3 class="text-3xl font-bold text-center">
+				Primeras Marcas y Franquicias
+			</h3>
 			<h4 class="text-sm text-gray-100 max-w-xs text-center">
-				Trabajamos con primeras marcas a nivel nacional para cadenas hoteleras,restaurantes, ópticas, automoción, bancos, etc
+				Trabajamos con primeras marcas a nivel nacional para cadenas
+				hoteleras,restaurantes, ópticas, automoción, bancos, etc
 			</h4>
 		</header>
 
 		<article
 			class="py-4 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-6 px-2 sm:px-0 w-full sm:max-w-6xl"
 		>
-		{ bafCustomers.map(({id, title, description, images, isVisible}) => {
-			if (!isVisible) return;
-			let protrairPath = `/img/works/${id}/${images[0]}`
-			return (<ProductCard
-				id={id}
-				title={ title }
-				description='Haz click para ver más detalles'
-				image={ protrairPath }
-				key={ id }
-			/>)
-		}) }
-		{ customersQuery.map(({customer_id, title, description, images, isVisible}) => {
-			if (!isVisible) return;
-			let protrairPath = images[0]
-			return (<ProductCardDB
-				id={customer_id}
-				title={ title }
-				description='Haz click para ver más detalles'
-				image={ protrairPath }
-				key={ 'd'+customer_id }
-			/>)
-		}) }
+			{
+				customersQuery.map(
+					({
+						customer_id,
+						title,
+						description,
+						images,
+						isVisible,
+					}) => {
+						if (!isVisible) return;
+						let protrairPath = (images as string[])[0];
+						return (
+							<ProductCardDB
+								id={customer_id}
+								title={title}
+								description="Haz click para ver más detalles"
+								image={protrairPath}
+								key={"d" + customer_id}
+							/>
+						);
+					},
+				)
+			}
 		</article>
 	</div>
 </section>

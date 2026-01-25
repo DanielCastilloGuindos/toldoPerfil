@@ -1,0 +1,26 @@
+---
+import { brandsAndFranchisesCustomers as bafCustomers, getStaticProductsPaths } from "@/consts/customers";
+
+import ClientLayout from '@/layouts/ClientLayout.astro';
+
+import Header from '@/sections/clients/Header.astro';
+import InfoGalery from '@/sections/clients/Info&Galery.astro';
+
+export function getStaticPaths() {
+	return getStaticProductsPaths();
+}
+
+const { clientId } = Astro.params;
+
+const selectedClient = bafCustomers.find(client => client.id === clientId );
+---
+
+<ClientLayout
+description="Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!"
+title=`Toldo Perfil - ${selectedClient.title}` 
+>
+	<main class="font-sans">
+		<Header title={ selectedClient.title } transitionName= { "title_" + selectedClient.id } />
+		<InfoGalery data={ selectedClient } /> 
+	</main>
+</ClientLayout>

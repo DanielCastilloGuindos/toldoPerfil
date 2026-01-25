@@ -1,0 +1,29 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Hero from '@/sections/Hero.astro'
+import Info from '@/sections/Info.astro'
+import BrandsAndFranchises from '@/sections/BrandsAndFranchises.astro'
+import Communities from '@/sections/Communities.astro'
+import Individuals from '@/sections/PrivateCustomers.astro'
+import Products from '@/sections/Products.astro';
+import FAQs from '@/sections/FAQs.astro'
+import Form from '@/sections/Form.astro'
+---
+
+<Layout
+description="Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!"
+title="Toldo Perfil - Especialistas en toldos personalizados de alta calidad"
+canonical="https://toldoperfil.es"
+isVisibleNav={true}
+>
+	<Hero />
+	<main class="font-sans">
+		<Info />
+		<BrandsAndFranchises />
+		<Communities />
+		<Individuals />
+		<Products />
+		<FAQs />
+		<Form />
+	</main>
+</Layout>

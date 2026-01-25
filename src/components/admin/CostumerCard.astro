@@ -1,67 +1,205 @@
 ---
 import { v2 as cloudinary } from "cloudinary";
-
 import { Image } from "astro:assets";
 import EyeIcon from "@/icons/admin/eye.astro";
 import EditIcon from "@/icons/admin/edit.astro";
 import TrashIcon from "@/icons/admin/trash.astro";
 
-const { customer_id, title, category, images, isVisible, published } =
-	Astro.props;
+interface Props {
+	customer_id: number;
+	title: string;
+	category: string;
+	images: string[];
+	description?: string;
+	isVisible: boolean;
+	published: Date;
+}
 
-const portair_image = images[0];
+const {
+	customer_id,
+	title,
+	category,
+	images,
+	description,
+	isVisible,
+	published,
+} = Astro.props;
+
+// Helper to format date
+const formatDate = (date: Date) => {
+	return new Date(date).toLocaleDateString("es-ES", {
+		year: "numeric",
+		month: "short",
+		day: "numeric",
+	});
+};
+
+const portair_image =
+	images && images.length > 0 ? images[0] : "/img/placeholder.webp";
+const imageCount = images ? images.length : 0;
 ---
 
-<figure
-	class="flex flex-row gap-2 relative overflow-hidden rounded-lg p-3 border border-indigo-900/80"
+<article
+	class="group relative flex flex-col bg-neutral-900/40 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:border-indigo-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/10"
 >
-	<Image
-		alt=`Imagen de ${title}`
-		src={portair_image}
-		width="200"
-		height="200"
-		decoding="async"
-		loading="lazy"
-		class:list={["object-cover rounded-lg bg-indigo-900"]}
-	/>
-	<figcaption
-		class="py-0 px-2 w-full h-full flex flex-col justify-center sm:justify-start items-center sm:items-start bg-indigo-950 bg-opacity-50 text-white text-center sm:text-left"
-	>
-		<div>
-			<span class="text-indigo-200 text-xs"> Título </span>
-			<p class="text-[1.65rem] leading-9 tracking-wider font-bold uppercase">
+	<!-- Image Section -->
+	<div class="relative h-48 w-full overflow-hidden">
+		{
+			portair_image && (
+				<Image
+					src={portair_image}
+					alt={`Imagen de ${title}`}
+					width={400}
+					height={300}
+					class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+					loading="lazy"
+				/>
+			)
+		}
+		<div
+			class="absolute inset-0 bg-gradient-to-t from-neutral-900 via-transparent to-transparent opacity-80"
+		>
+		</div>
+
+		<!-- Image Count Badge -->
+		<div
+			class="absolute top-3 right-3 px-2 py-1 bg-black/50 backdrop-blur rounded-lg text-xs text-white font-medium flex items-center gap-1 border border-white/10"
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				class="h-3 w-3"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+				></path>
+			</svg>
+			{imageCount}
+		</div>
+	</div>
+
+	<!-- Content Section -->
+	<div class="p-5 flex flex-col flex-1">
+		<!-- Header: Title & Visibility -->
+		<div class="flex justify-between items-start mb-2">
+			<h3
+				class="text-xl font-bold text-white tracking-tight leading-tight line-clamp-1"
+				title={title}
+			>
 				{title}
-			</p>
-		</div>
-		<div>
-			<span class="text-indigo-200 text-xs"> Categoria </span>
-			<p class="text-[1rem] leading-9 tracking-wider font-bold">
-				{category}
-			</p>
-		</div>
-		<div>
-			<span class="text-indigo-200 text-xs"> Acciones </span>
-			<div class="flex flex-row gap-2 justify-center items-center">
-				<a
-					href=`/productsDB/${customer_id}`
-					aria-label=`Enlace para ver los toldos montados para ${title}`
+			</h3>
+
+			<!-- Visibility Toggle Form -->
+			<form
+				action="/api/customers/toggle-visibility"
+				method="POST"
+				class="ml-2 flex-shrink-0"
+			>
+				<input type="hidden" name="id" value={customer_id} />
+				<button
+					type="submit"
+					class={`px-2.5 py-1 rounded-full text-[0.65rem] font-bold uppercase tracking-wider border transition-all cursor-pointer hover:scale-105 active:scale-95 ${
+						isVisible
+							? "bg-green-500/20 text-green-300 border-green-500/20 hover:bg-green-500/30"
+							: "bg-neutral-600/20 text-neutral-400 border-neutral-600/20 hover:bg-neutral-600/30"
+					}`}
+					title="Click para cambiar estado"
 				>
-					<EyeIcon class:list={["cursor-pointer"]} />
+					{isVisible ? "Visible" : "Oculto"}
+				</button>
+			</form>
+		</div>
+
+		<!-- Metadata -->
+		<div class="flex items-center gap-3 text-xs text-indigo-200/60 mb-3">
+			<div class="flex items-center gap-1" title="Fecha de publicación">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-3.5 w-3.5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+					></path>
+				</svg>
+				{formatDate(published)}
+			</div>
+			<div class="flex items-center gap-1 capitalize">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-3.5 w-3.5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+					></path>
+				</svg>
+				{category === "enterprise" ? "Empresa" : "Particular"}
+			</div>
+		</div>
+
+		<!-- Description -->
+		{
+			description && (
+				<p
+					class="text-sm text-indigo-100/60 line-clamp-2 mb-4 h-10"
+					title={description}
+				>
+					{description}
+				</p>
+			)
+		}
+		{!description && <div class="mb-4 h-10" />}
+
+		<!-- Actions Footer -->
+		<div
+			class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between"
+		>
+			<span
+				class="text-[0.65rem] text-indigo-300/40 uppercase tracking-widest font-semibold"
+				>ID: {customer_id}</span
+			>
+
+			<div class="flex gap-1">
+				<a
+					href={`/productsDB/${customer_id}`}
+					class="p-2 rounded-lg text-indigo-300 hover:text-white hover:bg-white/10 transition-colors"
+					title={`Ver ${title}`}
+					target="_blank"
+				>
+					<EyeIcon class="w-5 h-5" />
 				</a>
-				<!-- <EditIcon class:list={['cursor-pointer']}/> -->
-				<button id="removeButton" data-id={ customer_id }>
-					<TrashIcon class:list={["cursor-pointer"]} />
+				<a
+					href={`/admin/edit/${customer_id}`}
+					class="p-2 rounded-lg text-blue-300 hover:text-white hover:bg-blue-500/20 transition-colors"
+					title="Editar"
+				>
+					<EditIcon class="w-5 h-5" />
+				</a>
+				<button
+					id="removeButton"
+					data-id={customer_id}
+					class="p-2 rounded-lg text-red-400 hover:text-white hover:bg-red-500/20 transition-colors"
+					title="Eliminar"
+				>
+					<TrashIcon class="w-5 h-5" />
 				</button>
 			</div>
 		</div>
-	</figcaption>
-</figure>
-
-
-<script>
-	import { $, $$ } from "@/consts/dom-selector.ts";
-
-	$('#removeButton').addEventListener('click', function () {
-		$('#removeDialog').showModal();
-	});
-</script>
+	</div>
+</article>

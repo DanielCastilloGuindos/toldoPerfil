@@ -1,0 +1,93 @@
+/* empty css                                     */
+import { c as createAstro, a as createComponent, r as renderComponent, b as renderTemplate, m as maybeRenderHead, e as addAttribute } from '../../chunks/astro/server_ZnJZev0u.mjs';
+import 'piccolore';
+import { $ as $$AdminLayout } from '../../chunks/AdminLayout_2uX_sDBs.mjs';
+import { d as db, C as Customers } from '../../chunks/_astro_db_ChF5lYrH.mjs';
+import { v2 } from 'cloudinary';
+import { isDbError } from '@astrojs/db/dist/runtime/virtual.js';
+export { renderers } from '../../renderers.mjs';
+
+const $$Astro = createAstro("https://toldoperfil.es");
+const $$Create = createComponent(async ($$result, $$props, $$slots) => {
+  const Astro2 = $$result.createAstro($$Astro, $$props, $$slots);
+  Astro2.self = $$Create;
+  const categoryParam = Astro2.url.searchParams.get("category") || "";
+  const CATEGORIES = {
+    PRIVATECUSTOMER: {
+      value: "privateCustomer"
+    }
+  };
+  v2.config({
+    api_key: undefined                                  ,
+    api_secret: undefined                                     ,
+    cloud_name: undefined                                     
+  });
+  const uploadStream = async (buffer, options) => {
+    return new Promise((resolve, reject) => {
+      v2.uploader.upload_stream(options, (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }).end(buffer);
+    });
+  };
+  if (Astro2.request.method === "POST") {
+    const data = await Astro2.request.formData();
+    const title = data.get("title");
+    const description = data.get("description");
+    const category = data.get("category");
+    const files = data.getAll("images");
+    const folder = category === CATEGORIES.PRIVATECUSTOMER.value ? `toldoperfil/privatecostumer` : `toldoperfil/enterprise/${title}`;
+    const images_urls = [];
+    for (const file of files) {
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const response = await uploadStream(uint8Array, {
+        folder
+      });
+      images_urls.push(response.url);
+    }
+    try {
+      await db.insert(Customers).values({
+        title,
+        description,
+        category,
+        images: images_urls
+      });
+      return Astro2.redirect("/admin");
+    } catch (e) {
+      if (isDbError(e)) {
+        return new Response(`No se puede insertar 
+
+${e.message}`, {
+          status: 400
+        });
+      }
+      return new Response("Se ha producido un error inesperado", {
+        status: 500
+      });
+    }
+  }
+  return renderTemplate`${renderComponent($$result, "Layout", $$AdminLayout, { "description": "Añadir nuevo cliente", "title": "Toldo Perfil - Añadir", "canonical": "https://toldoperfil.es" }, { "default": async ($$result2) => renderTemplate`  ${maybeRenderHead()}<div class="fixed inset-0 -z-10 bg-neutral-900"> <div class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"></div> <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div> </div> <main class="min-h-screen flex items-center justify-center p-4"> <!-- Glass Card --> <div class="relative w-full max-w-lg"> <div class="absolute inset-0 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl"></div> <div class="relative p-8"> <header class="flex justify-between items-center mb-8"> <div> <h2 class="text-2xl font-bold text-white tracking-tight">
+Nuevo Elemento
+</h2> <p class="text-indigo-200 text-sm">
+Añadir a la base de datos
+</p> </div> <a href="/admin" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-indigo-200 hover:text-white transition-colors" aria-label="Volver"> <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path> </svg> </a> </header> <form method="POST" enctype="multipart/form-data" class="space-y-6"> <!-- Title Input --> <div class="space-y-2"> <label for="title" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Título</label> <input type="text" id="title" name="title" required class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all" placeholder="Nombre del cliente o proyecto"> </div> <!-- Category Select --> <div class="space-y-2"> <label for="category" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Categoría</label> <div class="relative"> <select name="category" id="category" required class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all appearance-none cursor-pointer"> <option value="" class="bg-neutral-900 text-gray-500">Selecciona una opción</option> <option value="enterprise" class="bg-neutral-900"${addAttribute(categoryParam === "enterprise", "selected")}>Primeras Marcas</option> <option value="privateCustomer" class="bg-neutral-900"${addAttribute(categoryParam === "privateCustomer", "selected")}>Particulares</option> </select> <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-indigo-400"> <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path> </svg> </div> </div> </div> <!-- Image Upload --> <div class="space-y-2"> <label for="images" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Imágenes</label> <div class="relative group"> <input type="file" name="images" id="images" required multiple class="hidden"> <label for="images" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/10 rounded-xl hover:border-indigo-500/50 hover:bg-white/5 transition-all cursor-pointer"> <div class="flex flex-col items-center justify-center pt-5 pb-6"> <svg class="w-8 h-8 mb-3 text-indigo-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg> <p class="mb-2 text-sm text-indigo-200"> <span class="font-semibold text-white">Haz clic para subir</span> o arrastra
+</p> <p class="text-xs text-indigo-400">
+SVG, PNG, JPG or WEBP
+</p> </div> </label> </div> <!-- File list preview could be added here via JS --> </div> <!-- Description --> <div class="space-y-2"> <label for="description" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Descripción</label> <textarea name="description" id="description" rows="3" class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all resize-none" placeholder="Detalles opcionales..."></textarea> </div> <!-- Submit Button --> <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 active:shadow-none flex items-center justify-center gap-2"> <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path> </svg>
+Guardar Elemento
+</button> </form> </div> </div> </main> ` })}`;
+}, "C:/Users/Daniel/Desktop/ToldoPerfil/src/pages/admin/create.astro", void 0);
+const $$file = "C:/Users/Daniel/Desktop/ToldoPerfil/src/pages/admin/create.astro";
+const $$url = "/admin/create";
+
+const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+	__proto__: null,
+	default: $$Create,
+	file: $$file,
+	url: $$url
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const page = () => _page;
+
+export { page };
