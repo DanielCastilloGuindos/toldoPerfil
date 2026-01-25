@@ -1,58 +1,63 @@
 ---
-
 /** https://developers.google.com/search/docs/appearance/structured-data/organization */
 const organizationSchema = {
 	"@context": "https://schema.org",
 	"@type": "Organization",
-	"url": "https://toldoperfil.es",
-	"image": "/img/og.jpg",
-	"sameAs": [ // TODO: Añadir redes sociales
-		"https://www.instagram.com/xxx",
-		"https://x.com/xxx",
+	url: "https://toldoperfil.es",
+	image: "/img/og.jpg",
+	sameAs: [
+		"https://www.instagram.com/toldoperfil",
+		"https://x.com/toldoperfil",
+		"https://www.facebook.com/toldoperfil",
 	],
-	"logo": "/img/logo.png",
-	"name": "Toldo Perfil",
-	"alternateName": "ToldoPerfil",
-	"description":
+	logo: "/img/logo.png",
+	name: "Toldo Perfil",
+	alternateName: "ToldoPerfil",
+	description:
 		"Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!",
-}
+};
 
 export const FAQs = [
-  {
-    question: "¿Qué tipo de tela utilizan en sus toldos y qué ventajas ofrece?",
-    answer: "En nuestra tienda, utilizamos lona acrílica de alta calidad para nuestros toldos. Esta tela es duradera, resistente a la intemperie, resistente al desvanecimiento y está disponible en una amplia gama de colores y diseños. Además, la lona acrílica ofrece una excelente protección contra los rayos UV, lo que ayuda a mantener frescos los espacios exteriores y a proteger los muebles y pisos de la decoloración.",
-  },
-  {
-    question: "¿Cuáles son las características de sus estructuras de toldos?",
-    answer: "Nuestros toldos están diseñados con estructuras robustas y duraderas que garantizan una instalación segura y estable. Utilizamos materiales resistentes como el aluminio y el acero galvanizado que ofrecen una excelente resistencia a la corrosión y una larga vida útil. Además, nuestras estructuras están diseñadas para soportar cargas de viento y nieve, lo que garantiza su rendimiento incluso en condiciones climáticas adversas.",
-  },
-  {
-    question: "¿Ofrecen garantía en sus toldos?",
-    answer: "Sí, ofrecemos una garantía integral en todos nuestros toldos para brindar a nuestros clientes tranquilidad y confianza en su compra. Nuestra garantía cubre defectos de fabricación y mano de obra, así como el rendimiento y la durabilidad del producto. Estamos comprometidos a garantizar la satisfacción de nuestros clientes y a brindar un servicio excepcional en todo momento.",
-  },
-  {
-    question: "¿Qué servicios de instalación ofrecen y qué experiencia tienen sus instaladores?",
-    answer: "Ofrecemos servicios profesionales de instalación realizados por nuestro equipo altamente capacitado de instaladores certificados. Nuestros instaladores tienen una amplia experiencia en la instalación de toldos y están comprometidos con los más altos estándares de calidad y seguridad. Nos aseguramos de que cada instalación se realice de manera profesional y eficiente, garantizando la satisfacción del cliente en todo momento.",
-  },
+	{
+		question:
+			"¿Qué tipo de tela utilizan en sus toldos y qué ventajas ofrece?",
+		answer: "En nuestra tienda, utilizamos lona acrílica de alta calidad para nuestros toldos. Esta tela es duradera, resistente a la intemperie, resistente al desvanecimiento y está disponible en una amplia gama de colores y diseños. Además, la lona acrílica ofrece una excelente protección contra los rayos UV, lo que ayuda a mantener frescos los espacios exteriores y a proteger los muebles y pisos de la decoloración.",
+	},
+	{
+		question:
+			"¿Cuáles son las características de sus estructuras de toldos?",
+		answer: "Nuestros toldos están diseñados con estructuras robustas y duraderas que garantizan una instalación segura y estable. Utilizamos materiales resistentes como el aluminio y el acero galvanizado que ofrecen una excelente resistencia a la corrosión y una larga vida útil. Además, nuestras estructuras están diseñadas para soportar cargas de viento y nieve, lo que garantiza su rendimiento incluso en condiciones climáticas adversas.",
+	},
+	{
+		question: "¿Ofrecen garantía en sus toldos?",
+		answer: "Sí, ofrecemos una garantía integral en todos nuestros toldos para brindar a nuestros clientes tranquilidad y confianza en su compra. Nuestra garantía cubre defectos de fabricación y mano de obra, así como el rendimiento y la durabilidad del producto. Estamos comprometidos a garantizar la satisfacción de nuestros clientes y a brindar un servicio excepcional en todo momento.",
+	},
+	{
+		question:
+			"¿Qué servicios de instalación ofrecen y qué experiencia tienen sus instaladores?",
+		answer: "Ofrecemos servicios profesionales de instalación realizados por nuestro equipo altamente capacitado de instaladores certificados. Nuestros instaladores tienen una amplia experiencia en la instalación de toldos y están comprometidos con los más altos estándares de calidad y seguridad. Nos aseguramos de que cada instalación se realice de manera profesional y eficiente, garantizando la satisfacción del cliente en todo momento.",
+	},
 ];
-
 
 /** https://developers.google.com/search/docs/appearance/structured-data/faqpage */
 const FAQSchema = {
 	"@context": "https://schema.org",
 	"@type": "FAQPage",
-	"mainEntity": [
+	mainEntity: [
 		FAQs.map(({ answer, question }) => ({
 			"@type": "Question",
-			"name": question,
-			"acceptedAnswer": {
+			name: question,
+			acceptedAnswer: {
 				"@type": "Answer",
-				"text": answer,
+				text: answer,
 			},
 		})),
 	],
-}
+};
 ---
 
-<script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
+<script
+	type="application/ld+json"
+	set:html={JSON.stringify(organizationSchema)}
+/>
 <script type="application/ld+json" set:html={JSON.stringify(FAQSchema)} />

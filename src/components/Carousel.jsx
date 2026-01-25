@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { CarouselSlide } from "@/components/CarouselSlide.jsx";
 
-export const Carousel = ({ intervalTime= 8000 }) => {
-  const [activeSlide, setActiveSlide] = useState(0);
+export const Carousel = ({ intervalTime = 8000 }) => {
+	const [activeSlide, setActiveSlide] = useState(0);
 	let intervalRef = useRef(null);
 	const slides = [
 		{
@@ -11,10 +11,10 @@ export const Carousel = ({ intervalTime= 8000 }) => {
 			image: '/img/carousel/protrait01.webp',
 			content: (
 				<div className="w-full h-full flex flex-col justify-center items-center sm:items-start gap-4 px-4">
-					<h2 className='text-3xl sm:text-5xl text-white font-bold'>
+					<h1 className='text-3xl sm:text-5xl text-white font-bold'>
 						Bienvenido a <br aria-hidden='true' />
 						<span className=" font-extrabold">ToldoPerfil</span>
-					</h2>
+					</h1>
 					<p className="text-[14px] sm:text-xl font-light text-center tracking-wider text-white">Su solución para toldos de alta calidad.</p>
 					<a
 						href='#contact-us'
@@ -66,57 +66,57 @@ export const Carousel = ({ intervalTime= 8000 }) => {
 		},
 	];
 
-  const handlePrevSlide = () => {
-    setActiveSlide((prevSlide) => (prevSlide - 1 + slides.length) % slides.length);
+	const handlePrevSlide = () => {
+		setActiveSlide((prevSlide) => (prevSlide - 1 + slides.length) % slides.length);
 		resetTimer();
-  };
+	};
 
-  const handleNextSlide = () => {
-    setActiveSlide((prevSlide) => (prevSlide + 1) % slides.length);
+	const handleNextSlide = () => {
+		setActiveSlide((prevSlide) => (prevSlide + 1) % slides.length);
 		resetTimer();
-  };
+	};
 
 	const resetTimer = () => {
 		clearInterval(intervalRef.current)
-		intervalRef.current = setInterval( handleNextSlide, 3000 );
+		intervalRef.current = setInterval(handleNextSlide, 3000);
 	}
 
 	useEffect(() => {
-		intervalRef.current = setInterval( handleNextSlide, 3000 );
+		intervalRef.current = setInterval(handleNextSlide, 3000);
 		return () => clearInterval(intervalRef.current);
 	}, [])
 
 	return (
 		<>
 
-      {/* Carousel items */}
-      <div className="h-fit">
-        {slides.map(({ title, description, image, content }, index) => {
+			{/* Carousel items */}
+			<div className="h-fit">
+				{slides.map(({ title, description, image, content }, index) => {
 					let isActive = index === activeSlide;
 					return (
 						<CarouselSlide
-							key={ image + title}
-							title={ title }
-							description={ description }
-							image={ image }
-							isActive={ isActive }
+							key={image + title}
+							title={title}
+							description={description}
+							image={image}
+							isActive={isActive}
 							content={content}
 						/>)
 				})}
-      </div>
+			</div>
 
 			<div className="absolute top-0 left-0 w-full h-full grid grid-flow-col">
 				<button
 					id="arrowLeft"
 					aria-label="Flecha izquierda"
-					onClick={ handlePrevSlide }
+					onClick={handlePrevSlide}
 					className="cursor-[url(/img/carousel/arrow-left.png),_pointer] text-transparent">arrowLeft</button>
 				<button
 					id="arrowRigth"
 					aria-label="Flecha derecha"
-					onClick={ handleNextSlide }
+					onClick={handleNextSlide}
 					className="cursor-[url(/img/carousel/arrow-right.png),_pointer] text-transparent">arrowRigth</button>
 			</div>
-    </>
+		</>
 	);
 }

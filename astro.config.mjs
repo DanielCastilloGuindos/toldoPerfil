@@ -5,11 +5,13 @@ import vercel from "@astrojs/vercel";
 
 import db from "@astrojs/db";
 
+import sitemap from '@astrojs/sitemap';
+
 // https://astro.build/config
 export default defineConfig({
   integrations: [tailwind(), db(), react({
     experimentalReactChildren: true
-  })],
+  }), sitemap()],
   site: 'https://toldoperfil.es',
   output: 'server',
   adapter: vercel({
