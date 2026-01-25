@@ -2,26 +2,41 @@
 import QuestionIcon from "@/icons/question.astro";
 import { FAQs } from "@/components/RichResults.astro";
 ---
+
 {
 	FAQs.map(({ answer, question }, index) => {
-		const open = index === 0 && 'open';
+		const open = index === 0 && "open";
 		return (
-		<details class="py-2 group" {open}>
-			<summary class="list-none px-4 py-6 text-indigo-900 text-xl font-semibold cursor-pointer border-b group inline-flex justify-between w-full">
-				{question}
-				<div class="relative w-6 h-6 inline-flex items-center justify-center">
-					<span class="absolute w-5 h-1 bg-indigo-900"></span>
-					<span class="absolute w-1 h-5 bg-indigo-900 group-open:bg-transparent"></span>
-				</div>
-
-			</summary>
-			<p class="px-4 py-2 font-light text-sm">{answer}</p>
-		</details>
+			<details class="py-2 group" {open}>
+				<summary class="list-none px-4 py-6 text-indigo-900 text-xl font-semibold cursor-pointer border-b group inline-flex justify-between w-full">
+					{question}
+					<div class="relative w-6 h-6 inline-flex items-center justify-center">
+						<span class="absolute w-5 h-1 bg-indigo-900" />
+						<span class="absolute w-1 h-5 bg-indigo-900 group-open:bg-transparent" />
+					</div>
+				</summary>
+				<p class="px-4 py-2 font-light text-sm">{answer}</p>
+			</details>
 		);
 	})
 }
 <script>
 	import { $, $$ } from "@/consts/dom-selector.ts";
+
+	const trackFAQ = async (question) => {
+		try {
+			await fetch("/api/analytics/track", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					type: "faq_click",
+					data: { question },
+				}),
+			});
+		} catch (e) {
+			console.error(e);
+		}
+	};
 
 	const toggleDetails = (index) => {
 		$$("details").forEach((detail, currentIndex) => {
@@ -32,6 +47,18 @@ import { FAQs } from "@/components/RichResults.astro";
 	};
 
 	$$("details").forEach((detailsTag, index) => {
-		detailsTag.addEventListener("click", () => toggleDetails(index));
+		detailsTag.addEventListener("click", (e) => {
+			// Only track if we are opening it (it wasn't open before click)
+			// Note: Click events on details happen *before* the toggle state changes usually,
+			// but for simplicity we track the *intent* (click).
+			// Better check: if !detailsTag.open
+			if (!detailsTag.open) {
+				const question = detailsTag
+					.querySelector("summary")
+					?.textContent?.trim();
+				if (question) trackFAQ(question);
+			}
+			toggleDetails(index);
+		});
 	});
 </script>

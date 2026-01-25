@@ -1,0 +1,243 @@
+---
+import Layout from "@/layouts/AdminLayout.astro";
+import LoginForm from "@/components/admin/LoginForm.astro";
+import { db, Analytics, desc, gte, sql } from "astro:db";
+
+const cookie = Astro.cookies.get("admin_session");
+const isAuthenticated = cookie?.value === "authenticated";
+
+// Range handling
+const range = Astro.url.searchParams.get("range") || "7d";
+const days = range === "30d" ? 30 : range === "90d" ? 90 : 7;
+
+const dateLimit = new Date();
+dateLimit.setDate(dateLimit.getDate() - days);
+
+// Fetch Analytics
+// Note: In a real SQL environemnt we would separate queries efficiently. 
+// With Drizzle/AstroDB we fetch raw and process JS side for simplicity unless aggregation is needed.
+const allEvents = await db.select().from(Analytics).where(gte(Analytics.created_at, dateLimit));
+
+// Process Data for Chart (Daily Views)
+const viewsByDate: Record<string, number> = {};
+const clickByDate: Record<string, number> = {};
+
+// Default all days to 0
+for (let i = 0; i < days; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+    viewsByDate[dateStr] = 0;
+    clickByDate[dateStr] = 0;
+}
+
+// Stats
+let totalPageViews = 0;
+let totalContacts = 0;
+let totalWhatsApp = 0;
+const referrers: Record<string, number> = {};
+
+allEvents.forEach(event => {
+    const dateStr = new Date(event.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+
+    if (event.type === 'page_view') {
+        totalPageViews++;
+        if (viewsByDate[dateStr] !== undefined) viewsByDate[dateStr]++;
+        
+        // Referrer Logic
+        const ref = (event.data as any)?.referrer;
+        let source = 'Directo';
+        if (ref) {
+           try {
+               const url = new URL(ref);
+               source = url.hostname.replace('www.', '');
+               if (source.includes('google')) source = 'Google';
+               else if (source.includes('facebook') || source.includes('instagram')) source = 'Redes Sociales';
+               else if (source === window.location.hostname) source = 'Interno'; // Should be filtered usually
+           } catch(e) { source = 'Externo' }
+        }
+        if(source !== 'Interno') {
+             referrers[source] = (referrers[source] || 0) + 1;
+        }
+
+    } else if (event.type === 'contact_click') {
+        totalContacts++;
+        if (clickByDate[dateStr] !== undefined) clickByDate[dateStr]++;
+    } else if (event.type === 'whatsapp_click') {
+        totalWhatsApp++;
+    }
+});
+
+// Prepare Chart Data (Reverse to show chronological)
+const chartLabels = Object.keys(viewsByDate).reverse();
+const chartViews = Object.values(viewsByDate).reverse();
+const chartClicks = Object.values(clickByDate).reverse();
+
+const topReferrers = Object.entries(referrers)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5);
+
+---
+
+<Layout
+    description="Analítica detallada de ToldoPerfil"
+    title="Analítica - ToldoPerfil"
+    canonical="https://toldoperfil.es"
+>
+    <main class="font-sans min-h-screen">
+        {isAuthenticated ? (
+            <div class="fixed inset-0 -z-10 bg-neutral-900">
+                <div class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"></div>
+                <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div>
+            </div>
+
+            <div class="p-6 max-w-7xl mx-auto space-y-8">
+                
+                <!-- Header -->
+                <header class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-4">
+                    <div class="flex items-center gap-4">
+                        <a href="/admin" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                        </a>
+                        <div>
+                            <h1 class="text-xl font-bold text-white tracking-tight">Analítica</h1>
+                            <p class="text-xs text-indigo-200">Comportamiento de usuarios</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter -->
+                    <div class="flex bg-neutral-900/50 p-1 rounded-lg border border-white/10">
+                        <a href="?range=7d" class={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${range === '7d' ? 'bg-indigo-600 text-white shadow-lg' : 'text-indigo-200 hover:text-white'}`}>7 Días</a>
+                        <a href="?range=30d" class={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${range === '30d' ? 'bg-indigo-600 text-white shadow-lg' : 'text-indigo-200 hover:text-white'}`}>30 Días</a>
+                        <a href="?range=90d" class={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${range === '90d' ? 'bg-indigo-600 text-white shadow-lg' : 'text-indigo-200 hover:text-white'}`}>90 Días</a>
+                    </div>
+                </header>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-indigo-900/30 border border-indigo-500/20 rounded-xl p-5">
+                        <span class="text-indigo-200 text-xs uppercase font-bold tracking-wider">Visitas (Periodo)</span>
+                        <div class="flex items-baseline gap-2 mt-1">
+                            <span class="text-4xl font-bold text-white">{totalPageViews}</span>
+                        </div>
+                    </div>
+                    <div class="bg-green-900/30 border border-green-500/20 rounded-xl p-5">
+                        <span class="text-green-200 text-xs uppercase font-bold tracking-wider">Interacciones</span>
+                        <div class="flex items-baseline gap-2 mt-1">
+                            <span class="text-4xl font-bold text-white">{totalContacts + totalWhatsApp}</span>
+                        </div>
+                        <div class="mt-2 text-[10px] text-green-300/50 flex gap-2">
+                            <span>Forms: {totalContacts}</span>•<span>WhatsApp: {totalWhatsApp}</span>
+                        </div>
+                    </div>
+                    <div class="bg-purple-900/30 border border-purple-500/20 rounded-xl p-5">
+                         <span class="text-purple-200 text-xs uppercase font-bold tracking-wider">Tasa de Conversión</span>
+                        <div class="flex items-baseline gap-2 mt-1">
+                            <span class="text-4xl font-bold text-white">
+                                {totalPageViews > 0 ? (( (totalContacts + totalWhatsApp) / totalPageViews ) * 100).toFixed(1) : 0}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Chart & tables -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Traffic Chart -->
+                    <div class="lg:col-span-2 bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+                        <h2 class="text-lg font-bold text-white mb-6">Tendencia de Tráfico</h2>
+                        <div class="relative h-64 w-full">
+                            <canvas id="trafficChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Referrers -->
+                    <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+                        <h2 class="text-lg font-bold text-white mb-6">Fuentes de Tráfico</h2>
+                        <div class="space-y-4">
+                            {topReferrers.length > 0 ? topReferrers.map(([source, count], index) => (
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xs font-mono text-indigo-400 bg-indigo-500/10 w-5 h-5 flex items-center justify-center rounded">{index + 1}</span>
+                                        <span class="text-sm text-white font-medium capitalize">{source}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                            <div class="h-full bg-indigo-500 rounded-full" style={`width: ${(count / totalPageViews) * 100}%`}></div>
+                                        </div>
+                                        <span class="text-xs text-indigo-200 w-6 text-right">{count}</span>
+                                    </div>
+                                </div>
+                            )) : (
+                                <div class="text-center text-white/30 text-sm py-8">Sin datos de fuentes</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Chart.js Script -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js" is:inline></script>
+            <script define:vars={{ chartLabels, chartViews, chartClicks }}>
+                const ctx = document.getElementById('trafficChart');
+                
+                // Gradient for Views
+                // Note: We need to create gradient in context, but simpler to use solid color for MVC
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [
+                            {
+                                label: 'Visitas',
+                                data: chartViews,
+                                borderColor: '#818cf8', // Indigo 400
+                                backgroundColor: 'rgba(129, 140, 248, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 0
+                            },
+                             {
+                                label: 'Contactos',
+                                data: chartClicks,
+                                borderColor: '#4ade80', // Green 400
+                                backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                pointRadius: 3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#e0e7ff', font: { size: 12 } }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: { color: '#a5b4fc' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#a5b4fc', maxTicksLimit: 7 }
+                            }
+                        }
+                    }
+                });
+            </script>
+
+        ) : (
+            <LoginForm />
+        )}
+    </main>
+</Layout>

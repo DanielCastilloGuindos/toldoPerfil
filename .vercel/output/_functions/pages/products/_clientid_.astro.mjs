@@ -1,7 +1,7 @@
-/* empty css                                      */
-import { c as createAstro, a as createComponent, r as renderComponent, b as renderTemplate, m as maybeRenderHead } from '../../chunks/astro/server_ZnJZev0u.mjs';
+/* empty css                                        */
+import { c as createAstro, a as createComponent, r as renderComponent, b as renderTemplate, m as maybeRenderHead } from '../../chunks/astro/server_BhIen7rj.mjs';
 import 'piccolore';
-import { $ as $$ClientLayout, a as $$Header, b as $$InfoGalery } from '../../chunks/Info_Galery_BsV_zMT_.mjs';
+import { $ as $$ClientLayout, a as $$Header, b as $$InfoGalery } from '../../chunks/Info_Galery_DfhjVjPf.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const getStaticProductsPaths = () => {

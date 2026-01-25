@@ -1,11 +1,11 @@
-/* empty css                                      */
-import { c as createAstro, a as createComponent, m as maybeRenderHead, e as addAttribute, b as renderTemplate, r as renderComponent, f as renderScript } from '../../chunks/astro/server_ZnJZev0u.mjs';
+/* empty css                                        */
+import { c as createAstro, a as createComponent, m as maybeRenderHead, f as addAttribute, b as renderTemplate, r as renderComponent, g as renderScript } from '../../chunks/astro/server_BhIen7rj.mjs';
 import 'piccolore';
-import { $ as $$AdminLayout } from '../../chunks/AdminLayout_DeYbIL2Q.mjs';
+import { $ as $$AdminLayout } from '../../chunks/AdminLayout_C-Ngq-O0.mjs';
 import { d as db, C as Customers } from '../../chunks/_astro_db_Cb5B9jDV.mjs';
 import 'clsx';
 import { desc } from '@astrojs/db/dist/runtime/virtual.js';
-import { $ as $$LoginForm } from '../../chunks/LoginForm_BJ2TrMvC.mjs';
+import { $ as $$LoginForm } from '../../chunks/LoginForm_Cu-mLwTT.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const $$Astro$3 = createAstro("https://toldoperfil.es");

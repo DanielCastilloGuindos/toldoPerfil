@@ -1,8 +1,8 @@
-/* empty css                                      */
-import { c as createAstro, a as createComponent, r as renderComponent, b as renderTemplate, m as maybeRenderHead } from '../../chunks/astro/server_ZnJZev0u.mjs';
+/* empty css                                        */
+import { c as createAstro, a as createComponent, r as renderComponent, b as renderTemplate, m as maybeRenderHead } from '../../chunks/astro/server_BhIen7rj.mjs';
 import 'piccolore';
 import { d as db, C as Customers } from '../../chunks/_astro_db_Cb5B9jDV.mjs';
-import { $ as $$ClientLayout, a as $$Header, b as $$InfoGalery } from '../../chunks/Info_Galery_BsV_zMT_.mjs';
+import { $ as $$ClientLayout, a as $$Header, b as $$InfoGalery } from '../../chunks/Info_Galery_DfhjVjPf.mjs';
 import { eq } from '@astrojs/db/dist/runtime/virtual.js';
 export { renderers } from '../../renderers.mjs';
 

@@ -1,7 +1,7 @@
-/* empty css                                   */
-import { a as createComponent, r as renderComponent, b as renderTemplate, m as maybeRenderHead } from '../chunks/astro/server_ZnJZev0u.mjs';
+/* empty css                                     */
+import { a as createComponent, r as renderComponent, b as renderTemplate, m as maybeRenderHead } from '../chunks/astro/server_BhIen7rj.mjs';
 import 'piccolore';
-import { a as $$Layout } from '../chunks/Layout_Cs968HcG.mjs';
+import { a as $$Layout } from '../chunks/Layout_Hth-5zoK.mjs';
 export { renderers } from '../renderers.mjs';
 
 const $$LegalAdvice = createComponent(($$result, $$props, $$slots) => {
