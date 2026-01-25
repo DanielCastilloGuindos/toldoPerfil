@@ -15,7 +15,7 @@ const Customers = defineTable({
 
 const Analytics = defineTable({
   columns: {
-    id: column.number({ primaryKey: true }),
+    id: column.number({ primaryKey: true, autoIncrement: true }),
     type: column.text(), // 'page_view', 'contact_click', 'whatsapp_click'
     data: column.json({ optional: true }), // Extra info
     created_at: column.date({ default: NOW }),

@@ -30,17 +30,19 @@ export const POST: APIRoute = async ({ request }) => {
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
         const device = isMobile ? 'Mobile' : 'Desktop';
 
+        const payloadData = (typeof data === 'object' && data !== null) ? data : {};
+
         await db.insert(Analytics).values({
             type,
             data: {
-                ...(data || {}),
+                ...payloadData,
                 ip,
                 city,
                 country,
                 userAgent,
                 device
-            },
-            created_at: new Date(),
+            }
+            // created_at handled by default: NOW
         });
 
         return new Response(JSON.stringify({ success: true }), {
