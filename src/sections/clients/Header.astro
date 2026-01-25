@@ -1,13 +1,17 @@
 ---
-import ReturnButton from "@/components/clients/ReturnButton.astro"
+import ReturnButton from "@/components/clients/ReturnButton.astro";
 
-const { title, transtionName } = Astro.props
+const { title, transitionName } = Astro.props;
 ---
-<header class="sticky inset-0 bg-indigo-950 flex justify-center items-center sm:h-32 z-10">
+
+<header
+	class="sticky inset-0 bg-indigo-950 flex justify-center items-center sm:h-32 z-10"
+>
 	<h1
 		class="py-4 text-[1.65rem] leading-9 tracking-wider font-bold uppercase"
-		transition:name={ transtionName } >
-		{ title }
+		transition:name={transitionName}
+	>
+		{title}
 	</h1>
 
 	<ReturnButton />

@@ -1,12 +1,25 @@
 ---
-const { id, title, description, image = "/img/example.jpg", linked = true } = Astro.props
+const {
+	id,
+	title,
+	description,
+	image = "/img/example.jpg",
+	linked = true,
+} = Astro.props;
 ---
-<a class="group" href={ linked ? `/products/${id}` : '#'} aria-label=`Enlace para ver los toldos montados para ${title}`>
-	<figure class="relative overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear scroll-effect">
+
+<a
+	class="group"
+	href={linked ? `/products/${id}` : "#"}
+	aria-label=`Enlace para ver los toldos montados para ${title}`
+>
+	<figure
+		class="relative overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear scroll-effect"
+	>
 		<img
 			class="w-full object-cover aspect-[1.82/1]"
 			alt=`Imagen de ${title}`
-			src={ image }
+			src={image}
 			transition:name={"image_" + image}
 			loading="lazy"
 		/>
@@ -15,14 +28,13 @@ const { id, title, description, image = "/img/example.jpg", linked = true } = As
 		>
 			<h5
 				class="text-[1.65rem] leading-9 tracking-wider font-bold uppercase opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500"
-				transition:name={ "title_" + id }
-				transition:animate="slide"
+				transition:name={"title_" + id}
 			>
-				{ title }
+				{title}
 			</h5>
 			<span
 				class="text-[0.95rem] font-[Helvetica] tracking-wider opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500"
-				>
+			>
 				{description}
 			</span>
 		</figcaption>
