@@ -4,10 +4,19 @@ import ProductCardDB from "@/components/ProductCardDB.astro";
 
 import { db, Customers, eq } from "astro:db";
 
-const customersQuery = await db
-	.select()
-	.from(Customers)
-	.where(eq(Customers.category, "privateCustomer"));
+let customersQuery = [];
+let dbError = false;
+
+try {
+	customersQuery = await db
+		.select()
+		.from(Customers)
+		.where(eq(Customers.category, "privateCustomer"));
+} catch (e) {
+	console.error("Error fetching private customers:", e);
+	dbError = true;
+	customersQuery = [];
+}
 ---
 
 <section
@@ -29,26 +38,37 @@ const customersQuery = await db
 			class="py-4 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-6 px-2 sm:px-0 w-full sm:max-w-6xl"
 		>
 			{
-				customersQuery.map(
-					({
-						customer_id,
-						title,
-						description,
-						images,
-						isVisible,
-					}) => {
-						if (!isVisible) return;
-						let protrairPath = (images as string[])[0];
-						return (
-							<ProductCardDB
-								id={customer_id}
-								title={title}
-								description="Haz click para ver más detalles"
-								image={protrairPath}
-								key={"db" + customer_id}
-							/>
-						);
-					},
+				!dbError ? (
+					customersQuery.map(
+						({
+							customer_id,
+							title,
+							description,
+							images,
+							isVisible,
+						}) => {
+							if (!isVisible) return;
+							let protrairPath = (images as string[])[0];
+							return (
+								<ProductCardDB
+									id={customer_id}
+									title={title}
+									description="Haz click para ver más detalles"
+									image={protrairPath}
+									key={"db" + customer_id}
+								/>
+							);
+						},
+					)
+				) : (
+					<div class="col-span-1 sm:col-span-2 w-full text-center py-10 bg-neutral-700/50 rounded-lg border border-neutral-600">
+						<p class="text-gray-300 font-medium">
+							Contenido temporalmente no disponible
+						</p>
+						<p class="text-sm text-gray-500 mt-2">
+							Estamos trabajando para restaurar el servicio.
+						</p>
+					</div>
 				)
 			}
 		</article>

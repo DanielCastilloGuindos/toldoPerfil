@@ -1,30 +1,72 @@
 ---
-import { db, Customers, eq } from 'astro:db';
-import ClientLayout from '@/layouts/ClientLayout.astro';
+import { db, Customers, eq } from "astro:db";
+import ClientLayout from "@/layouts/ClientLayout.astro";
 
-import Header from '@/sections/clients/Header.astro';
-import InfoGalery from '@/sections/clients/Info&Galery.astro';
+import Header from "@/sections/clients/Header.astro";
+import InfoGalery from "@/sections/clients/Info&Galery.astro";
 
 const { customerId } = Astro.params;
 
-const customerQuery = await db.select()
-	.from(Customers)
-	.where( eq(Customers.customer_id, customerId));
+let customer = null;
+let dbError = false;
 
-const customer = {
-	id: customerId,
-	title: customerQuery[0].title,
-	description: customerQuery[0].description,
-	images: customerQuery[0].images
+try {
+	const customerQuery = await db
+		.select()
+		.from(Customers)
+		.where(eq(Customers.customer_id, customerId));
+
+	if (customerQuery && customerQuery.length > 0) {
+		customer = {
+			id: customerId,
+			title: customerQuery[0].title,
+			description: customerQuery[0].description,
+			images: customerQuery[0].images,
+		};
+	}
+} catch (e) {
+	console.error(`Error fetching customer ${customerId}:`, e);
+	dbError = true;
 }
 ---
 
 <ClientLayout
-description="Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!"
-title=`Toldo Perfil - ${customer.title}` 
+	description={customer?.description ||
+		"Información temporalmente no disponible."}
+	title={customer
+		? `Toldo Perfil - ${customer.title}`
+		: "Toldo Perfil - No disponible"}
 >
 	<main class="font-sans">
-		<Header title={ customer.title } transitionName= { "title_" + customer.id } />
-		<InfoGalery data={ customer } path='' /> 
+		{
+			customer && !dbError ? (
+				<>
+					<Header
+						title={customer.title}
+						transitionName={"title_" + customer.id}
+					/>
+					<InfoGalery data={customer} path="" />
+				</>
+			) : (
+				<section class="flex flex-col items-center justify-center min-h-[50vh] px-4 text-center">
+					<h1 class="text-3xl font-bold mb-4">
+						{dbError
+							? "Servicio no disponible"
+							: "Producto no encontrado"}
+					</h1>
+					<p class="text-lg text-gray-300 mb-8 max-w-md">
+						{dbError
+							? "Estamos experimentando problemas técnicos. Por favor, inténtelo de nuevo más tarde."
+							: "Lo sentimos, no hemos podido encontrar el producto que buscas."}
+					</p>
+					<a
+						href="/"
+						class="px-6 py-3 bg-white text-black font-semibold rounded hover:bg-gray-200 transition-colors"
+					>
+						Volver al inicio
+					</a>
+				</section>
+			)
+		}
 	</main>
 </ClientLayout>
