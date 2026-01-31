@@ -1,0 +1,17 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import Error from "@/sections/Error.astro";
+---
+
+<Layout
+    description="Toldo Perfil: Disculpa, ha ocurrido un error inesperado en nuestro servidor. Estamos trabajando para solucionarlo lo antes posible."
+    title="Toldo Perfil - Error Interno del Servidor"
+>
+    <main>
+        <Error
+            error="500"
+            message="Error Interno"
+            contextMessage="Disculpa, algo salió mal en nuestro servidor. Por favor, inténtalo de nuevo más tarde o contacta con soporte si el problema persiste."
+        />
+    </main>
+</Layout>
