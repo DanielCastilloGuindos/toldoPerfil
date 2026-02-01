@@ -1,5 +1,7 @@
 ---
-import { db, Customers, Analytics, desc, eq } from "astro:db";
+import { db } from "@/db/client";
+import { Customers, Analytics } from "@/db/schema";
+import { desc, eq } from "drizzle-orm";
 
 // Fetch Stats
 const analyticsData = await db.select().from(Analytics);

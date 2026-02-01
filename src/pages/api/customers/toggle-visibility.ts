@@ -1,6 +1,8 @@
 export const prerender = false;
 
-import { db, Customers, eq, not } from "astro:db";
+import { db } from "@/db/client";
+import { Customers } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import type { APIRoute } from "astro";
 
 export const POST: APIRoute = async ({ request, redirect }) => {
@@ -16,7 +18,8 @@ export const POST: APIRoute = async ({ request, redirect }) => {
         // but with Astro DB (Drizzle) we can fetch and update or use sql operators.
         // Let's fetch first to be safe and simple.
 
-        const customer = await db.select().from(Customers).where(eq(Customers.customer_id, Number(id))).get();
+        const customers = await db.select().from(Customers).where(eq(Customers.customer_id, Number(id)));
+        const customer = customers[0];
 
         if (!customer) {
             return new Response("Cliente no encontrado", { status: 404 });

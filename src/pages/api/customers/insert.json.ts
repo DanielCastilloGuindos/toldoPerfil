@@ -1,4 +1,5 @@
-import { db, Customers, isDbError } from 'astro:db';
+import { db } from "@/db/client";
+import { Customers } from "@/db/schema";
 import type { APIRoute } from 'astro';
 
 export const GET: APIRoute = async ({ params, request }) => {
@@ -16,10 +17,8 @@ export const GET: APIRoute = async ({ params, request }) => {
 			images: images
 		});
 	} catch (e) {
-		if (isDbError(e)) {
-			return new Response(`No se puede insertar \n\n${e.message}`, { status: 400 });
-		}
+		return new Response(`No se puede insertar \n\n${e}`, { status: 400 });
 		return new Response('Se ha producido un error inesperado', { status: 500 });
 	}
-	return new Response(JSON.stringify({msg: 'Everything is correct'}))
+	return new Response(JSON.stringify({ msg: 'Everything is correct' }))
 }

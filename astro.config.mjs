@@ -3,13 +3,13 @@ import tailwind from "@astrojs/tailwind";
 import react from '@astrojs/react';
 import vercel from "@astrojs/vercel";
 
-import db from "@astrojs/db";
+
 
 import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(), db(), react({
+  integrations: [tailwind(), react({
     experimentalReactChildren: true
   }), sitemap()],
   site: 'https://toldoperfil.es',

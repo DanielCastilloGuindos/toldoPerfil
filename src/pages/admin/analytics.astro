@@ -1,7 +1,9 @@
 ---
 import Layout from "@/layouts/AdminLayout.astro";
 import LoginForm from "@/components/admin/LoginForm.astro";
-import { db, Analytics, desc, gte, sql } from "astro:db";
+import { db } from "@/db/client";
+import { Analytics } from "@/db/schema";
+import { desc, gte, sql } from "drizzle-orm";
 
 const cookie = Astro.cookies.get("admin_session");
 const isAuthenticated = cookie?.value === "authenticated";

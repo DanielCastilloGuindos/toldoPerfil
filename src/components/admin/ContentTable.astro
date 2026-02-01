@@ -1,5 +1,7 @@
 ---
-import { db, Customers, Analytics, eq, desc } from "astro:db";
+import { db } from "@/db/client";
+import { Customers, Analytics } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 import EditIcon from "@/icons/admin/edit.astro";
 import TrashIcon from "@/icons/admin/trash.astro";
 import EyeIcon from "@/icons/admin/eye.astro";

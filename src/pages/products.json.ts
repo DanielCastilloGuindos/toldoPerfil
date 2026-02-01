@@ -1,4 +1,5 @@
-import { db, Customers } from 'astro:db';
+import { db } from "@/db/client";
+import { Customers } from "@/db/schema";
 
 export async function GET() {
     const products = await db.select().from(Customers);

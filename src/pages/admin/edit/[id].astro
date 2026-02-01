@@ -1,6 +1,9 @@
 ---
 import Layout from "@/layouts/AdminLayout.astro";
-import { db, Customers, isDbError, eq } from "astro:db";
+import Layout from "@/layouts/AdminLayout.astro";
+import { db } from "@/db/client";
+import { Customers } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { v2 as cloudinary } from "cloudinary";
 
 const { id } = Astro.params;
@@ -105,9 +108,7 @@ if (Astro.request.method === "POST") {
 
         return Astro.redirect("/admin");
     } catch (e) {
-        if (isDbError(e)) {
-            console.error(e);
-        }
+        console.error(e);
     }
 }
 ---

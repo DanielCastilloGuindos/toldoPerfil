@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro";
-import { db, Customers, eq } from "astro:db";
+import { db } from "@/db/client";
+import { Customers } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const POST: APIRoute = async ({ request, redirect }) => {
     const formData = await request.formData();

@@ -1,6 +1,7 @@
 export const prerender = false;
 
-import { db, Analytics } from "astro:db";
+import { db } from "@/db/client";
+import { Analytics } from "@/db/schema";
 import type { APIRoute } from "astro";
 
 export const POST: APIRoute = async ({ request }) => {
@@ -32,6 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
 
         const payloadData = (typeof data === 'object' && data !== null) ? data : {};
 
+        // Drizzle's text(..., { mode: 'json' }) expects the object directly
         await db.insert(Analytics).values({
             type,
             data: {
@@ -42,7 +44,6 @@ export const POST: APIRoute = async ({ request }) => {
                 userAgent,
                 device
             }
-            // created_at handled by default: NOW
         });
 
         return new Response(JSON.stringify({ success: true }), {

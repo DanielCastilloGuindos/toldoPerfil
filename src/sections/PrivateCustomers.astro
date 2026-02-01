@@ -2,7 +2,9 @@
 import ProductCard from "@/components/ProductCard.astro";
 import ProductCardDB from "@/components/ProductCardDB.astro";
 
-import { db, Customers, eq } from "astro:db";
+import { db } from "@/db/client";
+import { Customers } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 let customersQuery = [];
 let dbError = false;
