@@ -468,7 +468,7 @@ if (isAuthenticated) {
                 }
             };
 
-            document.addEventListener("DOMContentLoaded", () => {
+            document.addEventListener("astro:page-load", () => {
                 const dialog = document.getElementById("customConfirmDialog");
                 const cancelBtn = document.getElementById("cancelConfirmBtn");
                 const submitBtn = document.getElementById("submitConfirmBtn");
@@ -528,7 +528,7 @@ if (isAuthenticated) {
                         pendingForm = null;
                     }
                 });
-            });
+            }, { once: true });
         </script>
     </main>
 </Layout>

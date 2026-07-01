@@ -343,7 +343,7 @@ const customersData = await db
 </form>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("astro:page-load", () => {
         const dialog = document.getElementById("customConfirmDialog") as HTMLDialogElement;
         const cancelBtn = document.getElementById("cancelConfirmBtn");
         const submitBtn = document.getElementById("submitConfirmBtn");
@@ -433,5 +433,5 @@ const customersData = await db
                 pendingForm = null;
             }
         });
-    });
+    }, { once: true });
 </script>

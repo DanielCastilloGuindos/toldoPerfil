@@ -575,7 +575,8 @@ activityLog.reverse(); // Newest first
             </div>
 
             <script src="https://cdn.jsdelivr.net/npm/chart.js" is:inline></script>
-            <script define:vars={{ chartLabels, chartViews, chartClicks, donutDataArray, activityLog, allReferrers, allLocations, allVisitedProjects }}>
+            <script define:vars={{ chartLabels, chartViews, chartClicks, donutDataArray, activityLog, allReferrers, allLocations, allVisitedProjects, allVisitedBlogs }}>
+                document.addEventListener('astro:page-load', () => {
                 // --- Traffic Chart ---
                 const ctx = document.getElementById('trafficChart');
                 new Chart(ctx, {
@@ -907,6 +908,7 @@ activityLog.reverse(); // Newest first
 
                 // Perform first render
                 renderTable();
+                }, { once: true });
             </script>
         ) : (
             <LoginForm />

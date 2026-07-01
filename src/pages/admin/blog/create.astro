@@ -278,7 +278,7 @@ const defaultTime = now.toTimeString().slice(0, 5); // HH:MM
 
     <!-- Client-side Interactive Enhancement Script -->
     <script is:inline>
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("astro:page-load", () => {
             // 1. Slug preview logic
             const titleInput = document.getElementById("title");
             const slugInput = document.getElementById("slug");
@@ -441,6 +441,6 @@ const defaultTime = now.toTimeString().slice(0, 5); // HH:MM
                 submitBtn.classList.add("opacity-75", "cursor-not-allowed");
                 btnText.textContent = "Guardando artículo...";
             });
-        });
+        }, { once: true });
     </script>
 </Layout>
