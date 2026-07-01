@@ -1,0 +1,12 @@
+{
+  "name": "Toldo Perfil Agent Permissions",
+  "permissions": {
+    "readDocumentation": true,
+    "calculateQuotes": true,
+    "submitContactForm": "human-in-the-loop"
+  },
+  "limits": {
+    "maxRequestsPerMinute": 60,
+    "concurrency": 2
+  }
+}

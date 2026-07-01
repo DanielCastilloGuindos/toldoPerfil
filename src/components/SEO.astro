@@ -59,8 +59,12 @@ const canonicalURL = canonical
 <meta name="og:description" content={description} />
 <meta name="og:url" content={Astro.url} />
 <meta name="og:site_name" content="Toldo Perfil" />
-<meta name="og:type" content="website" />
+<meta property="og:type" content="website" />
 <meta name="og:locale" content="es_ES" />
+
+<!-- AI Agent and AEO Metadata -->
+<meta name="ai:page-type" content="website" />
+<meta name="ai:token-count" content="1000" />
 
 <meta name="robots" content="index, follow" />
 <meta name="googlebot" content="index, follow" />
