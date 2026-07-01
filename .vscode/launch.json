@@ -28,6 +28,16 @@
       "skipFiles": [
         "<node_internals>/**"
       ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run Blog Cron (generate-blog)",
+      "program": "${workspaceFolder}/scripts/generate-blog.js",
+      "cwd": "${workspaceFolder}",
+      "runtimeArgs": ["-r", "dotenv/config"],
+      "envFile": "${workspaceFolder}/.env",
+      "outputCapture": "std"
     }
   ]
 }
