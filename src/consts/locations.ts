@@ -8,91 +8,91 @@ export interface LocationData {
 }
 
 export const LOCATIONS_DATA: LocationData[] = [
-    // La Sede Central / Prioridad 1
+    // Sede Principal
     {
         slug: "toldos-velilla-de-san-antonio",
         municipioName: "Velilla de San Antonio",
         priorityZone: 1,
         puntosFuertes: [
-            "Taller y central localizados en el propio municipio para un servicio sin intermediarios",
-            "Medición presencial gratuita en tu domicilio en menos de 15 minutos",
-            "Instalación express prioritaria y soporte post-venta inmediato de fábrica"
+            "Taller y central localizados en el propio municipio para un servicio directo",
+            "Consulta técnica personalizada en tu domicilio adaptada a tu disponibilidad",
+            "Fabricación propia y atención directa de fábrica sin intermediarios"
         ],
         keywords: ["toldos a medida", "pérgolas bioclimáticas", "toldos cofre motorizados", "cambio de lona de toldo"],
-        descriptionLocal: "Velilla de San Antonio alberga nuestro taller y central principal. Como fabricantes locales, ofrecemos a nuestros vecinos de Velilla instalación directa de pérgolas bioclimáticas y toldos a medida a precios de fábrica."
+        descriptionLocal: "Velilla de San Antonio alberga nuestro taller y central principal. Como fabricantes locales de toldos, ofrecemos a nuestros vecinos atención directa, materiales de primera calidad y un asesoramiento adaptado a sus necesidades."
     },
-    // Prioridad 1: Alrededor de Velilla de San Antonio (Cercanía Extrema)
+    // Prioridad 1: Alrededor de Velilla de San Antonio (Cercanía)
     {
         slug: "toldos-loeches",
         municipioName: "Loeches",
         priorityZone: 1,
         puntosFuertes: [
-            "Desplazamiento urgente gratuito en menos de 20 minutos desde nuestra central en Velilla",
-            "Presupuesto sin compromiso con medición presencial en el mismo día",
-            "Atención técnica inmediata de post-venta sin esperas"
+            "Servicio cercano y directo coordinado desde nuestra central en Velilla de San Antonio",
+            "Presupuesto detallado adaptado a las necesidades de tu espacio",
+            "Soporte técnico post-venta directo y cercano"
         ],
         keywords: ["toldos brazo extensible", "pérgolas bioclimáticas", "cambio de lona de toldo", "cerramientos de aluminio"],
-        descriptionLocal: "Loeches se sitúa a solo un paso de nuestro taller principal en Velilla de San Antonio. Ofrecemos instalación de pérgolas bioclimáticas y toldos a medida con tarifas sin intermediarios y servicio post-venta inmediato."
+        descriptionLocal: "Loeches se sitúa a muy poca distancia de nuestro taller en Velilla de San Antonio. Ofrecemos instalación de pérgolas bioclimáticas y toldos a medida con tarifas competitivas y trato personalizado."
     },
     {
         slug: "toldos-mejorada-del-campo",
         municipioName: "Mejorada del Campo",
         priorityZone: 1,
         puntosFuertes: [
-            "Medición a domicilio gratis en menos de 30 minutos",
-            "Instalación preferente prioritaria para vecinos de Mejorada",
-            "Garantía extendida de 5 años en todas nuestras lonas técnicas"
+            "Estudio y medición técnica personalizada a domicilio",
+            "Instalación profesional y cuidadosa realizada por especialistas",
+            "Uso de lonas y materiales de alta calidad con resistencia UV"
         ],
         keywords: ["toldos cofre", "pérgolas de aluminio", "toldos punto recto", "lonas impermeables"],
-        descriptionLocal: "Instalamos toldos en Mejorada del Campo con la garantía de cercanía de un instalador local. Desde toldos cofre motorizados hasta pérgolas para patios y jardines a precios directos de fábrica."
+        descriptionLocal: "Instalamos toldos en Mejorada del Campo con la garantía de cercanía de un taller local. Desde toldos cofre motorizados hasta pérgolas para terrazas y patios con la máxima durabilidad."
     },
     {
         slug: "toldos-arganda-del-rey",
         municipioName: "Arganda del Rey",
         priorityZone: 1,
         puntosFuertes: [
-            "Desplazamiento y asistencia técnica en menos de 25 minutos por la R-3",
-            "Instaladores homologados con más de 15 años de experiencia en la zona",
-            "Financiación a medida sin intereses hasta en 24 meses"
+            "Asistencia técnica cualificada y servicio de montaje profesional",
+            "Instaladores con amplia experiencia en la zona",
+            "Presupuestos transparentes sin sorpresas"
         ],
         keywords: ["toldos para terrazas", "pérgolas bioclimáticas motorizadas", "toldos cortavientos", "reparación de toldos"],
-        descriptionLocal: "Especialistas en toldos en Arganda del Rey. Protégete del sol de forma eficiente con nuestras pérgolas y toldos de gran durabilidad, diseñados específicamente para el clima del sureste de Madrid."
+        descriptionLocal: "Especialistas en toldos en Arganda del Rey. Diseñamos pérgolas y sistemas de sombreado resistentes para el clima del sureste de Madrid, priorizando siempre la calidad y el trato directo."
     },
     {
         slug: "toldos-rivas-vaciamadrid",
         municipioName: "Rivas-Vaciamadrid",
         priorityZone: 1,
         puntosFuertes: [
-            "Instalación exprés sin cargos extra en toda la zona de Rivas",
-            "Asesoramiento a domicilio para cumplimiento de normativas estéticas de comunidad",
-            "Sistemas inteligentes con sensores de viento Somfy"
+            "Montaje profesional adaptado a la estética de tu vivienda o local",
+            "Asesoramiento sobre normativas estéticas y de comunidad",
+            "Opción de automatización y sensores de viento Somfy"
         ],
         keywords: ["toldos para chalets", "pérgolas bioclimáticas", "toldos verticales guiados", "cambio de motor de toldo"],
-        descriptionLocal: "Fabricamos e instalamos toldos en Rivas-Vaciamadrid. Adaptamos nuestros designs a los colores de tu urbanización y garantizamos un comportamiento óptimo frente al viento con automatismos de alta gama."
+        descriptionLocal: "Fabricamos e instalamos toldos en Rivas-Vaciamadrid. Adaptamos nuestros diseños a los colores de tu urbanización y configuramos automatismos de alta gama para tu mayor comodidad."
     },
     {
         slug: "toldos-torres-de-la-alameda",
         municipioName: "Torres de la Alameda",
         priorityZone: 1,
         puntosFuertes: [
-            "Mediciones a domicilio inmediatas y asesoramiento directo en Torres",
-            "Precios de fábrica sin comisiones de intermediarios ni agencias",
-            "Reparación y motorización de toldos existentes en tiempo récord"
+            "Medición detallada y asesoramiento directo",
+            "Precios directos de taller sin intermediarios",
+            "Servicio de reparación y motorización de toldos"
         ],
         keywords: ["toldos planos", "cambio de lona acrílica", "cerramientos acristalados", "toldos monobloc"],
-        descriptionLocal: "Toldos de alta calidad en Torres de la Alameda. Brindamos servicios rápidos de cambio de lona y montaje de pérgolas bioclimáticas directos desde nuestro taller central en Velilla."
+        descriptionLocal: "Toldos de alta calidad en Torres de la Alameda. Brindamos servicios de renovación de lonas y montaje de pérgolas bioclimáticas con la garantía de cercanía de nuestro taller de Velilla."
     },
     {
         slug: "toldos-san-fernando-de-henares",
         municipioName: "San Fernando de Henares",
         priorityZone: 1,
         puntosFuertes: [
-            "Servicio técnico en menos de 25 minutos en el Corredor del Henares",
-            "Instalaciones limpias con fijaciones químicas de alta seguridad",
-            "Presupuestos transparentes cerrados y por escrito"
+            "Servicio de instalación profesional en el Corredor del Henares",
+            "Instalaciones de alta seguridad con anclajes homologados",
+            "Presupuestos por escrito claros y detallados"
         ],
         keywords: ["toldos para balcones", "toldos cofre motorizados", "toldos de capota", "pérgolas bioclimáticas"],
-        descriptionLocal: "Instalación profesional de toldos en San Fernando de Henares. Soluciones premium de protección solar con tejidos técnicos de máxima resistencia UV y herrajes de aluminio lacado."
+        descriptionLocal: "Instalación profesional de toldos en San Fernando de Henares. Ofrecemos soluciones a medida con tejidos técnicos de alta resistencia ante la radiación solar extrema."
     },
     // Prioridad 2: Resto de la Comunidad de Madrid
     {
@@ -105,26 +105,26 @@ export const LOCATIONS_DATA: LocationData[] = [
             "Catálogo premium de pérgolas bioclimáticas y toldos motorizados inteligentes"
         ],
         keywords: ["toldos madrid capital", "pérgolas bioclimáticas", "cambio de lona de toldo", "toldos cofre inteligentes"],
-        descriptionLocal: "Ofrecemos servicios de instalación y renovación de toldos en Madrid capital. Creamos espacios confortables en áticos, pisos y locales comerciales con sistemas modernos de accionamiento automático."
+        descriptionLocal: "Ofrecemos servicios de instalación y renovación de toldos en Madrid capital. Creamos espacios confortables en áticos, pisos y locales comerciales con sistemas modernos de protección solar."
     },
     {
         slug: "toldos-coslada",
         municipioName: "Coslada",
         priorityZone: 2,
         puntosFuertes: [
-            "Instalación expertas con el respaldo de una fábrica local en el este madrileño",
-            "Garantía en la durabilidad del color de la lona ante el sol extremo",
-            "Servicio de mantenimiento preventivo y limpieza de toldos"
+            "Instalación experta con el respaldo de un taller local en el este madrileño",
+            "Garantía en la calidad y durabilidad del color de la lona ante el sol",
+            "Servicio de mantenimiento y puesta a punto de toldos"
         ],
         keywords: ["toldos brazo extensible", "pérgolas de aluminio", "cambio de lona", "cerramientos de terrazas"],
-        descriptionLocal: "Toldos resistentes y duraderos en Coslada. Te ayudamos a climatizar tu terraza o ventana de forma natural reduciendo hasta un 80% la entrada de calor solar en tu vivienda."
+        descriptionLocal: "Toldos resistentes y duraderos en Coslada. Te ayudamos a climatizar tu terraza de forma natural reduciendo notablemente la entrada de calor solar en tu vivienda."
     },
     {
         slug: "toldos-torrejon-de-ardoz",
         municipioName: "Torrejón de Ardoz",
         priorityZone: 2,
         puntosFuertes: [
-            "Asistencia de medición sin costo programada en menos de 24 horas",
+            "Asistencia de medición y presupuesto personalizado",
             "Especialistas en toldos anti-viento con tejidos técnicos transpirables",
             "Sistemas modernos con sensores solares y domótica integrada"
         ],
@@ -136,11 +136,11 @@ export const LOCATIONS_DATA: LocationData[] = [
         municipioName: "Alcalá de Henares",
         priorityZone: 2,
         puntosFuertes: [
-            "Visita técnica gratuita y presupuesto detallado llave en mano",
-            "Instaladores oficiales homologados por las principales marcas de domótica",
-            "Soporte post-venta rápido con repuestos oficiales garantizados"
+            "Visita técnica y presupuesto detallado",
+            "Instaladores oficiales homologados por las principales marcas de automatismos",
+            "Soporte post-venta directo con repuestos oficiales garantizados"
         ],
         keywords: ["toldos para locales comerciales", "pérgolas bioclimáticas", "toldos monobloc de alta resistencia", "lonas técnicas acrílicas"],
-        descriptionLocal: "Expertos en instalación y motorización de toldos en Alcalá de Henares. Diseñamos e instalamos toldos y capotas para comercios, balcones y chalets a precios altamente competitivos."
+        descriptionLocal: "Expertos en instalación de toldos en Alcalá de Henares. Diseñamos e instalamos toldos y capotas para comercios, balcones y chalets a precios altamente competitivos."
     }
 ];
