@@ -479,23 +479,21 @@ activityLog.reverse(); // Newest first
                             <button class="type-filter-btn px-3 py-1 rounded-full text-xs font-medium text-indigo-300 hover:text-white transition-colors" data-type="FAQ">FAQ</button>
                         </div>
                     </div>
-
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm text-indigo-100">
-                            <thead class="bg-white/5 text-xs text-indigo-300 font-bold uppercase tracking-wider">
-                                <tr>
+                        <table class="w-full text-left text-sm text-indigo-100 flex flex-col md:table">
+                            <thead class="hidden md:table-header-group bg-white/5 text-xs text-indigo-300 font-bold uppercase tracking-wider">
+                                <tr class="md:table-row">
                                     <th class="px-6 py-3">Fecha</th>
                                     <th class="px-6 py-3">Evento</th>
                                     <th class="px-6 py-3">Acción / Detalle</th>
                                     <th class="px-6 py-3">Origen</th>
                                 </tr>
                             </thead>
-                            <tbody id="logsTableBody" class="divide-y divide-white/5">
+                            <tbody id="logsTableBody" class="divide-y divide-white/5 flex flex-col md:table-row-group">
                                 <!-- Rendered client-side via JavaScript -->
                             </tbody>
                         </table>
                     </div>
-
                     <!-- Client-Side Pagination Controls -->
                     <div class="px-6 py-4 border-t border-white/5 flex items-center justify-between bg-white/5">
                         <span id="paginationInfoSpan" class="text-xs text-indigo-200">
@@ -627,24 +625,24 @@ activityLog.reverse(); // Newest first
                     }
 
                     if (pageItems.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-white/30">No hay eventos para este filtro</td></tr>`;
+                        tbody.innerHTML = `<tr class="flex flex-col md:table-row"><td colspan="4" class="block md:table-cell px-6 py-8 text-center text-white/30">No hay eventos para este filtro</td></tr>`;
                         updatePaginationControls();
                         return;
                     }
 
                     tbody.innerHTML = pageItems.map(log => {
                         return `
-                            <tr class="hover:bg-white/5 group transition-colors">
-                                <td class="px-6 py-3 whitespace-nowrap text-xs text-white/50">${log.date}</td>
-                                <td class="px-6 py-3">
+                            <tr class="flex flex-col md:table-row border-b border-white/5 md:border-b-0 hover:bg-white/5 transition-colors p-4 md:p-0">
+                                <td class="block md:table-cell md:px-6 md:py-3 text-xs text-white/50 mb-1 md:mb-0">${log.date}</td>
+                                <td class="block md:table-cell md:px-6 md:py-3 mb-2 md:mb-0">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${log.typeColor}">
                                         ${log.type}
                                     </span>
                                 </td>
-                                <td class="px-6 py-3 text-xs w-full max-w-xs truncate" title="${log.action}">
+                                <td class="block md:table-cell md:px-6 md:py-3 text-xs md:max-w-xs truncate mb-2 md:mb-0" title="${log.action}">
                                     <span class="text-white font-medium">${log.action}</span>
                                 </td>
-                                <td class="px-6 py-3 text-xs text-nowrap">
+                                <td class="block md:table-cell md:px-6 md:py-3 text-xs">
                                     <div class="text-white/80">${log.location}</div>
                                     <div class="text-[10px] text-white/30">${log.device} • ${log.ip}</div>
                                 </td>

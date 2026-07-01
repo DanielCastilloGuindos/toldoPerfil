@@ -1,6 +1,5 @@
 ---
 import Layout from "@/layouts/AdminLayout.astro";
-import Layout from "@/layouts/AdminLayout.astro";
 import { db } from "@/db/client";
 import { Customers } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -136,7 +135,7 @@ if (Astro.request.method === "POST") {
             >
             </div>
 
-            <div class="relative p-8">
+            <div class="relative p-6 sm:p-8">
                 <header class="flex justify-between items-center mb-8">
                     <div>
                         <h2
