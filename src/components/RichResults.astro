@@ -4,13 +4,13 @@ const organizationSchema = {
 	"@context": "https://schema.org",
 	"@type": "Organization",
 	url: "https://toldoperfil.es",
-	image: "/img/og.jpg",
+	image: "https://toldoperfil.es/img/og-seo.png",
 	sameAs: [
 		"https://www.instagram.com/toldoperfil",
 		"https://x.com/toldoperfil",
 		"https://www.facebook.com/toldoperfil",
 	],
-	logo: "/img/logo.png",
+	logo: "https://toldoperfil.es/img/logo.png",
 	name: "Toldo Perfil",
 	alternateName: "ToldoPerfil",
 	description:
@@ -22,6 +22,42 @@ const organizationSchema = {
 		addressCountry: "ES",
 	},
 	areaServed: "Madrid",
+};
+
+const siteNavigationSchema = {
+	"@context": "https://schema.org",
+	"@graph": [
+		{
+			"@type": "SiteNavigationElement",
+			"name": "Nosotros",
+			"url": "https://toldoperfil.es/#about-us"
+		},
+		{
+			"@type": "SiteNavigationElement",
+			"name": "Marcas y Franquicias",
+			"url": "https://toldoperfil.es/#brandsAndFranchises"
+		},
+		{
+			"@type": "SiteNavigationElement",
+			"name": "Comunidades",
+			"url": "https://toldoperfil.es/#communities"
+		},
+		{
+			"@type": "SiteNavigationElement",
+			"name": "Particulares",
+			"url": "https://toldoperfil.es/#privatecustomers"
+		},
+		{
+			"@type": "SiteNavigationElement",
+			"name": "Preguntas Frecuentes",
+			"url": "https://toldoperfil.es/#faq"
+		},
+		{
+			"@type": "SiteNavigationElement",
+			"name": "Presupuesto Gratuito",
+			"url": "https://toldoperfil.es/#contact-us"
+		}
+	]
 };
 
 const localBusinessSchema = {
@@ -51,6 +87,7 @@ const localBusinessSchema = {
 	},
 	areaServed: [
 		"Velilla de San Antonio",
+		"Loeches",
 		"Madrid",
 		"Mejorada del Campo",
 		"Rivas-Vaciamadrid",
@@ -106,3 +143,4 @@ const FAQSchema = {
 	set:html={JSON.stringify(localBusinessSchema)}
 />
 <script type="application/ld+json" set:html={JSON.stringify(FAQSchema)} />
+<script type="application/ld+json" set:html={JSON.stringify(siteNavigationSchema)} />
