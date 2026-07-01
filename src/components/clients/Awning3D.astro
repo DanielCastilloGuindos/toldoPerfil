@@ -1,0 +1,250 @@
+---
+interface Props {
+	stripeColor1?: string;
+	stripeColor2?: string;
+	wallColor?: string;
+}
+
+const {
+	stripeColor1 = "#ffffff",
+	stripeColor2 = "#4f46e5",
+	wallColor = "linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)",
+} = Astro.props;
+---
+
+<div class="awning-scene-container flex flex-col items-center justify-center w-full py-4">
+	<div class="scene-3d">
+		<article class="wall">
+			<!-- Window -->
+			<section class="window">
+				<span class="window_glass"></span>
+				<span class="window_glass"></span>
+				<span class="window_glass"></span>
+				<span class="window_glass"></span>
+			</section>
+
+			<!-- Awning -->
+			<section class="awningn">
+				<!-- Cover Roller -->
+				<div class="awningn_cover">
+					<span class="awningn_cover-cylinder"></span>
+				</div>
+
+				<!-- Awning Support Side Guides (Punto Recto style) -->
+				<aside class="awningn_arm-left"></aside>
+				<aside class="awningn_arm-right"></aside>
+
+				<!-- Deploying Fabric -->
+				<div class="awningn_fabric">
+					<span class="awningn_fabric-fringe"></span>
+				</div>
+			</section>
+		</article>
+	</div>
+</div>
+
+<style define:vars={{ stripeColor1, stripeColor2, wallColor }}>
+	.awning-scene-container {
+		perspective: 1000px;
+	}
+
+	.scene-3d {
+		width: 220px;
+		height: 220px;
+		transform-style: preserve-3d;
+		transform: rotateX(18deg) rotateY(-22deg) rotateZ(2deg);
+		transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.scene-3d:hover {
+		transform: rotateX(22deg) rotateY(-10deg) rotateZ(0deg);
+	}
+
+	.wall {
+		display: flex;
+		position: relative;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		width: 100%;
+		height: 100%;
+		background: var(--wallColor);
+		border-radius: 20px;
+		border: 4px solid rgba(255, 255, 255, 0.08);
+		box-shadow: 
+			0 25px 50px -12px rgba(0, 0, 0, 0.6),
+			inset 0 2px 4px rgba(255, 255, 255, 0.1);
+		transform-style: preserve-3d;
+	}
+
+	/* Window details */
+	.window {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 5px;
+		width: 100px;
+		height: 100px;
+		background: #0f172a; /* Slate-900 wood frame */
+		padding: 5px;
+		border-radius: 6px;
+		box-shadow: 
+			inset 0 4px 10px rgba(0, 0, 0, 0.8),
+			0 4px 12px rgba(0, 0, 0, 0.3);
+		transform: translateZ(2px); /* Slight offset for depth */
+	}
+
+	.window_glass {
+		display: block;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(2, 132, 199, 0.4) 100%);
+		position: relative;
+		overflow: hidden;
+		border: 1px solid rgba(255, 255, 255, 0.05);
+	}
+
+	/* Window reflection shine */
+	.window_glass::after {
+		content: '';
+		position: absolute;
+		top: -100%;
+		left: -100%;
+		width: 300%;
+		height: 300%;
+		background: linear-gradient(45deg, transparent 45%, rgba(255, 255, 255, 0.15) 50%, transparent 55%);
+		animation: shine 6s infinite linear;
+	}
+
+	@keyframes shine {
+		0% { transform: translate(-30%, -30%); }
+		100% { transform: translate(30%, 30%); }
+	}
+
+	/* Awning Assembly */
+	.awningn {
+		position: absolute;
+		top: 20%;
+		width: 86%;
+		height: 55%;
+		z-index: 10;
+		transform-style: preserve-3d;
+	}
+
+	.awningn_cover {
+		width: 100%;
+		height: 16px;
+		position: relative;
+		transform: translateZ(12px); /* Extrude cover */
+		transform-style: preserve-3d;
+	}
+
+	.awningn_cover-cylinder {
+		display: block;
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(180deg, #4b5563 0%, #1f2937 60%, #030712 100%);
+		border-radius: 9999px;
+		box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+	}
+
+	/* Deployable Fabric */
+	.awningn_fabric {
+		width: 90%;
+		height: 0px;
+		position: absolute;
+		top: 12px;
+		left: 5%;
+		background: repeating-linear-gradient(
+			90deg,
+			var(--stripeColor1),
+			var(--stripeColor1) 12px,
+			var(--stripeColor2) 12px,
+			var(--stripeColor2) 24px
+		);
+		transform-origin: top center;
+		transform: rotateX(42deg) translateZ(8px);
+		box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.5);
+		animation: deployAwning 6s ease-in-out infinite alternate;
+		transform-style: preserve-3d;
+	}
+
+	.awningn_fabric-fringe {
+		position: absolute;
+		bottom: -10px;
+		left: 0;
+		width: 100%;
+		height: 10px;
+		background: repeating-linear-gradient(
+			90deg,
+			var(--stripeColor1),
+			var(--stripeColor1) 12px,
+			var(--stripeColor2) 12px,
+			var(--stripeColor2) 24px
+		);
+		filter: drop-shadow(0px 2px 2px rgba(0, 0, 0, 0.4));
+		transform: rotateX(-42deg);
+		transform-origin: top center;
+		clip-path: polygon(
+			0% 0%,
+			100% 0%,
+			100% 50%,
+			95% 100%,
+			90% 50%,
+			85% 100%,
+			80% 50%,
+			75% 100%,
+			70% 50%,
+			65% 100%,
+			60% 50%,
+			55% 100%,
+			50% 50%,
+			45% 100%,
+			40% 50%,
+			35% 100%,
+			30% 50%,
+			25% 100%,
+			20% 50%,
+			15% 100%,
+			10% 50%,
+			5% 100%,
+			0% 50%
+		);
+	}
+
+	/* Awning Supporting Side Guides (Punto Recto): 
+	   Runs exactly alongside the fabric borders, giving perfect 1:1 synchronization.
+	*/
+	.awningn_arm-left,
+	.awningn_arm-right {
+		position: absolute;
+		top: 12px;
+		width: 4px;
+		height: 0px;
+		background: linear-gradient(180deg, #f3f4f6 0%, #d1d5db 50%, #9ca3af 100%);
+		border-radius: 2px;
+		transform-origin: top center;
+		box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+		animation: deployAwning 6s ease-in-out infinite alternate;
+		transform-style: preserve-3d;
+	}
+
+	.awningn_arm-left {
+		left: 4%;
+		transform: rotateX(42deg) translateZ(10px);
+	}
+
+	.awningn_arm-right {
+		right: 4%;
+		transform: rotateX(42deg) translateZ(10px);
+	}
+
+	/* ANIMATIONS */
+	@keyframes deployAwning {
+		0%, 15% {
+			height: 0px;
+		}
+		85%, 100% {
+			height: 100px;
+		}
+	}
+</style>

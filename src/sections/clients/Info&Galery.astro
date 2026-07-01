@@ -1,5 +1,6 @@
 ---
 import Galery from "@/components/clients/Galery.astro";
+import Awning3D from "@/components/clients/Awning3D.astro";
 
 const { data, path=`/img/works/${data.id}/` } = Astro.props;
 const { id, title, description, images, category } = data;
@@ -60,6 +61,11 @@ const finalDescription = description || getDynamicDescription(title, category);
 				>
 					Solicitar presupuesto similar
 				</a>
+			</div>
+
+			<!-- 3D Awning Simulator -->
+			<div class="w-full">
+				<Awning3D />
 			</div>
 		</article>
 	</div>
