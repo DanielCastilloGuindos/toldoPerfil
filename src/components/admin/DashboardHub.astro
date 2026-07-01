@@ -46,6 +46,48 @@ if (sortedIds.length > 0) {
         .filter(Boolean);
 }
 
+// -- Top Visited Blogs Calculation -- //
+const blogViews = analyticsData.filter(
+    (a) =>
+        a.type === "page_view" &&
+        a.data &&
+        (a.data as any).path?.startsWith("/blog/"),
+);
+const blogViewCounts: Record<string, number> = {};
+
+blogViews.forEach((view) => {
+    const path = (view.data as any).path;
+    const slug = path.split("/").pop() || "";
+    if (slug) {
+        blogViewCounts[slug] = (blogViewCounts[slug] || 0) + 1;
+    }
+});
+
+// Sort by count desc
+const sortedBlogSlugs = Object.entries(blogViewCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5); // Top 5
+
+// Fetch blog details for top 5
+let topVisitedBlogs: any[] = [];
+const allBlogs = await db.select().from(Blogs);
+if (sortedBlogSlugs.length > 0) {
+    topVisitedBlogs = sortedBlogSlugs
+        .map(([slug, count]) => {
+            const blog = allBlogs.find((b) => b.slug === slug);
+            return {
+                id: blog?.id || null,
+                title: blog?.title || slug.split('-').join(' '),
+                slug,
+                views: count
+            };
+        });
+}
+
+// Max views for progress bar width computations
+const maxCustomerViews = Math.max(...topVisitedCustomers.map(c => c.views), 1);
+const maxBlogViews = Math.max(...topVisitedBlogs.map(b => b.views), 1);
+
 const customersData = await db.select().from(Customers);
 const totalEnterprises = customersData.filter(
     (c) => c.category === "enterprise",
@@ -54,8 +96,7 @@ const totalPrivate = customersData.filter(
     (c) => c.category === "privateCustomer",
 ).length;
 
-const blogsData = await db.select().from(Blogs);
-const totalBlogs = blogsData.length;
+const totalBlogs = allBlogs.length;
 ---
 
 <!-- Background -->
@@ -348,76 +389,141 @@ const totalBlogs = blogsData.length;
                     class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden flex flex-col h-full"
                 >
                     <div
-                        class="p-6 border-b border-white/5 flex justify-between items-center"
+                        class="p-6 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
                     >
-                        <h2 class="text-lg font-bold text-white">
-                            Más Visitados
-                        </h2>
-                        <span
-                            class="text-xs text-indigo-200 bg-indigo-500/10 px-2 py-1 rounded-full"
-                            >Top 5</span
-                        >
+                        <div>
+                            <h2 class="text-lg font-bold text-white">
+                                Contenido más Popular
+                            </h2>
+                            <p class="text-xs text-indigo-200">
+                                Los elementos con mayor número de visualizaciones
+                            </p>
+                        </div>
+                        <div class="flex bg-neutral-950/60 p-0.5 rounded-lg border border-white/10 text-xs">
+                            <button id="btnTabCustomers" class="px-3 py-1.5 rounded-md font-semibold bg-indigo-600 text-white transition-all">Clientes</button>
+                            <button id="btnTabBlogs" class="px-3 py-1.5 rounded-md font-medium text-indigo-300 hover:text-white transition-all">Blogs</button>
+                        </div>
                     </div>
 
-                    <div class="flex-1 overflow-y-auto">
+                    <!-- Customers List Tab -->
+                    <div id="tabContentCustomers" class="flex-1 overflow-y-auto">
                         {
                             topVisitedCustomers.length > 0 ? (
                                 <div class="divide-y divide-white/5">
                                     {topVisitedCustomers.map(
                                         (customer, index) => (
-                                            <div class="p-4 flex items-center gap-4 hover:bg-white/5 transition-colors">
-                                                <div class="font-mono text-2xl font-bold text-white/10 w-8 text-center">
-                                                    #{index + 1}
-                                                </div>
-                                                <div class="h-12 w-20 rounded bg-neutral-800 border border-white/10 overflow-hidden relative">
-                                                    <img
-                                                        src={
-                                                            customer
-                                                                .images[0] ||
-                                                            "/img/placeholder.webp"
-                                                        }
-                                                        class="w-full h-full object-cover"
-                                                    />
-                                                </div>
-                                                <div class="flex-1 min-w-0">
-                                                    <h4 class="text-white font-medium truncate">
-                                                        {customer.title}
-                                                    </h4>
-                                                    <p class="text-xs text-indigo-300/50 capitalize">
-                                                        {customer.category ===
-                                                        "enterprise"
-                                                            ? "Empresa"
-                                                            : "Particular"}
-                                                    </p>
-                                                </div>
-                                                <div class="text-right">
-                                                    <span class="block text-xl font-bold text-white">
-                                                        {customer.views}
-                                                    </span>
-                                                    <span class="text-[10px] text-white/30 uppercase tracking-widest">
-                                                        Vistas
-                                                    </span>
-                                                </div>
-                                                <a
-                                                    href={`/proyectos/${customer.customer_id}`}
-                                                    target="_blank"
-                                                    class="p-2 text-white/20 hover:text-white transition-colors"
-                                                >
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        class="h-5 w-5"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                            <div class="p-4 hover:bg-white/5 transition-colors group">
+                                                <div class="flex items-center gap-4">
+                                                    <div class="font-mono text-xl font-bold text-white/20 w-8 text-center shrink-0">
+                                                        #{index + 1}
+                                                    </div>
+                                                    <div class="h-10 w-16 rounded bg-neutral-800 border border-white/10 overflow-hidden relative shrink-0">
+                                                        <img
+                                                            src={
+                                                                customer
+                                                                    .images[0] ||
+                                                                "/img/placeholder.webp"
+                                                            }
+                                                            class="w-full h-full object-cover"
                                                         />
-                                                    </svg>
-                                                </a>
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="flex items-center justify-between gap-2 mb-1">
+                                                            <h4 class="text-white font-medium text-sm truncate">
+                                                                {customer.title}
+                                                            </h4>
+                                                            <span class="text-xs font-bold text-indigo-200 shrink-0">{customer.views} vistas</span>
+                                                        </div>
+                                                        <!-- Progress Bar -->
+                                                        <div class="h-1.5 bg-white/5 rounded-full overflow-hidden w-full">
+                                                            <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" style={`width: ${(customer.views / maxCustomerViews) * 100}%`}></div>
+                                                        </div>
+                                                    </div>
+                                                    <a
+                                                        href={`/proyectos/${customer.customer_id}`}
+                                                        target="_blank"
+                                                        class="p-2 text-white/20 hover:text-white transition-colors shrink-0"
+                                                    >
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            class="h-4 w-4"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                        >
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                                            />
+                                                        </svg>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        ),
+                                    )}
+                                </div>
+                            ) : (
+                                <div class="p-12 text-center text-white/20">
+                                    <p>
+                                        No hay datos de visitas suficientes aún.
+                                    </p>
+                                </div>
+                            )
+                        }
+                    </div>
+
+                    <!-- Blogs List Tab -->
+                    <div id="tabContentBlogs" class="flex-1 overflow-y-auto hidden">
+                        {
+                            topVisitedBlogs.length > 0 ? (
+                                <div class="divide-y divide-white/5">
+                                    {topVisitedBlogs.map(
+                                        (blog, index) => (
+                                            <div class="p-4 hover:bg-white/5 transition-colors group">
+                                                <div class="flex items-center gap-4">
+                                                    <div class="font-mono text-xl font-bold text-white/20 w-8 text-center shrink-0">
+                                                        #{index + 1}
+                                                    </div>
+                                                    <div class="h-10 w-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 overflow-hidden flex items-center justify-center text-emerald-400 shrink-0">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 4h-2m2 4h-2m2 4h-2" />
+                                                        </svg>
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="flex items-center justify-between gap-2 mb-1">
+                                                            <h4 class="text-white font-medium text-sm truncate">
+                                                                {blog.title}
+                                                            </h4>
+                                                            <span class="text-xs font-bold text-emerald-200 shrink-0">{blog.views} vistas</span>
+                                                        </div>
+                                                        <!-- Progress Bar -->
+                                                        <div class="h-1.5 bg-white/5 rounded-full overflow-hidden w-full">
+                                                            <div class="h-full bg-emerald-500 rounded-full transition-all duration-500" style={`width: ${(blog.views / maxBlogViews) * 100}%`}></div>
+                                                        </div>
+                                                    </div>
+                                                    <a
+                                                        href={`/blog/${blog.slug}`}
+                                                        target="_blank"
+                                                        class="p-2 text-white/20 hover:text-white transition-colors shrink-0"
+                                                    >
+                                                        <svg
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            class="h-4 w-4"
+                                                            fill="none"
+                                                            viewBox="0 0 24 24"
+                                                            stroke="currentColor"
+                                                        >
+                                                            <path
+                                                                stroke-linecap="round"
+                                                                stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                                            />
+                                                        </svg>
+                                                    </a>
+                                                </div>
                                             </div>
                                         ),
                                     )}
@@ -434,5 +540,33 @@ const totalBlogs = blogsData.length;
                 </div>
             </div>
         </div>
+
+        <script>
+            const setupTabs = () => {
+                const btnTabCustomers = document.getElementById("btnTabCustomers");
+                const btnTabBlogs = document.getElementById("btnTabBlogs");
+                const tabContentCustomers = document.getElementById("tabContentCustomers");
+                const tabContentBlogs = document.getElementById("tabContentBlogs");
+
+                if (btnTabCustomers && btnTabBlogs) {
+                    btnTabCustomers.addEventListener("click", () => {
+                        btnTabCustomers.className = "px-3 py-1.5 rounded-md font-semibold bg-indigo-600 text-white transition-all";
+                        btnTabBlogs.className = "px-3 py-1.5 rounded-md font-medium text-indigo-300 hover:text-white transition-all";
+                        tabContentCustomers?.classList.remove("hidden");
+                        tabContentBlogs?.classList.add("hidden");
+                    });
+
+                    btnTabBlogs.addEventListener("click", () => {
+                        btnTabBlogs.className = "px-3 py-1.5 rounded-md font-semibold bg-emerald-600 text-white transition-all";
+                        btnTabCustomers.className = "px-3 py-1.5 rounded-md font-medium text-indigo-300 hover:text-white transition-all";
+                        tabContentBlogs?.classList.remove("hidden");
+                        tabContentCustomers?.classList.add("hidden");
+                    });
+                }
+            };
+
+            document.addEventListener("DOMContentLoaded", setupTabs);
+            document.addEventListener("astro:page-load", setupTabs);
+        </script>
     </main>
 </div>

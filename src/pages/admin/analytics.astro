@@ -24,6 +24,7 @@ const referrers: Record<string, number> = {};
 const locations: Record<string, number> = {};
 const devices: Record<string, number> = { 'Desktop': 0, 'Mobile': 0 };
 const projectVisits: Record<string, number> = {};
+const blogVisits: Record<string, number> = {};
 
 // Initialize Dates
 for (let i = 0; i < days; i++) {
@@ -110,9 +111,9 @@ allEvents.forEach(event => {
         } else if (cleanPath.startsWith('/blog/')) {
             const blogSlug = cleanPath.split('/').pop() || '';
             const rawTitle = blogSlug.split('-').join(' ');
-            const title = 'Blog: ' + (rawTitle ? rawTitle.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : blogSlug);
+            const title = rawTitle ? rawTitle.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : blogSlug;
             if (title) {
-                projectVisits[title] = (projectVisits[title] || 0) + 1;
+                blogVisits[title] = (blogVisits[title] || 0) + 1;
             }
         }
 
@@ -174,14 +175,17 @@ const chartClicks = Object.values(clickByDate).reverse();
 const allReferrers = Object.entries(referrers).sort(([, a], [, b]) => b - a);
 const allLocations = Object.entries(locations).sort(([, a], [, b]) => b - a);
 const allVisitedProjects = Object.entries(projectVisits).sort(([, a], [, b]) => b - a);
+const allVisitedBlogs = Object.entries(blogVisits).sort(([, a], [, b]) => b - a);
 
 const topReferrers = allReferrers.slice(0, 5);
 const topLocations = allLocations.slice(0, 5);
 const topVisitedProjects = allVisitedProjects.slice(0, 5);
+const topVisitedBlogs = allVisitedBlogs.slice(0, 5);
 
 const maxLocationViews = topLocations.length > 0 ? Math.max(...topLocations.map(([, count]) => count)) : 1;
 const maxReferrerViews = topReferrers.length > 0 ? Math.max(...topReferrers.map(([, count]) => count)) : 1;
 const maxProjectViews = topVisitedProjects.length > 0 ? Math.max(...topVisitedProjects.map(([, count]) => count)) : 1;
+const maxBlogViews = topVisitedBlogs.length > 0 ? Math.max(...topVisitedBlogs.map(([, count]) => count)) : 1;
 
 const donutDataArray = [totalPageViews, totalContacts, totalWhatsApp, totalFAQClicks];
 
@@ -316,10 +320,8 @@ activityLog.reverse(); // Newest first
                             <canvas id="deviceChart"></canvas>
                         </div>
                     </div>
-                </div>
-
-                <!-- Bar Charts (Locations, Sources & Top Visited Projects) -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          <!-- Bar Charts (Locations, Sources, Top Visited Projects & Top Visited Blogs) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Top Locations -->
                      <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
                         <div class="flex justify-between items-center mb-6">
@@ -391,17 +393,50 @@ activityLog.reverse(); // Newest first
                     <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
                         <div class="flex justify-between items-center mb-6">
                             <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                                 Toldos más Visualizados
                             </h2>
-                            <button id="openProjectsBtn" class="text-xs font-semibold text-emerald-300 hover:text-white transition-colors" aria-label="Ver todos los toldos visualizados">
+                            <button id="openProjectsBtn" class="text-xs font-semibold text-indigo-300 hover:text-white transition-colors" aria-label="Ver todos los toldos visualizados">
                                 Ver más →
                             </button>
                         </div>
                         <div class="space-y-4">
                             {topVisitedProjects.length > 0 ? topVisitedProjects.map(([name, count], index) => {
+                                const colors = ['bg-indigo-500', 'bg-purple-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500'];
+                                return (
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-200 truncate flex-1 mr-2" title={name}>{name}</span>
+                                            <span class="text-xs font-bold text-indigo-200">{count} vistas</span>
+                                        </div>
+                                        <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div class={`h-full ${colors[index] || 'bg-indigo-500'} rounded-full transition-all duration-500`} style={`width: ${(count / maxProjectViews) * 100}%`}></div>
+                                        </div>
+                                    </div>
+                                );
+                            }) : (
+                                <div class="text-center text-white/30 text-sm py-8">Sin visitas registradas en toldos</div>
+                            )}
+                        </div>
+                    </div>
+
+                    <!-- Top Visited Blogs -->
+                    <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 4h-2m2 4h-2m2 4h-2" />
+                                </svg>
+                                Blogs más Visualizados
+                            </h2>
+                            <button id="openBlogsBtn" class="text-xs font-semibold text-emerald-300 hover:text-white transition-colors" aria-label="Ver todos los blogs visualizados">
+                                Ver más →
+                            </button>
+                        </div>
+                        <div class="space-y-4">
+                            {topVisitedBlogs.length > 0 ? topVisitedBlogs.map(([name, count], index) => {
                                 const colors = ['bg-emerald-500', 'bg-indigo-500', 'bg-amber-500', 'bg-rose-500', 'bg-sky-500'];
                                 return (
                                     <div>
@@ -410,14 +445,15 @@ activityLog.reverse(); // Newest first
                                             <span class="text-xs font-bold text-emerald-200">{count} vistas</span>
                                         </div>
                                         <div class="h-2 bg-white/5 rounded-full overflow-hidden">
-                                            <div class={`h-full ${colors[index] || 'bg-emerald-500'} rounded-full transition-all duration-500`} style={`width: ${(count / maxProjectViews) * 100}%`}></div>
+                                            <div class={`h-full ${colors[index] || 'bg-emerald-500'} rounded-full transition-all duration-500`} style={`width: ${(count / maxBlogViews) * 100}%`}></div>
                                         </div>
                                     </div>
                                 );
                             }) : (
-                                <div class="text-center text-white/30 text-sm py-8">Sin visitas registradas en toldos</div>
+                                <div class="text-center text-white/30 text-sm py-8">Sin visitas registradas en blogs</div>
                             )}
                         </div>
+                    </div>
                     </div>
                 </div>
 
@@ -761,7 +797,8 @@ activityLog.reverse(); // Newest first
                     const colors = {
                         'location': 'bg-indigo-500',
                         'referrer': 'bg-purple-500',
-                        'project': 'bg-emerald-500'
+                        'project': 'bg-emerald-500',
+                        'blog': 'bg-emerald-500'
                     };
                     const colorClass = colors[currentDrawerType] || 'bg-indigo-500';
                     
@@ -849,6 +886,13 @@ activityLog.reverse(); // Newest first
                 if (openProjectsBtn) {
                     openProjectsBtn.addEventListener("click", () => {
                         openDrawer("Toldos más Visualizados", allVisitedProjects, "project");
+                    });
+                }
+
+                const openBlogsBtn = document.getElementById("openBlogsBtn");
+                if (openBlogsBtn) {
+                    openBlogsBtn.addEventListener("click", () => {
+                        openDrawer("Blogs más Visualizados", allVisitedBlogs, "blog");
                     });
                 }
 
