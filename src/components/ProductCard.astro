@@ -1,4 +1,6 @@
 ---
+import { Image } from "astro:assets";
+
 const {
 	id,
 	title,
@@ -16,10 +18,12 @@ const {
 	<figure
 		class="relative overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear scroll-effect"
 	>
-		<img
+		<Image
 			class="w-full object-cover aspect-[1.82/1]"
-			alt=`Imagen de ${title}`
+			alt={`Imagen de ${title}`}
 			src={image}
+			width={728}
+			height={400}
 			transition:name={"image_" + image}
 			loading="lazy"
 		/>

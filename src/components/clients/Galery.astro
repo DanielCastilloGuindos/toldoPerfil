@@ -1,4 +1,6 @@
 ---
+import { Image } from "astro:assets";
+
 const { path, alt, images } = Astro.props; 
 ---
 
@@ -8,11 +10,14 @@ const { path, alt, images } = Astro.props;
 ]} >
 	{ images.map((image) => {
 		return (
-			<img
+			<Image
 				class="relative object-cover aspect-[1.82/1] overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear scroll-effect"
 				alt={ alt }
 				src={ path + image }
+				width={800}
+				height={440}
 				transition:name={"image_" + image}
+				loading="lazy"
 			/>
 		)
 	}) }
