@@ -14,32 +14,33 @@ const {
 
 <div class="awning-scene-container flex flex-col items-center justify-center w-full py-4">
 	<div class="scene-3d">
-		<article class="wall">
-			<!-- Window -->
-			<section class="window">
-				<span class="window_glass"></span>
-				<span class="window_glass"></span>
-				<span class="window_glass"></span>
-				<span class="window_glass"></span>
-			</section>
+		<!-- Wall Background (with radial mask) -->
+		<div class="wall"></div>
 
-			<!-- Awning -->
-			<section class="awningn">
-				<!-- Cover Roller -->
-				<div class="awningn_cover">
-					<span class="awningn_cover-cylinder"></span>
-				</div>
+		<!-- Window (outside mask) -->
+		<section class="window">
+			<span class="window_glass"></span>
+			<span class="window_glass"></span>
+			<span class="window_glass"></span>
+			<span class="window_glass"></span>
+		</section>
 
-				<!-- Awning Support Side Guides (Punto Recto style) -->
-				<aside class="awningn_arm-left"></aside>
-				<aside class="awningn_arm-right"></aside>
+		<!-- Awning (outside mask, fully solid) -->
+		<section class="awningn">
+			<!-- Cover Roller -->
+			<div class="awningn_cover">
+				<span class="awningn_cover-cylinder"></span>
+			</div>
 
-				<!-- Deploying Fabric -->
-				<div class="awningn_fabric">
-					<span class="awningn_fabric-fringe"></span>
-				</div>
-			</section>
-		</article>
+			<!-- Awning Support Side Guides (Punto Recto style) -->
+			<aside class="awningn_arm-left"></aside>
+			<aside class="awningn_arm-right"></aside>
+
+			<!-- Deploying Fabric -->
+			<div class="awningn_fabric">
+				<span class="awningn_fabric-fringe"></span>
+			</div>
+		</section>
 	</div>
 </div>
 
@@ -54,6 +55,7 @@ const {
 		transform-style: preserve-3d;
 		transform: rotateX(18deg) rotateY(-22deg) rotateZ(2deg);
 		transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+		position: relative;
 	}
 
 	.scene-3d:hover {
@@ -61,20 +63,13 @@ const {
 	}
 
 	.wall {
-		display: flex;
-		position: relative;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		width: 100%;
-		height: 100%;
+		position: absolute;
+		inset: 0;
 		background: var(--wallColor);
-		border-radius: 20px;
-		border: 4px solid rgba(255, 255, 255, 0.08);
-		box-shadow: 
-			0 25px 50px -12px rgba(0, 0, 0, 0.6),
-			inset 0 2px 4px rgba(255, 255, 255, 0.1);
 		transform-style: preserve-3d;
+		/* Radial Mask for smooth edge fading until there is no wall */
+		-webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 35%, rgba(0, 0, 0, 0) 80%);
+		mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 35%, rgba(0, 0, 0, 0) 80%);
 	}
 
 	/* Window details */
@@ -90,7 +85,10 @@ const {
 		box-shadow: 
 			inset 0 4px 10px rgba(0, 0, 0, 0.8),
 			0 4px 12px rgba(0, 0, 0, 0.3);
-		transform: translateZ(2px); /* Slight offset for depth */
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate3d(-50%, -50%, 2px); /* Centered and offset for depth */
 	}
 
 	.window_glass {
@@ -124,6 +122,7 @@ const {
 	.awningn {
 		position: absolute;
 		top: 20%;
+		left: 7%;
 		width: 86%;
 		height: 55%;
 		z-index: 10;
