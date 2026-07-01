@@ -27,6 +27,27 @@ try {
 } catch (e) {
     console.log("No blog posts found yet.", e);
 }
+
+const schema = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "name": "Blog de Toldos y Climatización Exterior | Toldo Perfil",
+    "description": "Consejos de climatización, guías de mantenimiento de toldos y últimas tendencias en pérgolas y protección solar en Velilla de San Antonio, Loeches y Madrid.",
+    "publisher": {
+        "@type": "Organization",
+        "name": "Toldo Perfil",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://toldoperfil.es/img/logo.png"
+        }
+    },
+    "url": "https://toldoperfil.es/blog",
+    "itemListElement": posts.map((post: any, idx: number) => ({
+        "@type": "ListItem",
+        "position": idx + 1,
+        "url": `https://toldoperfil.es/blog/${post.slug}`
+    }))
+};
 ---
 
 <Layout
@@ -35,6 +56,8 @@ try {
     canonical="https://toldoperfil.es/blog"
     isVisibleNav={true}
 >
+    <!-- Inject JSON-LD Schema Markup -->
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(schema)} />
     <main class="max-w-5xl mx-auto px-6 py-16 text-gray-800">
         <header class="flex flex-col md:flex-row justify-between items-center gap-6 mb-12 border-b border-indigo-950/10 pb-8">
             <div class="text-center md:text-left">

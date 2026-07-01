@@ -49,6 +49,7 @@ const schema = {
     "@type": "BlogPosting",
     "headline": title,
     "description": description,
+    "image": post.image ? `https://toldoperfil.es${post.image}` : undefined,
     "datePublished": publishedAt.toISOString(),
     "dateModified": publishedAt.toISOString(),
     "author": {

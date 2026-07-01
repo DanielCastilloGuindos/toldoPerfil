@@ -1,0 +1,145 @@
+<div class="relative w-full aspect-[4:3] sm:aspect-[16/9] min-h-[400px] sm:min-h-[600px] overflow-hidden bg-neutral-900" id="carousel-container">
+    <!-- Slide 1 -->
+    <figure class="carousel-slide absolute inset-0 w-full h-full opacity-100 transition-opacity duration-[600ms] ease-in-out bg-neutral-900" data-index="0">
+        <img class="w-full h-full object-cover aspect-[4:3] sm:aspect-[16/9] min-h-[400px] sm:min-h-[600px]" src="/img/carousel/protrait01.webp" alt="Imagen de Toldos en Velilla de San Antonio y Madrid" loading="eager" />
+        <figcaption class="absolute inset-0 w-full h-full flex flex-col sm:gap-4 justify-center items-center bg-gray-900/50 text-center sm:text-start sm:px-16">
+            <div class="w-full h-full flex flex-col justify-center items-center sm:items-start gap-4 px-4">
+                <h1 class="text-3xl sm:text-5xl text-white font-bold">
+                    Creación y Montaje de <br aria-hidden="true" />
+                    <span class="font-extrabold">Toldos a Medida</span>
+                </h1>
+                <p class="text-[14px] sm:text-xl font-light text-center tracking-wider text-white">
+                    Toldos y pérgolas en Velilla de San Antonio, Loeches y todo Madrid.
+                </p>
+                <a href="#contact-us" aria-label="Solicitar presupuesto gratuito para instalación de toldos" class="py-3 px-5 bg-indigo-50 font-bold duration-200 ease-linear hover:-translate-y-0.5 secondary-button z-10">
+                    Presupuesto Gratuito
+                </a>
+            </div>
+        </figcaption>
+    </figure>
+    
+    <!-- Slide 2 -->
+    <figure class="carousel-slide absolute inset-0 w-full h-full opacity-0 transition-opacity duration-[600ms] ease-in-out bg-neutral-900" data-index="1">
+        <img class="w-full h-full object-cover aspect-[4:3] sm:aspect-[16/9] min-h-[400px] sm:min-h-[600px]" src="/img/carousel/protrait02.webp" alt="Imagen de Pérgolas y Cerramientos a Medida" loading="lazy" />
+        <figcaption class="absolute inset-0 w-full h-full flex flex-col sm:gap-4 justify-center items-center bg-gray-900/50 text-center sm:text-start sm:px-16">
+            <div class="w-full h-full flex flex-col justify-center items-center gap-4 px-4">
+                <h2 class="text-3xl sm:text-5xl text-white font-bold">
+                    Pérgolas y Cerramientos
+                </h2>
+                <p class="text-[14px] sm:text-xl font-light text-center tracking-wider text-white">
+                    Soluciones robustas a medida para hogares y comercios.
+                </p>
+            </div>
+        </figcaption>
+    </figure>
+
+    <!-- Slide 3 -->
+    <figure class="carousel-slide absolute inset-0 w-full h-full opacity-0 transition-opacity duration-[600ms] ease-in-out bg-neutral-900" data-index="2">
+        <img class="w-full h-full object-cover aspect-[4:3] sm:aspect-[16/9] min-h-[400px] sm:min-h-[600px]" src="/img/carousel/protrait03.webp" alt="Imagen de Montaje de Toldos de Brazo Extensible y Cofres" loading="lazy" />
+        <figcaption class="absolute inset-0 w-full h-full flex flex-col sm:gap-4 justify-center items-center bg-gray-900/50 text-center sm:text-start sm:px-16">
+            <div class="w-full h-full flex flex-col justify-center items-center gap-4 py-4">
+                <h2 class="text-3xl sm:text-5xl text-white font-bold">
+                    Toldos Cofre y Extensibles
+                </h2>
+                <p class="text-[14px] sm:text-xl font-light text-center tracking-wider text-white">
+                    Máxima durabilidad y automatización para tu confort.
+                </p>
+            </div>
+        </figcaption>
+    </figure>
+
+    <!-- Slide 4 -->
+    <figure class="carousel-slide absolute inset-0 w-full h-full opacity-0 transition-opacity duration-[600ms] ease-in-out bg-neutral-900" data-index="3">
+        <img class="w-full h-full object-cover aspect-[4:3] sm:aspect-[16/9] min-h-[400px] sm:min-h-[600px]" src="/img/carousel/protrait04.webp" alt="Imagen de Instalación de Toldos en Velilla, Loeches y todo Madrid" loading="lazy" />
+        <figcaption class="absolute inset-0 w-full h-full flex flex-col sm:gap-4 justify-center items-center bg-gray-900/50 text-center sm:text-start sm:px-16">
+            <div class="w-full h-full flex flex-col justify-center items-center gap-4 py-4">
+                <h2 class="text-3xl sm:text-5xl text-white font-bold">
+                    Instalación en todo Madrid
+                </h2>
+                <p class="text-[14px] sm:text-xl font-light text-center tracking-wider text-white">
+                    Cobertura local rápida en Velilla de San Antonio and Loeches.
+                </p>
+            </div>
+        </figcaption>
+    </figure>
+
+    <!-- Navigation Arrows -->
+    <div class="absolute top-0 left-0 w-full h-full grid grid-flow-col">
+        <button id="arrowLeft" aria-label="Flecha izquierda" class="cursor-[url(/img/carousel/arrow-left.png),_pointer] text-transparent outline-none">
+            arrowLeft
+        </button>
+        <button id="arrowRigth" aria-label="Flecha derecha" class="cursor-[url(/img/carousel/arrow-right.png),_pointer] text-transparent outline-none">
+            arrowRigth
+        </button>
+    </div>
+</div>
+
+<script>
+    function initCarousel() {
+        const container = document.getElementById("carousel-container");
+        if (!container) return;
+
+        const slides = container.querySelectorAll(".carousel-slide");
+        const btnLeft = container.querySelector("#arrowLeft");
+        const btnRight = container.querySelector("#arrowRigth");
+        
+        let currentIndex = 0;
+        let intervalId: any = null;
+        const intervalTime = 8000;
+
+        function showSlide(index: number) {
+            slides.forEach((slide, idx) => {
+                if (idx === index) {
+                    slide.classList.remove("opacity-0");
+                    slide.classList.add("opacity-100");
+                    slide.setAttribute("aria-hidden", "false");
+                } else {
+                    slide.classList.remove("opacity-100");
+                    slide.classList.add("opacity-0");
+                    slide.setAttribute("aria-hidden", "true");
+                }
+            });
+            currentIndex = index;
+        }
+
+        function nextSlide() {
+            const nextIdx = (currentIndex + 1) % slides.length;
+            showSlide(nextIdx);
+        }
+
+        function prevSlide() {
+            const prevIdx = (currentIndex - 1 + slides.length) % slides.length;
+            showSlide(prevIdx);
+        }
+
+        function startTimer() {
+            stopTimer();
+            intervalId = setInterval(nextSlide, intervalTime);
+        }
+
+        function stopTimer() {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        }
+
+        btnLeft?.addEventListener("click", (e) => {
+            e.preventDefault();
+            prevSlide();
+            startTimer();
+        });
+
+        btnRight?.addEventListener("click", (e) => {
+            e.preventDefault();
+            nextSlide();
+            startTimer();
+        });
+
+        // Initialize
+        showSlide(0);
+        startTimer();
+    }
+
+    // Initialize on page load and View Transitions load
+    document.addEventListener("astro:page-load", initCarousel);
+</script>

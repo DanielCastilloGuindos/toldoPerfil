@@ -8,6 +8,19 @@ export interface LocationData {
 }
 
 export const LOCATIONS_DATA: LocationData[] = [
+    // La Sede Central / Prioridad 1
+    {
+        slug: "toldos-velilla-de-san-antonio",
+        municipioName: "Velilla de San Antonio",
+        priorityZone: 1,
+        puntosFuertes: [
+            "Taller y central localizados en el propio municipio para un servicio sin intermediarios",
+            "Medición presencial gratuita en tu domicilio en menos de 15 minutos",
+            "Instalación express prioritaria y soporte post-venta inmediato de fábrica"
+        ],
+        keywords: ["toldos a medida", "pérgolas bioclimáticas", "toldos cofre motorizados", "cambio de lona de toldo"],
+        descriptionLocal: "Velilla de San Antonio alberga nuestro taller y central principal. Como fabricantes locales, ofrecemos a nuestros vecinos de Velilla instalación directa de pérgolas bioclimáticas y toldos a medida a precios de fábrica."
+    },
     // Prioridad 1: Alrededor de Velilla de San Antonio (Cercanía Extrema)
     {
         slug: "toldos-loeches",
@@ -55,7 +68,7 @@ export const LOCATIONS_DATA: LocationData[] = [
             "Sistemas inteligentes con sensores de viento Somfy"
         ],
         keywords: ["toldos para chalets", "pérgolas bioclimáticas", "toldos verticales guiados", "cambio de motor de toldo"],
-        descriptionLocal: "Fabricamos e instalamos toldos en Rivas-Vaciamadrid. Adaptamos nuestros diseños a los colores de tu urbanización y garantizamos un comportamiento óptimo frente al viento con automatismos de alta gama."
+        descriptionLocal: "Fabricamos e instalamos toldos en Rivas-Vaciamadrid. Adaptamos nuestros designs a los colores de tu urbanización y garantizamos un comportamiento óptimo frente al viento con automatismos de alta gama."
     },
     {
         slug: "toldos-torres-de-la-alameda",
@@ -99,7 +112,7 @@ export const LOCATIONS_DATA: LocationData[] = [
         municipioName: "Coslada",
         priorityZone: 2,
         puntosFuertes: [
-            "Instalación experta con el respaldo de una fábrica local en el este madrileño",
+            "Instalación expertas con el respaldo de una fábrica local en el este madrileño",
             "Garantía en la durabilidad del color de la lona ante el sol extremo",
             "Servicio de mantenimiento preventivo y limpieza de toldos"
         ],
