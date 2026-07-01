@@ -27,6 +27,7 @@ try {
 				title: customerQuery[0].title,
 				description: customerQuery[0].description,
 				images: customerQuery[0].images,
+				category: customerQuery[0].category,
 			};
 		}
 	}
@@ -37,11 +38,14 @@ try {
 ---
 
 <ClientLayout
-	description={customer?.description ||
-		"Información temporalmente no disponible."}
+	description={customer
+		? `Galería de imágenes y detalles del montaje de toldos realizado para ${customer.title}. Fabricación e instalación a medida en Velilla de San Antonio, Loeches y Madrid.`
+		: "Proyecto de fabricación e instalación de toldos a medida en Madrid."}
 	title={customer
-		? `Toldo Perfil - ${customer.title}`
+		? `Toldo Perfil - Proyecto ${customer.title}`
 		: "Toldo Perfil - No disponible"}
+	canonical={`https://toldoperfil.es/proyectos/${customerId}`}
+	image={customer && customer.images && customer.images.length > 0 ? customer.images[0] : undefined}
 >
 	<main class="font-sans">
 		{

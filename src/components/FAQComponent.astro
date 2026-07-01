@@ -1,29 +1,42 @@
 ---
-import QuestionIcon from "@/icons/question.astro";
 import { FAQs } from "@/components/RichResults.astro";
 ---
 
-{
-	FAQs.map(({ answer, question }, index) => {
-		const open = index === 0 && "open";
-		return (
-			<details class="py-2 group" {open}>
-				<summary class="list-none px-4 py-6 text-indigo-900 text-xl font-semibold cursor-pointer border-b group inline-flex justify-between w-full">
-					{question}
-					<div class="relative w-6 h-6 inline-flex items-center justify-center">
-						<span class="absolute w-5 h-1 bg-indigo-900" />
-						<span class="absolute w-1 h-5 bg-indigo-900 group-open:bg-transparent" />
+<div class="w-full divide-y divide-indigo-900/10">
+	{
+		FAQs.map(({ answer, question }, index) => {
+			const isOpen = index === 0;
+			return (
+				<div class="faq-item py-1">
+					<button
+						class="w-full text-left px-4 py-6 text-indigo-900 text-lg sm:text-xl font-semibold cursor-pointer flex justify-between items-center gap-4 toggle-faq-btn outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/20 rounded-md transition-colors duration-200"
+						aria-expanded={isOpen ? "true" : "false"}
+						data-index={index}
+					>
+						<span>{question}</span>
+						<div class="relative w-5 h-5 flex items-center justify-center flex-shrink-0">
+							<span class="absolute w-5 h-0.5 bg-indigo-900 rounded-full"></span>
+							<span class="absolute w-0.5 h-5 bg-indigo-900 rounded-full transition-transform duration-300 ease-out faq-plus-line"></span>
+						</div>
+					</button>
+					<div
+						class="faq-content overflow-hidden transition-all duration-300 ease-out"
+						style={isOpen ? "max-height: 200px;" : "max-height: 0;"}
+					>
+						<p class="px-4 pb-6 pt-1 font-light text-sm sm:text-base text-gray-600 leading-relaxed">
+							{answer}
+						</p>
 					</div>
-				</summary>
-				<p class="px-4 py-2 font-light text-sm">{answer}</p>
-			</details>
-		);
-	})
-}
-<script>
-	import { $, $$ } from "@/consts/dom-selector.ts";
+				</div>
+			);
+		})
+	}
+</div>
 
-	const trackFAQ = async (question) => {
+<script>
+	import { $$, $ } from "@/consts/dom-selector.ts";
+
+	const trackFAQ = async (question: string) => {
 		try {
 			await fetch("/api/analytics/track", {
 				method: "POST",
@@ -38,27 +51,54 @@ import { FAQs } from "@/components/RichResults.astro";
 		}
 	};
 
-	const toggleDetails = (index) => {
-		$$("details").forEach((detail, currentIndex) => {
-			if (currentIndex !== index) {
-				detail.removeAttribute("open");
-			}
+	const setupFAQs = () => {
+		const buttons = $$(".toggle-faq-btn");
+		
+		// Initialize the first one's height on load/mount
+		const firstContent = $(".faq-content") as HTMLElement;
+		if (firstContent) {
+			firstContent.style.maxHeight = firstContent.scrollHeight + "px";
+			const firstPlus = firstContent.previousElementSibling?.querySelector(".faq-plus-line") as HTMLElement;
+			if (firstPlus) firstPlus.style.transform = "rotate(90deg)";
+		}
+
+		buttons.forEach((btn) => {
+			btn.addEventListener("click", () => {
+				const content = btn.nextElementSibling as HTMLElement;
+				const plusLine = btn.querySelector(".faq-plus-line") as HTMLElement;
+				const isExpanded = btn.getAttribute("aria-expanded") === "true";
+
+				// Track event
+				if (!isExpanded) {
+					const questionText = btn.querySelector("span")?.textContent || "";
+					trackFAQ(questionText);
+				}
+
+				// Close all other FAQs
+				buttons.forEach((otherBtn) => {
+					if (otherBtn !== btn) {
+						otherBtn.setAttribute("aria-expanded", "false");
+						const otherContent = otherBtn.nextElementSibling as HTMLElement;
+						if (otherContent) otherContent.style.maxHeight = "0";
+						const otherPlus = otherBtn.querySelector(".faq-plus-line") as HTMLElement;
+						if (otherPlus) otherPlus.style.transform = "rotate(0deg)";
+					}
+				});
+
+				// Toggle current
+				if (isExpanded) {
+					btn.setAttribute("aria-expanded", "false");
+					content.style.maxHeight = "0";
+					if (plusLine) plusLine.style.transform = "rotate(0deg)";
+				} else {
+					btn.setAttribute("aria-expanded", "true");
+					content.style.maxHeight = content.scrollHeight + "px";
+					if (plusLine) plusLine.style.transform = "rotate(90deg)";
+				}
+			});
 		});
 	};
 
-	$$("details").forEach((detailsTag, index) => {
-		detailsTag.addEventListener("click", (e) => {
-			// Only track if we are opening it (it wasn't open before click)
-			// Note: Click events on details happen *before* the toggle state changes usually,
-			// but for simplicity we track the *intent* (click).
-			// Better check: if !detailsTag.open
-			if (!detailsTag.open) {
-				const question = detailsTag
-					.querySelector("summary")
-					?.textContent?.trim();
-				if (question) trackFAQ(question);
-			}
-			toggleDetails(index);
-		});
-	});
+	// Setup on load and after View Transitions page swaps
+	document.addEventListener("astro:page-load", setupFAQs);
 </script>

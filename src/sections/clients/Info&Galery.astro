@@ -2,17 +2,65 @@
 import Galery from "@/components/clients/Galery.astro";
 
 const { data, path=`/img/works/${data.id}/` } = Astro.props;
-const { id, title, description, images } = data;
+const { id, title, description, images, category } = data;
 
- 
+const getDynamicDescription = (clientTitle: string, clientCategory: string) => {
+	const isEnterprise = clientCategory === 'enterprise';
+	const clientName = clientTitle === 'cliente particular' ? 'un cliente particular' : clientTitle;
+	
+	if (isEnterprise) {
+		return `Proyecto integral de fabricación y montaje de toldos y cerramientos corporativos a medida realizado para la marca ${clientName}. La instalación de sistemas de protección solar de alta gama no solo proporciona el confort térmico idóneo para los clientes y empleados, sino que además refuerza la imagen corporativa del local comercial en la Comunidad de Madrid.`;
+	} else {
+		return `Trabajo de diseño e instalación de toldos de brazo extensible y pérgolas a medida completado con éxito para ${clientName} en la zona de Velilla de San Antonio, Loeches y alrededores de Madrid. Se instalaron tejidos acrílicos con alta resistencia a los rayos UV, garantizando una protección solar duradera para el jardín y la terraza de la vivienda.`;
+	}
+}
+
+const finalDescription = description || getDynamicDescription(title, category);
 ---
 
-<section class="w-full px-auto">
-	<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 justify-center items-start w-full md:max-w-5xl mx-auto">
-		<Galery alt=`Imagen de ${title}` path={path} images={ images } />
+<section class="w-full px-4 py-8">
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 justify-center items-start w-full md:max-w-5xl mx-auto">
+		<Galery alt={`Fotografía del montaje de toldo para ${title}`} path={path} images={ images } />
 
-		<article>
-			<p class="sm:pt-4 px-4 sm:px-0 text-[14px] sm:text-xl font-light text-center sm:text-justify tracking-wider">Descubre nuestra amplia variedad de toldos diseñados para satisfacer las necesidades de nuestros clientes. Desde elegantes toldos retráctiles hasta robustas estructuras fijas, nuestra galería de imágenes presenta nuestras instalaciones en diversos entornos, garantizando calidad y estilo para cualquier espacio.</p>
+		<article class="flex flex-col gap-8 text-white">
+			<div class="bg-indigo-900/40 p-6 rounded-xl border border-white/10 shadow-xl backdrop-blur-sm">
+				<h2 class="text-xl font-bold text-white mb-4 tracking-wide border-b border-white/10 pb-2">Detalles del Proyecto</h2>
+				<p class="text-sm sm:text-base font-light text-justify leading-relaxed text-indigo-100/90">
+					{finalDescription}
+				</p>
+			</div>
+
+			<div class="space-y-4">
+				<h3 class="text-lg font-semibold text-white tracking-wide">Especificaciones Técnicas</h3>
+				<ul class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-indigo-200">
+					<li class="flex items-center gap-2">
+						<span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+						Aluminio homologado lacado
+					</li>
+					<li class="flex items-center gap-2">
+						<span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+						Tejido acrílico resinado impermeable
+					</li>
+					<li class="flex items-center gap-2">
+						<span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+						Protección solar UV certificada
+					</li>
+					<li class="flex items-center gap-2">
+						<span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+						Resistencia al viento clase 2
+					</li>
+				</ul>
+			</div>
+
+			<div class="pt-4 flex justify-center sm:justify-start">
+				<a
+					href="/#contact-us"
+					class="w-full sm:w-auto px-6 py-3 bg-white text-indigo-950 font-bold rounded-lg shadow-lg hover:bg-indigo-50 transition-all duration-200 hover:-translate-y-0.5 text-center text-sm uppercase tracking-wider"
+					aria-label="Solicitar presupuesto similar de instalación de toldo"
+				>
+					Solicitar presupuesto similar
+				</a>
+			</div>
 		</article>
 	</div>
 </section>
