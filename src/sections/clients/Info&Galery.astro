@@ -65,7 +65,14 @@ const finalDescription = description || getDynamicDescription(title, category);
 
 			<!-- 3D Awning Simulator -->
 			<div class="w-full">
-				<Awning3D />
+				<Awning3D 
+					stripeColor1="#ffffff"
+					stripeColor2={category === 'particular' ? '#059669' : '#312e81'}
+					wallColor={category === 'particular' 
+						? 'linear-gradient(135deg, #03001e 0%, #052e16 100%)' 
+						: 'linear-gradient(135deg, #03001e 0%, #1e1b4b 100%)'
+					}
+				/>
 			</div>
 		</article>
 	</div>

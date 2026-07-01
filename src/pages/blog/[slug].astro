@@ -22,13 +22,43 @@ const formattedDate = new Date(date).toLocaleDateString('es-ES', {
     month: 'long',
     year: 'numeric'
 });
+const { slug } = Astro.params;
+
+const schema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": title,
+    "description": description,
+    "datePublished": date,
+    "dateModified": date,
+    "author": {
+        "@type": "Organization",
+        "name": "Toldo Perfil",
+        "url": "https://toldoperfil.es"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Toldo Perfil",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://toldoperfil.es/img/logo.png"
+        }
+    },
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": `https://toldoperfil.es/blog/${slug}`
+    }
+};
 ---
 
 <Layout
     description={description}
     title={`${title} | Blog Toldo Perfil`}
+    canonical={`https://toldoperfil.es/blog/${slug}`}
     isVisibleNav={true}
 >
+    <!-- Inject JSON-LD Schema Markup -->
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
     <main class="max-w-3xl mx-auto px-6 py-16 text-gray-800">
         <!-- Back navigation link -->
         <div class="mb-8">

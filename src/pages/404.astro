@@ -1,18 +1,93 @@
 ---
 export const prerender = true;
-import Layout from "@/layouts/Layout.astro"
-import Error from "@/sections/Error.astro"
+import Layout from "@/layouts/Layout.astro";
+import Awning3D from "@/components/clients/Awning3D.astro";
 ---
 
 <Layout
-	description="Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!"
-	title="Toldo Perfil - Página no encontrada"
+	description="Página no encontrada (Error 404) de Toldo Perfil. Este error te ha deslumbrado, ¡pon un toldo en tu vida!"
+	title="Error 404 - Este error te ha deslumbrado | Toldo Perfil"
+	isVisibleNav={true}
 >
-	<main>
-		<Error
-			error="404"
-			message="Página no encontrada"
-			contextMessage="¡Hola! Lo sentimos, pero no pudimos encontrar lo que buscabas. Verifica que la dirección URL sea correcta."
-		/>
+	<main class="max-w-4xl mx-auto px-6 py-16 text-gray-800 flex flex-col md:flex-row items-center gap-12 justify-center min-h-[75vh]">
+		<!-- 3D Awning Simulation on the left/top -->
+		<div class="w-full md:w-1/2 flex justify-center">
+			<Awning3D 
+				stripeColor1="#ffffff" 
+				stripeColor2="#ea580c" 
+				wallColor="linear-gradient(135deg, #ffffff 0%, #e8e6f5 100%)"
+			/>
+		</div>
+
+		<!-- Humorous message and CTA on the right/bottom -->
+		<div class="w-full md:w-1/2 text-center md:text-left space-y-6 animate-fade-in">
+			<div class="space-y-2">
+				<span class="text-xs font-extrabold tracking-widest text-indigo-600 uppercase">Error 404</span>
+				<h1 class="text-3xl sm:text-4xl font-extrabold text-indigo-950 tracking-tight leading-tight">
+					¡Vaya! Este error te ha deslumbrado... ☀️
+				</h1>
+			</div>
+
+			<p class="text-base font-light text-gray-600 leading-relaxed">
+				El sol pega muy fuerte en Madrid y parece que te has desorientado buscando esta página. Que no te moleste el calor: <strong>pon un toldo en tu vida</strong> y regresa a la sombra de nuestro inicio.
+			</p>
+
+			<div class="flex flex-col sm:flex-row gap-3 pt-4 justify-center md:justify-start">
+				<a
+					href="/"
+					class="px-6 py-3 bg-indigo-950 text-white font-bold rounded-lg shadow-lg hover:bg-indigo-900 transition-all duration-200 hover:-translate-y-0.5 text-center text-xs uppercase tracking-wider"
+				>
+					Volver al Inicio
+				</a>
+				<a
+					id="whatsapp404Cta"
+					href="https://wa.me/34628404370?text=Hola,%20me%20he%20deslumbrado%20con%20el%20error%20404%20y%20quiero%20poner%20un%20toldo%20en%20mi%20vida."
+					target="_blank"
+					rel="noopener noreferrer"
+					class="px-6 py-3 bg-emerald-600 text-white font-bold rounded-lg shadow-lg hover:bg-emerald-500 transition-all duration-200 hover:-translate-y-0.5 text-center text-xs uppercase tracking-wider flex items-center justify-center gap-2"
+				>
+					Pedir Presupuesto WhatsApp
+				</a>
+			</div>
+		</div>
 	</main>
+
+	<script>
+		const btn = document.getElementById("whatsapp404Cta");
+		if (btn) {
+			btn.addEventListener("click", async () => {
+				try {
+					await fetch("/api/analytics/track", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							type: "whatsapp_click",
+							data: {
+								path: window.location.pathname,
+								source: "error_404_page"
+							}
+						})
+					});
+				} catch (e) {
+					console.error(e);
+				}
+			});
+		}
+	</script>
 </Layout>
+
+<style>
+	@keyframes fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(15px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+	.animate-fade-in {
+		animation: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+	}
+</style>

@@ -11,7 +11,9 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   integrations: [tailwind(), react({
     experimentalReactChildren: true
-  }), sitemap()],
+  }), sitemap({
+    filter: (page) => !page.includes('/admin') && !page.includes('/api')
+  })],
   site: 'https://toldoperfil.es',
   output: 'server',
   adapter: vercel({

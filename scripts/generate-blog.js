@@ -51,8 +51,7 @@ async function generate() {
     description: "Meta descripción corta de menos de 150 caracteres para el buscador."
     date: "${new Date().toISOString().split('T')[0]}"
     ---
-    # Título Principal (H1)
-    Breve introducción.
+    Breve párrafo de introducción (no incluyas un título H1 en el cuerpo del Markdown, la plantilla de la web ya lo genera de forma automática usando el campo "title" superior).
     
     ## Subtítulo 1 (H2)
     Detalles sobre la novedad...

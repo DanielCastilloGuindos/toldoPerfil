@@ -18,8 +18,9 @@ const selectedClient = bafCustomers.find(client => client.id === clientId );
 ---
 
 <ClientLayout
-description="Toldo Perfil: Especialistas en toldos personalizados de alta calidad. Desde toldos retráctiles para terrazas hasta pérgolas elegantes para jardines, ofrecemos soluciones adaptadas a tus necesidades. ¡Transforma tu espacio al aire libre con estilo y protección con Toldo Perfil!"
-title=`Toldo Perfil - ${selectedClient.title}` 
+	description={`Fabricación y montaje de toldos y cerramientos corporativos a medida realizado para la marca ${selectedClient.title}. Sistemas de protección solar en la Comunidad de Madrid.`}
+	title={`Instalación de toldo para ${selectedClient.title} | Toldo Perfil`} 
+	canonical={`https://toldoperfil.es/products/${clientId}`}
 >
 	<main class="font-sans">
 		<Header title={ selectedClient.title } transitionName= { "title_" + selectedClient.id } />
