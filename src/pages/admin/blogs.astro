@@ -5,6 +5,8 @@ import { db } from "@/db/client";
 import { Blogs } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { generateBlogPost } from "@/utils/blog-generator";
+import fs from "fs";
+import path from "path";
 
 const cookie = Astro.cookies.get("admin_session");
 const isAuthenticated = cookie?.value === "authenticated";
@@ -22,8 +24,17 @@ if (isAuthenticated && Astro.request.method === "POST") {
                 .set({ isVisible: !currentVisibility })
                 .where(eq(Blogs.id, blogId));
         } else if (action === "delete") {
-            await db.delete(Blogs)
-                .where(eq(Blogs.id, blogId));
+            const blogToDelete = await db.select().from(Blogs).where(eq(Blogs.id, blogId)).limit(1);
+            if (blogToDelete.length > 0) {
+                const slug = blogToDelete[0].slug;
+                await db.delete(Blogs).where(eq(Blogs.id, blogId));
+                
+                const imgPath = path.join(process.cwd(), "public/img/blog", `${slug}.webp`);
+                if (fs.existsSync(imgPath)) {
+                    fs.unlinkSync(imgPath);
+                    console.log(`Deleted blog image: ${imgPath}`);
+                }
+            }
         } else if (action === "generate-ai") {
             const genType = data.get("genType");
             let publishDate = new Date();
@@ -223,13 +234,16 @@ if (isAuthenticated) {
                                                             <input type="hidden" name="blogId" value={blog.id} />
                                                             <input type="hidden" name="currentVisibility" value={String(blog.isVisible)} />
                                                             <button 
-                                                                type="submit"
-                                                                class={`p-2 rounded-lg border transition-colors ${
+                                                                type="button"
+                                                                class={`confirm-trigger-btn p-2 rounded-lg border transition-colors ${
                                                                     blog.isVisible 
                                                                         ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/20' 
                                                                         : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-400 border-neutral-700'
                                                                 }`}
                                                                 title={blog.isVisible ? "Ocultar artículo" : "Mostrar artículo"}
+                                                                data-title={blog.isVisible ? "Ocultar artículo del blog" : "Mostrar artículo del blog"}
+                                                                data-desc={blog.isVisible ? "¿Estás seguro de que deseas ocultar este artículo del blog? Ya no estará visible para el público general." : "¿Estás seguro de que deseas mostrar este artículo del blog? Estará visible para todos los usuarios en la web."}
+                                                                data-btn-color="emerald"
                                                             >
                                                                 {blog.isVisible ? (
                                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -262,13 +276,16 @@ if (isAuthenticated) {
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                             </svg>
                                                         </a>
-                                                        <form method="POST" class="inline" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este artículo de blog? Esta acción no se puede deshacer.');">
+                                                        <form method="POST" class="inline">
                                                             <input type="hidden" name="action" value="delete" />
                                                             <input type="hidden" name="blogId" value={blog.id} />
                                                             <button 
-                                                                type="submit" 
-                                                                class="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg border border-red-500/20 transition-colors" 
+                                                                type="button" 
+                                                                class="confirm-trigger-btn p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg border border-red-500/20 transition-colors" 
                                                                 title="Eliminar"
+                                                                data-title="Eliminar artículo"
+                                                                data-desc="¿Estás seguro de que deseas eliminar permanentemente este artículo de blog y su imagen destacada? Esta acción es irreversible."
+                                                                data-btn-color="red"
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -309,6 +326,40 @@ if (isAuthenticated) {
             <p class="text-xs text-indigo-200/60 max-w-sm">La inteligencia artificial está redactando un artículo de alta calidad y optimizado para SEO local enfocado en educar al cliente para la compra de un toldo con nosotros. Esto puede tardar unos segundos...</p>
         </div>
 
+        <!-- Custom Confirmation Dialog -->
+        <dialog
+            id="customConfirmDialog"
+            class="fixed inset-0 m-auto bg-neutral-900/95 backdrop-blur-md border border-white/10 text-white rounded-2xl p-0 shadow-2xl max-w-sm w-full overflow-hidden z-[110]"
+        >
+            <div class="p-6 text-center space-y-4">
+                <div id="confirmIconContainer" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2 bg-indigo-500/10 text-indigo-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h3 id="confirmTitle" class="text-lg font-bold">¿Confirmar acción?</h3>
+                <p id="confirmDescription" class="text-neutral-400 text-xs leading-relaxed max-w-xs mx-auto">
+                    Por favor confirma si estás de acuerdo con realizar este cambio.
+                </p>
+                <footer class="flex gap-3 justify-center pt-2">
+                    <button
+                        type="button"
+                        id="cancelConfirmBtn"
+                        class="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium text-xs transition-colors border border-white/5"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        id="submitConfirmBtn"
+                        class="px-5 py-2.5 rounded-xl font-medium text-xs transition-colors text-white"
+                    >
+                        Confirmar
+                    </button>
+                </footer>
+            </div>
+        </dialog>
+
         <script is:inline>
             window.showGeneratorLoading = function(titleText) {
                 const overlay = document.getElementById('aiLoadingOverlay');
@@ -317,7 +368,69 @@ if (isAuthenticated) {
                     title.textContent = titleText;
                     overlay.classList.remove('hidden');
                 }
-            }
+            };
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const dialog = document.getElementById("customConfirmDialog");
+                const cancelBtn = document.getElementById("cancelConfirmBtn");
+                const submitBtn = document.getElementById("submitConfirmBtn");
+                
+                const confirmTitle = document.getElementById("confirmTitle");
+                const confirmDesc = document.getElementById("confirmDescription");
+                const iconContainer = document.getElementById("confirmIconContainer");
+                
+                let pendingForm = null;
+
+                document.addEventListener("click", (e) => {
+                    const btn = e.target.closest(".confirm-trigger-btn");
+                    if (btn) {
+                        e.preventDefault();
+                        pendingForm = btn.closest("form");
+                        
+                        const title = btn.getAttribute("data-title");
+                        const desc = btn.getAttribute("data-desc");
+                        const color = btn.getAttribute("data-btn-color");
+                        
+                        // Set texts
+                        confirmTitle.textContent = title;
+                        confirmDesc.textContent = desc;
+                        
+                        // Color settings
+                        submitBtn.className = "px-5 py-2.5 rounded-xl font-medium text-xs transition-all text-white ";
+                        if (color === "red") {
+                            submitBtn.classList.add("bg-red-600", "hover:bg-red-500", "shadow-lg", "shadow-red-500/20");
+                            iconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2 bg-red-500/10 text-red-500";
+                            iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
+                        } else {
+                            submitBtn.classList.add("bg-emerald-600", "hover:bg-emerald-500", "shadow-lg", "shadow-emerald-500/20");
+                            iconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2 bg-emerald-500/10 text-emerald-400";
+                            iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>`;
+                        }
+                        
+                        dialog.showModal();
+                    }
+                });
+
+                cancelBtn.addEventListener("click", () => {
+                    dialog.close();
+                    pendingForm = null;
+                });
+
+                submitBtn.addEventListener("click", () => {
+                    if (pendingForm) {
+                        dialog.close();
+                        pendingForm.submit();
+                    }
+                });
+                
+                // Close if click outside dialog
+                dialog.addEventListener("click", (e) => {
+                    if (e.target === dialog) {
+                        dialog.close();
+                        pendingForm = null;
+                    }
+                });
+            });
         </script>
     </main>
 </Layout>

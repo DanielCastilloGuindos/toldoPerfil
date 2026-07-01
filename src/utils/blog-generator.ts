@@ -1,6 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { db } from '../db/client';
 import { Blogs, AiSettings } from '../db/schema';
+import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
 
 const DEFAULT_CITIES = [
     'Velilla de San Antonio', 'Loeches', 'Mejorada del Campo', 
@@ -43,6 +46,25 @@ Beneficios específicos para tu hogar y por qué elegir a Toldo Perfil en {city}
 
 ## Conclusión y Presupuesto
 Llamada a la acción clara para pedir presupuesto en Toldo Perfil.`;
+
+// Curated stock photo URLs from Unsplash representing architectural outdoor terrace, pergolas, and awnings
+const STOCK_IMAGES = [
+    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200',
+    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=1200',
+    'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?q=80&w=1200',
+    'https://images.unsplash.com/photo-1613977257363-707ba9348227?q=80&w=1200',
+    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1200',
+    'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1200',
+    'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=1200',
+    'https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1200',
+    'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?q=80&w=1200',
+    'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1200',
+    'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?q=80&w=1200',
+    'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200',
+    'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200',
+    'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=1200',
+    'https://images.unsplash.com/photo-1505691938895-1758d7feb511?q=80&w=1200'
+];
 
 /**
  * Ensures AI settings exist in the DB, inserting defaults if not.
@@ -158,12 +180,49 @@ export async function generateBlogPost(publishDate?: Date) {
         .replace(/[^a-z0-9]+/g, '-')     // replace spaces with hyphens
         .replace(/(^-|-$)+/g, '');       // remove trailing/leading hyphens
 
+    // Pick a random real stock photo from our curated Unsplash collection
+    const randomStockUrl = STOCK_IMAGES[Math.floor(Math.random() * STOCK_IMAGES.length)];
+
+    let finalImageUrl = '';
+    const imgDir = path.join(process.cwd(), 'public/img/blog');
+    if (!fs.existsSync(imgDir)) {
+        fs.mkdirSync(imgDir, { recursive: true });
+    }
+
+    const localImagePath = path.join(imgDir, `${slug}.webp`);
+    const dbImagePath = `/img/blog/${slug}.webp`;
+
+    try {
+        console.log(`Descargando imagen real de stock desde Unsplash: ${randomStockUrl}...`);
+        const imgRes = await fetch(randomStockUrl);
+        if (!imgRes.ok) {
+            throw new Error(`Fallo al descargar imagen de stock: ${imgRes.statusText}`);
+        }
+        const arrayBuffer = await imgRes.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        console.log(`Procesando y convirtiendo a WebP optimizado con Sharp...`);
+        await sharp(buffer)
+            .resize(1024, 768, {
+                fit: 'cover',
+                position: 'center'
+            })
+            .webp({ quality: 80 })
+            .toFile(localImagePath);
+
+        finalImageUrl = dbImagePath;
+        console.log(`Imagen de stock WebP optimizada guardada con éxito en: ${localImagePath}`);
+    } catch (err) {
+        console.error('Error al descargar u optimizar la imagen real de stock con Sharp:', err);
+    }
+
     const finalPublishDate = publishDate || new Date();
 
     const insertResult = await db.insert(Blogs).values({
         slug,
         title,
         description,
+        image: finalImageUrl || null,
         content: contentBody,
         isVisible: true,
         publishedAt: finalPublishDate

@@ -103,13 +103,16 @@ const customersData = await db
                                             value={customer.customer_id}
                                         />
                                         <button
-                                            type="submit"
-                                            class={`p-2 rounded-lg border transition-colors ${
+                                            type="button"
+                                            class={`confirm-trigger-btn p-2 rounded-lg border transition-colors ${
                                                 customer.isVisible
                                                     ? "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/20"
                                                     : "bg-neutral-800 hover:bg-neutral-700 text-neutral-400 border-neutral-700"
                                             }`}
                                             title={customer.isVisible ? "Ocultar" : "Mostrar"}
+                                            data-title={customer.isVisible ? "Ocultar proyecto" : "Mostrar proyecto"}
+                                            data-desc={customer.isVisible ? "¿Estás seguro de que deseas ocultar este proyecto? Ya no aparecerá en la web pública." : "¿Estás seguro de que deseas mostrar este proyecto? Estará visible para todos los visitantes."}
+                                            data-btn-color="emerald"
                                         >
                                             {customer.isVisible ? (
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -146,6 +149,9 @@ const customersData = await db
                                         data-id={customer.customer_id}
                                         class="delete-btn p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg border border-red-500/20 transition-colors"
                                         title="Eliminar"
+                                        data-title="Eliminar proyecto"
+                                        data-desc="¿Estás seguro de que deseas eliminar permanentemente este proyecto del portfolio? Esta acción no se puede deshacer."
+                                        data-btn-color="red"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -161,62 +167,135 @@ const customersData = await db
     </div>
 </div>
 
-<!-- Delete Dialog -->
+<!-- Custom Unified Confirmation Dialog -->
 <dialog
-    id="removeDialog"
-    class="fixed inset-0 m-auto bg-neutral-900/90 backdrop-blur-sm border border-white/10 text-white rounded-2xl p-0 shadow-2xl max-w-sm w-full overflow-hidden"
+    id="customConfirmDialog"
+    class="fixed inset-0 m-auto bg-neutral-900/95 backdrop-blur-sm border border-white/10 text-white rounded-2xl p-0 shadow-2xl max-w-sm w-full overflow-hidden z-[110]"
 >
-    <div class="p-6 text-center">
-        <div
-            class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4"
-        >
-            <TrashIcon class="w-8 h-8 text-red-500" />
+    <div class="p-6 text-center space-y-4">
+        <div id="confirmIconContainer" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2 bg-indigo-500/10 text-indigo-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
         </div>
-        <h3 class="text-xl font-bold mb-2">¿Eliminar elemento?</h3>
-        <p class="text-neutral-400 text-sm mb-6">
-            Esta acción no se puede deshacer.
+        <h3 id="confirmTitle" class="text-lg font-bold">¿Confirmar acción?</h3>
+        <p id="confirmDescription" class="text-neutral-400 text-xs leading-relaxed max-w-xs mx-auto">
+            Por favor confirma si estás de acuerdo con realizar este cambio.
         </p>
-        <footer class="flex gap-3 justify-center">
+        <footer class="flex gap-3 justify-center pt-2">
             <button
-                id="confirmNo"
-                class="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-medium transition-colors"
-                >Cancelar</button
+                type="button"
+                id="cancelConfirmBtn"
+                class="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium text-xs transition-colors border border-white/5"
             >
-            <form action="/api/customers/delete" method="POST">
-                <input type="hidden" name="id" id="deleteInputId" value="" />
-                <button
-                    type="submit"
-                    class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-medium shadow-lg shadow-red-500/20 transition-colors"
-                    >Sí, eliminar</button
-                >
-            </form>
+                Cancelar
+            </button>
+            <button
+                type="button"
+                id="submitConfirmBtn"
+                class="px-5 py-2.5 rounded-xl font-medium text-xs transition-colors text-white"
+            >
+                Confirmar
+            </button>
         </footer>
     </div>
 </dialog>
 
+<!-- Hidden Delete Form for Portfolio Projects -->
+<form action="/api/customers/delete" method="POST" id="confirmDeleteForm" class="hidden">
+    <input type="hidden" name="id" id="confirmDeleteId" value="" />
+</form>
+
 <script>
-    import { $ } from "@/consts/dom-selector";
+    document.addEventListener("DOMContentLoaded", () => {
+        const dialog = document.getElementById("customConfirmDialog") as HTMLDialogElement;
+        const cancelBtn = document.getElementById("cancelConfirmBtn");
+        const submitBtn = document.getElementById("submitConfirmBtn");
+        
+        const confirmTitle = document.getElementById("confirmTitle");
+        const confirmDesc = document.getElementById("confirmDescription");
+        const iconContainer = document.getElementById("confirmIconContainer");
+        
+        const deleteForm = document.getElementById("confirmDeleteForm") as HTMLFormElement;
+        const deleteIdInput = document.getElementById("confirmDeleteId") as HTMLInputElement;
+        
+        let pendingForm: HTMLFormElement | null = null;
 
-    const removeDialog = $("#removeDialog") as HTMLDialogElement;
-    const deleteInputId = $("#deleteInputId") as HTMLInputElement;
-    const confirmNo = $("#confirmNo");
-
-    document.addEventListener("click", (e) => {
-        const target = e.target as HTMLElement;
-        const deleteBtn = target.closest(".delete-btn"); // Class based selector
-
-        if (deleteBtn) {
-            // Get ID from the button itself (since we moved data-id there in the loop)
-            const id = deleteBtn.getAttribute("data-id");
-            if (id) {
-                deleteInputId.value = id;
-                removeDialog?.showModal();
+        document.addEventListener("click", (e) => {
+            const target = e.target as HTMLElement;
+            
+            // 1. Toggle visibility trigger
+            const visibilityBtn = target.closest(".confirm-trigger-btn") as HTMLElement | null;
+            if (visibilityBtn) {
+                e.preventDefault();
+                pendingForm = visibilityBtn.closest("form");
+                
+                const title = visibilityBtn.getAttribute("data-title") || "";
+                const desc = visibilityBtn.getAttribute("data-desc") || "";
+                
+                if (confirmTitle) confirmTitle.textContent = title;
+                if (confirmDesc) confirmDesc.textContent = desc;
+                
+                if (submitBtn) {
+                    submitBtn.className = "px-5 py-2.5 rounded-xl font-medium text-xs transition-all text-white ";
+                    submitBtn.classList.add("bg-emerald-600", "hover:bg-emerald-500", "shadow-lg", "shadow-emerald-500/20");
+                }
+                if (iconContainer) {
+                    iconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2 bg-emerald-500/10 text-emerald-400";
+                    iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>`;
+                }
+                
+                dialog?.showModal();
+                return;
             }
-        }
-    });
+            
+            // 2. Delete trigger
+            const deleteBtn = target.closest(".delete-btn") as HTMLElement | null;
+            if (deleteBtn) {
+                e.preventDefault();
+                const id = deleteBtn.getAttribute("data-id") || "";
+                if (deleteIdInput) {
+                    deleteIdInput.value = id;
+                }
+                pendingForm = deleteForm;
+                
+                const title = deleteBtn.getAttribute("data-title") || "";
+                const desc = deleteBtn.getAttribute("data-desc") || "";
+                
+                if (confirmTitle) confirmTitle.textContent = title;
+                if (confirmDesc) confirmDesc.textContent = desc;
+                
+                if (submitBtn) {
+                    submitBtn.className = "px-5 py-2.5 rounded-xl font-medium text-xs transition-all text-white ";
+                    submitBtn.classList.add("bg-red-600", "hover:bg-red-500", "shadow-lg", "shadow-red-500/20");
+                }
+                if (iconContainer) {
+                    iconContainer.className = "w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-2 bg-red-500/10 text-red-500";
+                    iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
+                }
+                
+                dialog?.showModal();
+            }
+        });
 
-    confirmNo?.addEventListener("click", () => removeDialog?.close());
-    removeDialog?.addEventListener("click", (e) => {
-        if (e.target === removeDialog) removeDialog.close();
+        cancelBtn?.addEventListener("click", () => {
+            dialog?.close();
+            pendingForm = null;
+        });
+
+        submitBtn?.addEventListener("click", () => {
+            if (pendingForm) {
+                dialog?.close();
+                pendingForm.submit();
+            }
+        });
+        
+        // Close if click outside dialog
+        dialog?.addEventListener("click", (e) => {
+            if (e.target === dialog) {
+                dialog.close();
+                pendingForm = null;
+            }
+        });
     });
 </script>

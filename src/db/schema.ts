@@ -24,6 +24,7 @@ export const Blogs = sqliteTable('Blogs', {
     slug: text('slug').unique().notNull(),
     title: text('title').notNull(),
     description: text('description'),
+    image: text('image'), // Path to local WebP image: /img/blog/[slug].webp
     content: text('content').notNull(),
     isVisible: integer('isVisible', { mode: 'boolean' }).default(true),
     publishedAt: integer('publishedAt', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
