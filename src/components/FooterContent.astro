@@ -3,7 +3,7 @@ import Typography from "@/components/Typography.astro";
 import SocialButtons from "@/components/SocialButtons.astro";
 import Lock from "@/icons/lock.astro";
 
-const isDev = import.meta.env.DEV === true || String(import.meta.env.DEV).toUpperCase() === "TRUE";
+const isDev = import.meta.env.DEV === true || String(import.meta.env.DEV).toUpperCase() === "TRUE" || (typeof process !== "undefined" && process.env?.DEV?.toUpperCase() === "TRUE");
 ---
 
 <div class="w-full flex flex-col justify-center items-center">
@@ -73,23 +73,25 @@ const isDev = import.meta.env.DEV === true || String(import.meta.env.DEV).toUppe
 				</li>
 			</ul>
 		</div>
-		<div class="w-60">
-			<h2
-				class="mb-6 text-lg font-semibold text-gray-900 uppercase dark:text-white"
-			>
-				Blog
-			</h2>
-			<ul class="text-gray-500 dark:text-gray-400 leading-3">
-				<li class="mb-4">
-					<a
-						href="/blog"
-						class="hover:underline"
-						aria-label='Enlace al blog de toldos y pérgolas'>
-						Blog
-					</a>
-				</li>
-			</ul>
-		</div>
+		{isDev && (
+			<div class="w-60">
+				<h2
+					class="mb-6 text-lg font-semibold text-gray-900 uppercase dark:text-white"
+				>
+					Blog
+				</h2>
+				<ul class="text-gray-500 dark:text-gray-400 leading-3">
+					<li class="mb-4">
+						<a
+							href="/blog"
+							class="hover:underline"
+							aria-label='Enlace al blog de toldos y pérgolas'>
+							Blog
+						</a>
+					</li>
+				</ul>
+			</div>
+		)}
 		{isDev && (
 			<div class="w-60">
 				<h2
