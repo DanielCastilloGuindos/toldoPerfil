@@ -36,7 +36,9 @@ if (isAuthenticated && Astro.request.method === "POST") {
         const description = data.get("description")?.toString() || "";
         const content = data.get("content")?.toString() || "";
         const isVisible = data.get("isVisible") === "true";
-        const publishedAtStr = data.get("publishedAt")?.toString();
+        
+        const publishDateStr = data.get("publishDate")?.toString(); // YYYY-MM-DD
+        const publishTimeStr = data.get("publishTime")?.toString() || "09:00"; // HH:MM
 
         if (!slug) {
             slug = title
@@ -47,7 +49,7 @@ if (isAuthenticated && Astro.request.method === "POST") {
                 .replace(/(^-|-$)+/g, '');       // remove trailing/leading hyphens
         }
 
-        const publishedAt = publishedAtStr ? new Date(publishedAtStr) : new Date();
+        const publishedAt = publishDateStr ? new Date(`${publishDateStr}T${publishTimeStr}`) : new Date();
 
         await db.update(Blogs)
             .set({
@@ -67,18 +69,27 @@ if (isAuthenticated && Astro.request.method === "POST") {
     }
 }
 
-// Formats date to local ISO format for datetime-local (YYYY-MM-DDTHH:MM)
-const formatPublishDate = (date: Date) => {
+// Helper formats to separate Date and Time for split inputs
+const formatPublishDateOnly = (date: Date) => {
     try {
-        const offset = date.getTimezoneOffset();
-        const localDate = new Date(date.getTime() - (offset * 60 * 1000));
-        return localDate.toISOString().slice(0, 16);
+        return date.toLocaleDateString("en-CA"); // YYYY-MM-DD in local time
     } catch (e) {
-        return new Date().toISOString().slice(0, 16);
+        return new Date().toLocaleDateString("en-CA");
     }
 };
 
-const publishDateValue = formatPublishDate(blog.publishedAt);
+const formatPublishTimeOnly = (date: Date) => {
+    try {
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+    } catch (e) {
+        return "09:00";
+    }
+};
+
+const defaultDateValue = formatPublishDateOnly(blog.publishedAt);
+const defaultTimeValue = formatPublishTimeOnly(blog.publishedAt);
 ---
 
 <Layout
@@ -91,6 +102,9 @@ const publishDateValue = formatPublishDate(blog.publishedAt);
         <div class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"></div>
         <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div>
     </div>
+
+    <!-- Marked Markdown compiler client library -->
+    <script is:inline src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <main class="min-h-screen flex items-center justify-center p-4">
         {isAuthenticated ? (
@@ -121,89 +135,181 @@ const publishDateValue = formatPublishDate(blog.publishedAt);
                                 name="title"
                                 required
                                 value={blog.title}
-                                class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                                class="w-full bg-neutral-950/60 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/25 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all duration-200"
                                 placeholder="Título atractivo y SEO del artículo"
                             />
                         </div>
 
                         <!-- Slug Input -->
                         <div class="space-y-2">
-                            <label for="slug" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Ruta URL (Slug)</label>
+                            <div class="flex justify-between items-center">
+                                <label for="slug" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Ruta URL (Slug)</label>
+                                <span id="slugPreview" class="text-[11px] text-emerald-400/80 font-mono h-4">toldo-perfil.es/blog/{blog.slug}</span>
+                            </div>
                             <input
                                 type="text"
                                 id="slug"
                                 name="slug"
                                 required
                                 value={blog.slug}
-                                class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all font-mono text-sm"
+                                class="w-full bg-neutral-950/60 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/25 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all duration-200 font-mono text-xs"
                                 placeholder="ej: tendencias-toldos-madrid-2026"
                             />
                         </div>
 
                         <!-- Description Input -->
                         <div class="space-y-2">
-                            <label for="description" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Meta Descripción (SEO)</label>
+                            <div class="flex justify-between items-center ml-1">
+                                <label for="description" class="text-xs font-medium text-indigo-300 uppercase tracking-wider">Meta Descripción (SEO)</label>
+                                <span id="descCount" class="text-[10px] font-medium text-indigo-300/60">{blog.description?.length || 0}/150</span>
+                            </div>
                             <input
                                 type="text"
                                 id="description"
                                 name="description"
                                 value={blog.description}
-                                class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                                class="w-full bg-neutral-950/60 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/25 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all duration-200"
                                 placeholder="Breve resumen de menos de 150 caracteres para buscadores"
                             />
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Published At Date Input -->
+                        <!-- Publication Date and Time Selectors -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-2">
-                                <label for="publishedAt" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Fecha de Publicación / Programar</label>
+                                <label for="publishDate" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Fecha de Publicación</label>
                                 <input
-                                    type="datetime-local"
-                                    id="publishedAt"
-                                    name="publishedAt"
+                                    type="date"
+                                    id="publishDate"
+                                    name="publishDate"
                                     required
-                                    value={publishDateValue}
-                                    class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all cursor-pointer"
+                                    value={defaultDateValue}
+                                    class="w-full bg-neutral-950/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all duration-200 cursor-pointer"
                                 />
                             </div>
-
-                            <!-- Visibility Checkbox -->
-                            <div class="flex items-center pt-8 pl-1">
-                                <label class="flex items-center cursor-pointer gap-3 text-sm text-indigo-200">
-                                    <input
-                                        type="checkbox"
-                                        name="isVisible"
-                                        value="true"
-                                        checked={blog.isVisible}
-                                        class="w-5 h-5 rounded bg-neutral-950/50 border border-white/10 text-indigo-600 focus:ring-indigo-500/50 focus:ring-opacity-25"
-                                    />
-                                    <span>Hacer visible en la web</span>
-                                </label>
+                            <div class="space-y-2">
+                                <label for="publishTime" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Hora de Publicación</label>
+                                <input
+                                    type="time"
+                                    id="publishTime"
+                                    name="publishTime"
+                                    required
+                                    value={defaultTimeValue}
+                                    class="w-full bg-neutral-950/60 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all duration-200 cursor-pointer"
+                                />
                             </div>
                         </div>
 
-                        <!-- Content Input -->
+                        <!-- Visibility segmented toolbar toggle -->
                         <div class="space-y-2">
-                            <label for="content" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Contenido (Soporta Markdown)</label>
-                            <textarea
-                                id="content"
-                                name="content"
-                                required
-                                rows="12"
-                                class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all resize-y font-light text-sm"
-                                placeholder="Escribe el artículo aquí en formato Markdown..."
-                            >{blog.content}</textarea>
+                            <label class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Estado de Visibilidad</label>
+                            <div class="flex bg-neutral-950/60 rounded-xl p-1 border border-white/10 w-full relative">
+                                <!-- Hidden form value -->
+                                <input type="hidden" id="isVisibleInput" name="isVisible" value={blog.isVisible ? "true" : "false"} />
+                                
+                                <!-- Draft state tab -->
+                                <button
+                                    type="button"
+                                    id="btnStateDraft"
+                                    class="flex-1 py-2.5 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1.5 duration-200"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                                    </svg>
+                                    Borrador / Oculto
+                                </button>
+                                
+                                <!-- Visible state tab -->
+                                <button
+                                    type="button"
+                                    id="btnStateVisible"
+                                    class="flex-1 py-2.5 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1.5 duration-200"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    Visible en la web
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Content Input (Edit/Preview tabs + helper toolbar) -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center ml-1">
+                                <label class="text-xs font-medium text-indigo-300 uppercase tracking-wider">Contenido del Artículo</label>
+                                
+                                <!-- Editor Mode Tabs -->
+                                <div class="flex bg-neutral-950/60 rounded-lg p-0.5 border border-white/5 text-[11px] font-medium">
+                                    <button type="button" id="tabEdit" class="px-3 py-1 rounded-md transition-all flex items-center gap-1 duration-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        Editar
+                                    </button>
+                                    <button type="button" id="tabPreview" class="px-3 py-1 rounded-md transition-all flex items-center gap-1 duration-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                        Vista Previa
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Markdown Formatting Toolbar -->
+                            <div id="mdToolbar" class="flex flex-wrap items-center gap-1 bg-neutral-950/60 rounded-t-xl border border-white/10 border-b-0 px-3 py-2">
+                                <button type="button" data-md="bold" class="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-all text-xs font-bold" title="Negrita">B</button>
+                                <button type="button" data-md="italic" class="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-all text-xs italic" title="Cursiva">I</button>
+                                <button type="button" data-md="h2" class="px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-all text-xs font-semibold" title="Título H2">H2</button>
+                                <button type="button" data-md="h3" class="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-all text-xs font-normal" title="Título H3">H3</button>
+                                <span class="w-[1px] h-5 bg-white/10 mx-1"></span>
+                                <button type="button" data-md="link" class="p-1.5 rounded bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-all" title="Enlace (Ctrl+K)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                    </svg>
+                                </button>
+                                <button type="button" data-md="quote" class="p-1.5 rounded bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-all" title="Cita bloque">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                    </svg>
+                                </button>
+                                <button type="button" data-md="list" class="p-1.5 rounded bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-all" title="Lista viñetas">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <!-- Editor Area -->
+                            <div id="editorWrapper" class="relative">
+                                <textarea
+                                    id="content"
+                                    name="content"
+                                    required
+                                    rows="12"
+                                    class="w-full bg-neutral-950/50 border border-white/10 rounded-b-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all resize-y font-light text-sm"
+                                    placeholder="Escribe el artículo aquí en formato Markdown..."
+                                >{blog.content}</textarea>
+                            </div>
+                            
+                            <!-- Preview Area -->
+                            <div id="previewWrapper" class="hidden min-h-[290px] bg-neutral-950/50 border border-white/10 rounded-b-xl px-6 py-6 text-indigo-100/90 font-light text-sm overflow-y-auto max-h-[500px]">
+                                <div id="previewContent" class="prose prose-invert max-w-none space-y-4">
+                                    <!-- Compiled Markdown content will render dynamically here -->
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Submit Button -->
                         <button
                             type="submit"
+                            id="submitBtn"
                             class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 active:shadow-none flex items-center justify-center gap-2"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                             </svg>
-                            Guardar Cambios
+                            <span id="btnText">Guardar Cambios</span>
                         </button>
                     </form>
                 </div>
@@ -212,4 +318,174 @@ const publishDateValue = formatPublishDate(blog.publishedAt);
             <LoginForm />
         )}
     </main>
+
+    <!-- Client-side Interactive Enhancement Script -->
+    <script is:inline define:vars={{ initialVisibility: blog.isVisible }}>
+        document.addEventListener("DOMContentLoaded", () => {
+            // 1. Slug preview logic
+            const titleInput = document.getElementById("title");
+            const slugInput = document.getElementById("slug");
+            const slugPreview = document.getElementById("slugPreview");
+
+            function generateSlug(text) {
+                return text
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/(^-|-$)+/g, '');
+            }
+
+            titleInput.addEventListener("input", () => {
+                const slug = generateSlug(titleInput.value);
+                slugInput.placeholder = slug || "ej: tendencias-toldos-madrid-2026";
+                if (slugPreview && !slugInput.value) {
+                    slugPreview.textContent = slug ? `toldo-perfil.es/blog/${slug}` : "";
+                }
+            });
+
+            slugInput.addEventListener("input", () => {
+                const slug = generateSlug(slugInput.value);
+                if (slugPreview) {
+                    slugPreview.textContent = slug ? `toldo-perfil.es/blog/${slug}` : "";
+                }
+            });
+
+            // 2. Character counter logic for description
+            const descInput = document.getElementById("description");
+            const descCount = document.getElementById("descCount");
+
+            descInput.addEventListener("input", () => {
+                const len = descInput.value.length;
+                descCount.textContent = `${len}/150`;
+                if (len > 150) {
+                    descCount.className = "text-[10px] font-semibold text-red-400 animate-pulse";
+                } else {
+                    descCount.className = "text-[10px] font-medium text-indigo-300/60";
+                }
+            });
+
+            // 3. Segmented visibility control logic
+            const isVisibleInput = document.getElementById("isVisibleInput");
+            const btnStateDraft = document.getElementById("btnStateDraft");
+            const btnStateVisible = document.getElementById("btnStateVisible");
+
+            function updateVisibilityUI(isVisible) {
+                isVisibleInput.value = isVisible ? "true" : "false";
+                if (isVisible) {
+                    btnStateVisible.className = "flex-1 py-2.5 text-xs font-semibold rounded-lg bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 shadow-inner flex items-center justify-center gap-1.5 transition-all duration-200";
+                    btnStateDraft.className = "flex-1 py-2.5 text-xs font-medium rounded-lg text-neutral-400 hover:text-neutral-200 flex items-center justify-center gap-1.5 transition-all duration-200";
+                } else {
+                    btnStateDraft.className = "flex-1 py-2.5 text-xs font-semibold rounded-lg bg-amber-600/20 text-amber-400 border border-amber-500/30 shadow-inner flex items-center justify-center gap-1.5 transition-all duration-200";
+                    btnStateVisible.className = "flex-1 py-2.5 text-xs font-medium rounded-lg text-neutral-400 hover:text-neutral-200 flex items-center justify-center gap-1.5 transition-all duration-200";
+                }
+            }
+
+            btnStateDraft.addEventListener("click", () => updateVisibilityUI(false));
+            btnStateVisible.addEventListener("click", () => updateVisibilityUI(true));
+            
+            // Set initial state from DB
+            updateVisibilityUI(initialVisibility);
+
+            // 4. Editor tabs & preview logic
+            const tabEdit = document.getElementById("tabEdit");
+            const tabPreview = document.getElementById("tabPreview");
+            const mdToolbar = document.getElementById("mdToolbar");
+            const editorWrapper = document.getElementById("editorWrapper");
+            const previewWrapper = document.getElementById("previewWrapper");
+            const previewContent = document.getElementById("previewContent");
+            const textarea = document.getElementById("content");
+
+            // Markdown Insertion Logic
+            mdToolbar.addEventListener("click", (e) => {
+                const btn = e.target.closest("button[data-md]");
+                if (!btn) return;
+                
+                const type = btn.getAttribute("data-md");
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const text = textarea.value;
+                const selected = text.substring(start, end);
+                
+                let replacement = "";
+                let cursorOffset = 0;
+                
+                switch(type) {
+                    case "bold":
+                        replacement = `**${selected || "texto"}**`;
+                        cursorOffset = selected ? replacement.length : 2;
+                        break;
+                    case "italic":
+                        replacement = `*${selected || "texto"}*`;
+                        cursorOffset = selected ? replacement.length : 1;
+                        break;
+                    case "h2":
+                        replacement = `\n## ${selected || "Subtítulo H2"}\n`;
+                        cursorOffset = replacement.length;
+                        break;
+                    case "h3":
+                        replacement = `\n### ${selected || "Subtítulo H3"}\n`;
+                        cursorOffset = replacement.length;
+                        break;
+                    case "link":
+                        replacement = `[${selected || "texto enlace"}](url)`;
+                        cursorOffset = selected ? replacement.length : 1;
+                        break;
+                    case "quote":
+                        replacement = `\n> ${selected || "Cita"}\n`;
+                        cursorOffset = replacement.length;
+                        break;
+                    case "list":
+                        replacement = `\n- ${selected || "Elemento"}\n`;
+                        cursorOffset = replacement.length;
+                        break;
+                }
+                
+                textarea.value = text.substring(0, start) + replacement + text.substring(end);
+                textarea.focus();
+                textarea.setSelectionRange(start + cursorOffset, start + cursorOffset);
+            });
+
+            tabEdit.addEventListener("click", () => {
+                tabEdit.className = "px-3 py-1 rounded-md bg-indigo-600/30 text-white border border-indigo-500/30";
+                tabPreview.className = "px-3 py-1 rounded-md text-neutral-400 hover:text-neutral-200";
+                mdToolbar.classList.remove("hidden");
+                editorWrapper.classList.remove("hidden");
+                previewWrapper.classList.add("hidden");
+            });
+
+            tabPreview.addEventListener("click", () => {
+                tabPreview.className = "px-3 py-1 rounded-md bg-indigo-600/30 text-white border border-indigo-500/30";
+                tabEdit.className = "px-3 py-1 rounded-md text-neutral-400 hover:text-neutral-200";
+                mdToolbar.classList.add("hidden");
+                editorWrapper.classList.add("hidden");
+                previewWrapper.classList.remove("hidden");
+                
+                // Parse using client-side marked compiler
+                if (window.marked) {
+                    previewContent.innerHTML = window.marked.parse(textarea.value);
+                } else {
+                    // Fallback to simple paragraph splitter if CDN failed to load
+                    previewContent.innerHTML = textarea.value
+                        .split("\n\n")
+                        .map(p => `<p class="mb-4">${p.replace(/\n/g, "<br>")}</p>`)
+                        .join("");
+                }
+            });
+
+            // Set default active tab
+            tabEdit.click();
+            
+            // 5. Submit loading feedback UX
+            const form = document.querySelector("form");
+            const submitBtn = document.getElementById("submitBtn");
+            const btnText = document.getElementById("btnText");
+            
+            form.addEventListener("submit", () => {
+                submitBtn.disabled = true;
+                submitBtn.classList.add("opacity-75", "cursor-not-allowed");
+                btnText.textContent = "Guardando cambios...";
+            });
+        });
+    </script>
 </Layout>
