@@ -1,0 +1,179 @@
+---
+import Layout from "@/layouts/AdminLayout.astro";
+import LoginForm from "@/components/admin/LoginForm.astro";
+import { db } from "@/db/client";
+import { Blogs } from "@/db/schema";
+
+const cookie = Astro.cookies.get("admin_session");
+const isAuthenticated = cookie?.value === "authenticated";
+
+// Handle POST request to create a blog post
+if (isAuthenticated && Astro.request.method === "POST") {
+    try {
+        const data = await Astro.request.formData();
+        const title = data.get("title")?.toString() || "";
+        let slug = data.get("slug")?.toString() || "";
+        const description = data.get("description")?.toString() || "";
+        const content = data.get("content")?.toString() || "";
+        const isVisible = data.get("isVisible") === "true";
+        const publishedAtStr = data.get("publishedAt")?.toString();
+
+        if (!slug) {
+            slug = title
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "") // remove accents
+                .replace(/[^a-z0-9]+/g, '-')     // replace spaces with hyphens
+                .replace(/(^-|-$)+/g, '');       // remove trailing/leading hyphens
+        }
+
+        const publishedAt = publishedAtStr ? new Date(publishedAtStr) : new Date();
+
+        await db.insert(Blogs).values({
+            title,
+            slug,
+            description,
+            content,
+            isVisible,
+            publishedAt
+        });
+
+        return Astro.redirect("/admin/blogs");
+    } catch (e) {
+        console.error("Error creating blog post:", e);
+        return new Response(`Error al crear el artículo: ${e}`, { status: 400 });
+    }
+}
+
+// Current date formatted for datetime-local input (YYYY-MM-DDTHH:MM)
+const defaultPublishDate = new Date().toISOString().slice(0, 16);
+---
+
+<Layout
+    description="Crear nuevo artículo de blog"
+    title="Crear Artículo - Toldo Perfil"
+    canonical="https://toldoperfil.es"
+>
+    <!-- Background -->
+    <div class="fixed inset-0 -z-10 bg-neutral-900">
+        <div class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"></div>
+        <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div>
+    </div>
+
+    <main class="min-h-screen flex items-center justify-center p-4">
+        {isAuthenticated ? (
+            <!-- Glass Card -->
+            <div class="relative w-full max-w-2xl">
+                <div class="absolute inset-0 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl"></div>
+
+                <div class="relative p-8">
+                    <header class="flex justify-between items-center mb-8">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">Nuevo Artículo</h2>
+                            <p class="text-indigo-200 text-sm">Publicar o programar entrada en el blog</p>
+                        </div>
+                        <a href="/admin/blogs" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-indigo-200 hover:text-white transition-colors" aria-label="Volver">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </a>
+                    </header>
+
+                    <form method="POST" class="space-y-6">
+                        <!-- Title Input -->
+                        <div class="space-y-2">
+                            <label for="title" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Título</label>
+                            <input
+                                type="text"
+                                id="title"
+                                name="title"
+                                required
+                                class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                                placeholder="Título atractivo y SEO del artículo"
+                            />
+                        </div>
+
+                        <!-- Slug Input -->
+                        <div class="space-y-2">
+                            <label for="slug" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Ruta URL (Slug - Opcional)</label>
+                            <input
+                                type="text"
+                                id="slug"
+                                name="slug"
+                                class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all font-mono text-sm"
+                                placeholder="ej: tendencias-toldos-madrid-2026 (se autogenera si está vacío)"
+                            />
+                        </div>
+
+                        <!-- Description Input -->
+                        <div class="space-y-2">
+                            <label for="description" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Meta Descripción (SEO)</label>
+                            <input
+                                type="text"
+                                id="description"
+                                name="description"
+                                class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                                placeholder="Breve resumen de menos de 150 caracteres para buscadores"
+                            />
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Published At Date Input -->
+                            <div class="space-y-2">
+                                <label for="publishedAt" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Fecha de Publicación / Programar</label>
+                                <input
+                                    type="datetime-local"
+                                    id="publishedAt"
+                                    name="publishedAt"
+                                    required
+                                    value={defaultPublishDate}
+                                    class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all cursor-pointer"
+                                />
+                            </div>
+
+                            <!-- Visibility Checkbox -->
+                            <div class="flex items-center pt-8 pl-1">
+                                <label class="flex items-center cursor-pointer gap-3 text-sm text-indigo-200">
+                                    <input
+                                        type="checkbox"
+                                        name="isVisible"
+                                        value="true"
+                                        checked
+                                        class="w-5 h-5 rounded bg-neutral-950/50 border border-white/10 text-indigo-600 focus:ring-indigo-500/50 focus:ring-opacity-25"
+                                    />
+                                    <span>Hacer visible inmediatamente (si la fecha es hoy o anterior)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Content Input -->
+                        <div class="space-y-2">
+                            <label for="content" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Contenido (Soporta Markdown)</label>
+                            <textarea
+                                id="content"
+                                name="content"
+                                required
+                                rows="12"
+                                class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all resize-y font-light text-sm"
+                                placeholder="Escribe el artículo aquí en formato Markdown..."
+                            ></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button
+                            type="submit"
+                            class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 active:shadow-none flex items-center justify-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Crear y Publicar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        ) : (
+            <LoginForm />
+        )}
+    </main>
+</Layout>

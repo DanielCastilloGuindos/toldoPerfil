@@ -1,0 +1,177 @@
+---
+import Layout from "@/layouts/AdminLayout.astro";
+import LoginForm from "@/components/admin/LoginForm.astro";
+import { db } from "@/db/client";
+import { AiSettings } from "@/db/schema";
+import { getOrInitializeSettings } from "@/utils/blog-generator";
+import { eq } from "drizzle-orm";
+
+const cookie = Astro.cookies.get("admin_session");
+const isAuthenticated = cookie?.value === "authenticated";
+
+let settings;
+if (isAuthenticated) {
+    settings = await getOrInitializeSettings();
+}
+
+// Handle POST to save settings
+if (isAuthenticated && Astro.request.method === "POST") {
+    try {
+        const data = await Astro.request.formData();
+        const modelName = data.get("modelName")?.toString() || "gemini-2.5-flash";
+        const temperature = data.get("temperature")?.toString() || "0.7";
+        const cities = data.get("cities")?.toString() || "";
+        const topics = data.get("topics")?.toString() || "";
+        const systemPrompt = data.get("systemPrompt")?.toString() || "";
+
+        await db.update(AiSettings)
+            .set({
+                modelName,
+                temperature,
+                cities,
+                topics,
+                systemPrompt
+            })
+            .where(eq(AiSettings.id, 1));
+
+        return Astro.redirect("/admin/blogs");
+    } catch (e) {
+        console.error("Error saving AI settings:", e);
+        return new Response(`Error al guardar configuraciones: ${e}`, { status: 400 });
+    }
+}
+---
+
+<Layout
+    description="Configuración de la Inteligencia Artificial para el Blog"
+    title="Configuración IA - Toldo Perfil"
+    canonical="https://toldoperfil.es"
+>
+    <!-- Background -->
+    <div class="fixed inset-0 -z-10 bg-neutral-900">
+        <div class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"></div>
+        <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div>
+    </div>
+
+    <main class="min-h-screen flex items-center justify-center p-4 py-12">
+        {isAuthenticated ? (
+            <!-- Glass Card -->
+            <div class="relative w-full max-w-3xl">
+                <div class="absolute inset-0 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl"></div>
+
+                <div class="relative p-8">
+                    <header class="flex justify-between items-center mb-8">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white tracking-tight">Opciones de la IA (Blog)</h2>
+                            <p class="text-indigo-200 text-sm">Configura los parámetros del escritor autónomo del blog</p>
+                        </div>
+                        <a href="/admin/blogs" class="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-indigo-200 hover:text-white transition-colors" aria-label="Volver">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </a>
+                    </header>
+
+                    <form method="POST" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Model Name Select -->
+                            <div class="space-y-2">
+                                <label for="modelName" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Modelo de Lenguaje</label>
+                                <div class="relative">
+                                    <select
+                                        name="modelName"
+                                        id="modelName"
+                                        required
+                                        class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all appearance-none cursor-pointer"
+                                    >
+                                        <option value="gemini-2.5-flash" selected={settings.modelName === 'gemini-2.5-flash'} class="bg-neutral-900">Gemini 2.5 Flash (Recomendado)</option>
+                                        <option value="gemini-3.5-flash" selected={settings.modelName === 'gemini-3.5-flash'} class="bg-neutral-900">Gemini 3.5 Flash</option>
+                                        <option value="gemini-2.5-pro" selected={settings.modelName === 'gemini-2.5-pro'} class="bg-neutral-900">Gemini 2.5 Pro (Lento/Preciso)</option>
+                                        <option value="gemini-2.0-flash" selected={settings.modelName === 'gemini-2.0-flash'} class="bg-neutral-900">Gemini 2.0 Flash</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-indigo-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Temperature Input -->
+                            <div class="space-y-2">
+                                <label for="temperature" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Temperatura (Creatividad)</label>
+                                <input
+                                    type="number"
+                                    id="temperature"
+                                    name="temperature"
+                                    min="0.0"
+                                    max="2.0"
+                                    step="0.1"
+                                    required
+                                    value={settings.temperature}
+                                    class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                                    placeholder="ej: 0.7 (baja = precisa, alta = creativa)"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Cities Textarea -->
+                        <div class="space-y-2">
+                            <label for="cities" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Municipios / Zonas (Un nombre por línea)</label>
+                            <p class="text-[10px] text-indigo-200/60 ml-1">La IA seleccionará uno aleatoriamente para enfocar el SEO local</p>
+                            <textarea
+                                id="cities"
+                                name="cities"
+                                required
+                                rows="5"
+                                class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all font-light text-sm resize-y"
+                                placeholder="Escribe un municipio por línea..."
+                            >{settings.cities}</textarea>
+                        </div>
+
+                        <!-- Topics Textarea -->
+                        <div class="space-y-2">
+                            <label for="topics" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Temas / Novedades de Toldos (Un tema por línea)</label>
+                            <p class="text-[10px] text-indigo-200/60 ml-1">La IA elegirá uno al azar para escribir el artículo del blog</p>
+                            <textarea
+                                id="topics"
+                                name="topics"
+                                required
+                                rows="6"
+                                class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all font-light text-sm resize-y"
+                                placeholder="Escribe un tema por línea..."
+                            >{settings.topics}</textarea>
+                        </div>
+
+                        <!-- System Prompt / Instructions Textarea -->
+                        <div class="space-y-2">
+                            <label for="systemPrompt" class="text-xs font-medium text-indigo-300 uppercase tracking-wider ml-1">Instrucciones Prompt (Rol y Guías)</label>
+                            <p class="text-[10px] text-indigo-200/60 ml-1">Usa <code class="bg-black/30 px-1 py-0.5 rounded text-indigo-300 font-mono text-[9px]">{"{city}"}</code> y <code class="bg-black/30 px-1 py-0.5 rounded text-indigo-300 font-mono text-[9px]">{"{novelty}"}</code> como variables dinámicas</p>
+                            <textarea
+                                id="systemPrompt"
+                                name="systemPrompt"
+                                required
+                                rows="12"
+                                class="w-full bg-neutral-950/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 transition-all font-light text-xs resize-y leading-normal"
+                                placeholder="Instrucciones del prompt..."
+                            >{settings.systemPrompt}</textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button
+                            type="submit"
+                            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 active:shadow-none flex items-center justify-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            Guardar Configuración
+                        </button>
+                    </form>
+                </div>
+            </div>
+        ) : (
+            <LoginForm />
+        )}
+    </main>
+</Layout>

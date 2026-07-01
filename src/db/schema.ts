@@ -18,3 +18,24 @@ export const Analytics = sqliteTable('Analytics', {
     data: text('data', { mode: 'json' }), // Extra info
     created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
 });
+
+export const Blogs = sqliteTable('Blogs', {
+    id: integer('id').primaryKey(),
+    slug: text('slug').unique().notNull(),
+    title: text('title').notNull(),
+    description: text('description'),
+    content: text('content').notNull(),
+    isVisible: integer('isVisible', { mode: 'boolean' }).default(true),
+    publishedAt: integer('publishedAt', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+    created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+});
+
+export const AiSettings = sqliteTable('AiSettings', {
+    id: integer('id').primaryKey(),
+    modelName: text('modelName').notNull().default('gemini-2.5-flash'),
+    temperature: text('temperature').notNull().default('0.7'),
+    cities: text('cities').notNull(), // Line-separated list of cities
+    topics: text('topics').notNull(), // Line-separated list of topics
+    systemPrompt: text('systemPrompt').notNull(), // AI writer persona/instructions
+    created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+});

@@ -1,0 +1,323 @@
+---
+import Layout from "@/layouts/AdminLayout.astro";
+import LoginForm from "@/components/admin/LoginForm.astro";
+import { db } from "@/db/client";
+import { Blogs } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { generateBlogPost } from "@/utils/blog-generator";
+
+const cookie = Astro.cookies.get("admin_session");
+const isAuthenticated = cookie?.value === "authenticated";
+
+// Handle Actions (Toggle visibility, Delete, Generate AI)
+if (isAuthenticated && Astro.request.method === "POST") {
+    try {
+        const data = await Astro.request.formData();
+        const action = data.get("action");
+        const blogId = Number(data.get("blogId"));
+
+        if (action === "toggle-visibility") {
+            const currentVisibility = data.get("currentVisibility") === "true";
+            await db.update(Blogs)
+                .set({ isVisible: !currentVisibility })
+                .where(eq(Blogs.id, blogId));
+        } else if (action === "delete") {
+            await db.delete(Blogs)
+                .where(eq(Blogs.id, blogId));
+        } else if (action === "generate-ai") {
+            const genType = data.get("genType");
+            let publishDate = new Date();
+            if (genType === "scheduled") {
+                // Next day at 9:00 AM
+                publishDate.setDate(publishDate.getDate() + 1);
+                publishDate.setHours(9, 0, 0, 0);
+            }
+            await generateBlogPost(publishDate);
+        }
+    } catch (e) {
+        console.error("Error performing admin action on blog:", e);
+    }
+}
+
+// Fetch all blogs
+let blogs = [];
+if (isAuthenticated) {
+    try {
+        blogs = await db.select().from(Blogs).orderBy(desc(Blogs.publishedAt));
+    } catch (e) {
+        console.error("Error fetching blogs:", e);
+    }
+}
+---
+
+<Layout
+    description="Administración de Blog - Toldo Perfil"
+    title="Gestionar Blog - Toldo Perfil"
+    canonical="https://toldoperfil.es"
+>
+    <main class="font-sans min-h-screen">
+        {isAuthenticated ? (
+            <div class="fixed inset-0 -z-10 bg-neutral-900">
+                <div class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"></div>
+                <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div>
+            </div>
+            
+            <div class="text-white p-6 max-w-7xl mx-auto space-y-8">
+                <!-- Header -->
+                <header class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-4">
+                    <div class="flex items-center gap-4">
+                        <a href="/admin" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10" aria-label="Volver al panel">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                        </a>
+                        <div>
+                            <h1 class="text-xl font-bold tracking-tight">Gestión del Blog</h1>
+                            <p class="text-xs text-indigo-200">Publica, edita y programa artículos de Toldo Perfil</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <a 
+                            href="/admin/blog/ai-settings" 
+                            class="p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-indigo-300 hover:text-white transition-all" 
+                            title="Configurar Opciones de IA"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </a>
+                        
+                        <div class="relative inline-block text-left group">
+                            <button 
+                                id="generateDropdownBtn"
+                                class="px-4 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-300 text-sm font-medium transition-all flex items-center gap-2"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Generar con IA
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            
+                            <div 
+                                id="generateDropdownMenu"
+                                class="hidden absolute right-0 top-full pt-2 w-56 focus:outline-none z-[100] group-hover:block hover:block"
+                            >
+                                <div class="rounded-xl bg-neutral-900 border border-white/10 shadow-2xl overflow-hidden py-1">
+                                    <form method="POST" class="w-full">
+                                        <input type="hidden" name="action" value="generate-ai" />
+                                        <input type="hidden" name="genType" value="fast" />
+                                        <button 
+                                            type="submit" 
+                                            class="w-full text-left px-4 py-3 text-xs hover:bg-white/5 transition-colors text-white font-medium flex flex-col"
+                                            onclick="showGeneratorLoading('Generando artículo rápido...')"
+                                        >
+                                            <span class="text-emerald-400 font-bold">Nuevo blog rápido</span>
+                                            <span class="text-[10px] text-white/50 mt-0.5">Se publicará inmediatamente</span>
+                                        </button>
+                                    </form>
+                                    <hr class="border-white/5" />
+                                    <form method="POST" class="w-full">
+                                        <input type="hidden" name="action" value="generate-ai" />
+                                        <input type="hidden" name="genType" value="scheduled" />
+                                        <button 
+                                            type="submit" 
+                                            class="w-full text-left px-4 py-3 text-xs hover:bg-white/5 transition-colors text-white font-medium flex flex-col"
+                                            onclick="showGeneratorLoading('Programando artículo para mañana...')"
+                                        >
+                                            <span class="text-amber-400 font-bold">Nuevo blog programado</span>
+                                            <span class="text-[10px] text-white/50 mt-0.5">Mañana a las 09:00 AM</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <a href="/admin/blog/create" class="px-4 py-2 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-300 text-sm font-medium transition-all flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Manual
+                        </a>
+                    </div>
+                </header>
+
+                <!-- Blogs Table/List -->
+                <div class="bg-neutral-900/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden">
+                    <div class="p-6 border-b border-white/5 flex justify-between items-center">
+                        <h2 class="text-lg font-semibold">Artículos Publicados ({blogs.length})</h2>
+                    </div>
+
+                    {blogs.length > 0 ? (
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-white/5 bg-white/5 text-indigo-200 text-xs font-semibold uppercase tracking-wider">
+                                        <th class="p-4">Detalles</th>
+                                        <th class="p-4">Ruta (Slug)</th>
+                                        <th class="p-4">Fecha Publicación</th>
+                                        <th class="p-4 text-center">Estado</th>
+                                        <th class="p-4 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/5 text-sm">
+                                    {blogs.map(blog => {
+                                        const now = new Date();
+                                        const isScheduled = new Date(blog.publishedAt) > now;
+                                        
+                                        const formattedDate = new Date(blog.publishedAt).toLocaleDateString('es-ES', {
+                                            day: '2-digit',
+                                            month: 'short',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        });
+
+                                        return (
+                                            <tr class="hover:bg-white/5 transition-colors">
+                                                <!-- Title & Desc -->
+                                                <td class="p-4 max-w-sm">
+                                                    <div class="font-bold text-white truncate">{blog.title}</div>
+                                                    <div class="text-xs text-white/50 truncate mt-0.5">{blog.description}</div>
+                                                </td>
+                                                <!-- Slug -->
+                                                <td class="p-4">
+                                                    <span class="font-mono text-xs text-indigo-300 bg-indigo-500/10 px-2.5 py-1 rounded-md">
+                                                        /blog/{blog.slug}
+                                                    </span>
+                                                </td>
+                                                <!-- Date -->
+                                                <td class="p-4">
+                                                    <div class="text-xs">{formattedDate}</div>
+                                                    {isScheduled && (
+                                                        <span class="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full font-medium">
+                                                            Programado
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <!-- Visibility Status -->
+                                                <td class="p-4 text-center">
+                                                    {(!blog.isVisible) ? (
+                                                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-neutral-800 text-neutral-400 border border-neutral-700">
+                                                            Oculto
+                                                        </span>
+                                                    ) : isScheduled ? (
+                                                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                                            Programado
+                                                        </span>
+                                                    ) : (
+                                                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                            Publicado
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <!-- Action Buttons -->
+                                                <td class="p-4 text-right">
+                                                    <div class="flex items-center justify-end gap-2">
+                                                        <form method="POST" class="inline">
+                                                            <input type="hidden" name="action" value="toggle-visibility" />
+                                                            <input type="hidden" name="blogId" value={blog.id} />
+                                                            <input type="hidden" name="currentVisibility" value={String(blog.isVisible)} />
+                                                            <button 
+                                                                type="submit"
+                                                                class={`p-2 rounded-lg border transition-colors ${
+                                                                    blog.isVisible 
+                                                                        ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/20' 
+                                                                        : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-400 border-neutral-700'
+                                                                }`}
+                                                                title={blog.isVisible ? "Ocultar artículo" : "Mostrar artículo"}
+                                                            >
+                                                                {blog.isVisible ? (
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                                    </svg>
+                                                                ) : (
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                                                                    </svg>
+                                                                )}
+                                                            </button>
+                                                        </form>
+                                                        <a 
+                                                            href={`/blog/${blog.slug}`} 
+                                                            target="_blank" 
+                                                            class="p-2 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors text-white" 
+                                                            title="Ver en vivo"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                            </svg>
+                                                        </a>
+                                                        <a 
+                                                            href={`/admin/blog/edit/${blog.id}`} 
+                                                            class="p-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 rounded-lg border border-indigo-500/20 transition-colors" 
+                                                            title="Editar"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                            </svg>
+                                                        </a>
+                                                        <form method="POST" class="inline" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este artículo de blog? Esta acción no se puede deshacer.');">
+                                                            <input type="hidden" name="action" value="delete" />
+                                                            <input type="hidden" name="blogId" value={blog.id} />
+                                                            <button 
+                                                                type="submit" 
+                                                                class="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg border border-red-500/20 transition-colors" 
+                                                                title="Eliminar"
+                                                            >
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                </svg>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div class="text-center py-16 text-white/30">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-indigo-300/30 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1" />
+                            </svg>
+                            <p class="text-sm font-light">No hay artículos de blog en la base de datos todavía.</p>
+                            <a href="/admin/blog/create" class="mt-4 inline-flex px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-indigo-500/20 transition-all gap-1 justify-center items-center">
+                                + Crear el primero
+                            </a>
+                        </div>
+                    )}
+                </div>
+            </div>
+        ) : (
+            <LoginForm />
+        )}
+        <!-- AI Loading Overlay -->
+        <div id="aiLoadingOverlay" class="hidden fixed inset-0 z-[100] bg-neutral-950/80 backdrop-blur-md flex flex-col items-center justify-center text-center p-6 transition-all duration-300">
+            <div class="w-16 h-16 relative mb-6">
+                <div class="absolute inset-0 rounded-full border-4 border-emerald-500/10"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-t-emerald-400 animate-spin"></div>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2" id="aiLoadingTitle">Generando Artículo con Gemini...</h3>
+            <p class="text-xs text-indigo-200/60 max-w-sm">La inteligencia artificial está redactando un artículo de alta calidad y optimizado para SEO local enfocado en educar al cliente para la compra de un toldo con nosotros. Esto puede tardar unos segundos...</p>
+        </div>
+
+        <script is:inline>
+            window.showGeneratorLoading = function(titleText) {
+                const overlay = document.getElementById('aiLoadingOverlay');
+                const title = document.getElementById('aiLoadingTitle');
+                if (overlay && title) {
+                    title.textContent = titleText;
+                    overlay.classList.remove('hidden');
+                }
+            }
+        </script>
+    </main>
+</Layout>

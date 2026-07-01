@@ -8,7 +8,7 @@
     "build": "astro build --remote",
     "preview": "astro preview",
     "astro": "astro",
-    "generate-blog": "node scripts/generate-blog.js"
+    "generate-blog": "tsx scripts/generate-blog.js"
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",
@@ -25,6 +25,7 @@
     "cloudinary": "^2.2.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
+    "marked": "^18.0.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "resend": "^3.2.0",

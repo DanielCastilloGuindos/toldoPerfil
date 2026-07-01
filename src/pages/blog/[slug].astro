@@ -1,36 +1,43 @@
 ---
-export const prerender = true;
 import Layout from "@/layouts/Layout.astro";
+import { marked } from "marked";
+import { db } from "@/db/client";
+import { Blogs } from "@/db/schema";
+import { eq, and, lte } from "drizzle-orm";
 
-export async function getStaticPaths() {
-    const posts = Object.values(import.meta.glob('../../blog-posts/*.md', { eager: true })) as any[];
-    return posts.map(post => {
-        const slug = post.file.split('/').pop().replace('.md', '');
-        return {
-            params: { slug },
-            props: { post }
-        };
-    });
+const { slug } = Astro.params;
+
+const now = new Date();
+const posts = await db.select().from(Blogs).where(
+    and(
+        eq(Blogs.slug, slug),
+        eq(Blogs.isVisible, true),
+        lte(Blogs.publishedAt, now)
+    )
+);
+
+if (posts.length === 0) {
+    return Astro.redirect('/404');
 }
 
-const { post } = Astro.props;
-const { Content, frontmatter } = post;
-const { title, description, date } = frontmatter;
+const post = posts[0];
+const { title, description, content, publishedAt } = post;
 
-const formattedDate = new Date(date).toLocaleDateString('es-ES', {
+const formattedDate = new Date(publishedAt).toLocaleDateString('es-ES', {
     day: '2-digit',
     month: 'long',
     year: 'numeric'
 });
-const { slug } = Astro.params;
+
+const htmlContent = marked.parse(content);
 
 const schema = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "headline": title,
     "description": description,
-    "datePublished": date,
-    "dateModified": date,
+    "datePublished": publishedAt.toISOString(),
+    "dateModified": publishedAt.toISOString(),
     "author": {
         "@type": "Organization",
         "name": "Toldo Perfil",
@@ -83,8 +90,7 @@ const schema = {
             </header>
 
             <!-- Markdown content parser wrapper -->
-            <div class="blog-markdown-content leading-relaxed text-gray-700 font-light space-y-6">
-                <Content />
+            <div class="blog-markdown-content leading-relaxed text-gray-700 font-light space-y-6" set:html={htmlContent}>
             </div>
 
             <!-- Footer CTA within the article card -->
