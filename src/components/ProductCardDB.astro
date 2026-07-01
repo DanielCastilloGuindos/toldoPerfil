@@ -1,9 +1,24 @@
 ---
 import { Image } from "astro:assets";
 
-const { id, title, description, image = "/img/example.jpg", linked = true } = Astro.props
+const { id, title, description, image = "/img/example.jpg", linked = true } = Astro.props;
+
+const slugify = (text: string) => {
+	return text
+		.toString()
+		.toLowerCase()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.replace(/\s+/g, '-')
+		.replace(/[^\w\-]+/g, '')
+		.replace(/\-\-+/g, '-')
+		.replace(/^-+/, '')
+		.replace(/-+$/, '');
+}
+
+const customerSlug = `${id}-${slugify(title)}`;
 ---
-<a class="group" href=`/productsDB/${id}` aria-label=`Enlace para ver los toldos montados para ${title}`>
+<a class="group" href={`/proyectos/${customerSlug}`} aria-label={`Enlace para ver los toldos montados para ${title}`}>
 	<figure class="relative overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear scroll-effect">
 		<Image
 			class="w-full object-cover aspect-[1.82/1]"
@@ -19,7 +34,7 @@ const { id, title, description, image = "/img/example.jpg", linked = true } = As
 		>
 			<h5
 				class="text-[1.65rem] leading-9 tracking-wider font-bold uppercase opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500"
-				transition:name={ "title_" + id }
+				transition:name={"title_" + customerSlug}
 				transition:animate="slide"
 			>
 				{ title }

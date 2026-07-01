@@ -8,7 +8,7 @@ const { path, alt, images } = Astro.props;
 "py-4 grid grid-cols-1  gap-2 sm:gap-6 px-2 sm:px-0 w-full sm:max-w-6xl"
 ,{ 'sm:grid-cols-2': images.length > 1 }
 ]} >
-	{ images.map((image) => {
+	{ images.map((image, index) => {
 		return (
 			<Image
 				class="relative object-cover aspect-[1.82/1] overflow-hidden rounded-lg hover:-translate-y-0.5 sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear scroll-effect"
@@ -17,7 +17,7 @@ const { path, alt, images } = Astro.props;
 				width={800}
 				height={440}
 				transition:name={"image_" + image}
-				loading="lazy"
+				loading={index === 0 ? "eager" : "lazy"}
 			/>
 		)
 	}) }

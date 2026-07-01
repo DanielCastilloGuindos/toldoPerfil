@@ -15,13 +15,14 @@ const pageViews = analyticsData.filter(
     (a) =>
         a.type === "page_view" &&
         a.data &&
-        (a.data as any).path?.startsWith("/productsDB/"),
+        ((a.data as any).path?.startsWith("/productsDB/") || (a.data as any).path?.startsWith("/proyectos/")),
 );
 const viewCounts: Record<string, number> = {};
 
 pageViews.forEach((view) => {
     const path = (view.data as any).path;
-    const id = path.split("/").pop();
+    const pathId = path.split("/").pop();
+    const id = pathId?.split('-')[0];
     if (id && !isNaN(Number(id))) {
         viewCounts[id] = (viewCounts[id] || 0) + 1;
     }
@@ -355,7 +356,7 @@ const totalPrivate = customersData.filter(
                                                     </span>
                                                 </div>
                                                 <a
-                                                    href={`/productsDB/${customer.customer_id}`}
+                                                    href={`/proyectos/${customer.customer_id}`}
                                                     target="_blank"
                                                     class="p-2 text-white/20 hover:text-white transition-colors"
                                                 >

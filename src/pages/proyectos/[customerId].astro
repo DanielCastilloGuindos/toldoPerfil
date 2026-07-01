@@ -13,7 +13,8 @@ let customer = null;
 let dbError = false;
 
 try {
-	const id = Number(customerId);
+	// Extract the numeric ID from the beginning of the slug (e.g. "1-alain-afflelou" -> 1)
+	const id = Number(customerId?.split('-')[0]);
 	if (!isNaN(id)) {
 		const customerQuery = await db
 			.select()
