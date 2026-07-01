@@ -9,13 +9,15 @@ export const POST: APIRoute = async ({ request }) => {
         // Safe Header Access
         const getHeader = (key: string) => request.headers.get(key) || "";
 
-        // Skip analytics if in development (checked via local DEV=TRUE variable) or if the developer/admin block cookie is present
-        const isDev = import.meta.env.DEV === true || String(import.meta.env.DEV).toUpperCase() === "TRUE";
-        const isProd = !isDev;
-        const cookieHeader = getHeader("cookie");
-        const hasBlockCookie = cookieHeader.includes("disable_analytics=true") || cookieHeader.includes("admin");
+        // Check if analytics are disabled by environment variable (DISABLE_ANALYTICS)
+        // or by cookies (disable_analytics=true, or any admin cookie like admin_session)
+        const envVal = process.env.DISABLE_ANALYTICS || import.meta.env.DISABLE_ANALYTICS || process.env.disable_analytics || import.meta.env.disable_analytics;
+        const isDisabledByEnv = envVal === true || String(envVal).toUpperCase() === "TRUE";
 
-        if (!isProd || hasBlockCookie) {
+        const cookieHeader = getHeader("cookie");
+        const isDisabledByCookie = cookieHeader.includes("disable_analytics=true") || cookieHeader.includes("admin");
+
+        if (isDisabledByEnv || isDisabledByCookie) {
             return new Response(JSON.stringify({ success: true, ignored: true }), {
                 status: 200,
                 headers: { "Content-Type": "application/json" },
