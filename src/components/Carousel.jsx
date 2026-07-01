@@ -91,7 +91,7 @@ export const Carousel = ({ intervalTime = 8000 }) => {
 		<>
 
 			{/* Carousel items */}
-			<div className="h-fit">
+			<div className="relative w-full aspect-[4:3] sm:aspect-[16/9] min-h-[400px] sm:min-h-[600px] overflow-hidden bg-neutral-900">
 				{slides.map(({ title, description, image, content }, index) => {
 					let isActive = index === activeSlide;
 					return (
@@ -102,6 +102,7 @@ export const Carousel = ({ intervalTime = 8000 }) => {
 							image={image}
 							isActive={isActive}
 							content={content}
+							loading={index === 0 ? "eager" : "lazy"}
 						/>)
 				})}
 			</div>
