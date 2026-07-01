@@ -208,7 +208,7 @@ activityLog.reverse(); // Newest first
                 <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div>
             </div>
 
-            <div class="p-6 max-w-7xl mx-auto space-y-8">
+            <div class="p-6 max-w-[1600px] mx-auto space-y-8">
                 <!-- Header -->
                 <header class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-4">
                      <div class="flex items-center gap-4">
@@ -320,8 +320,9 @@ activityLog.reverse(); // Newest first
                             <canvas id="deviceChart"></canvas>
                         </div>
                     </div>
+                </div>
                           <!-- Bar Charts (Locations, Sources, Top Visited Projects & Top Visited Blogs) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- Top Locations -->
                      <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
                         <div class="flex justify-between items-center mb-6">
@@ -342,7 +343,7 @@ activityLog.reverse(); // Newest first
                                 return (
                                     <div>
                                         <div class="flex items-center justify-between mb-1">
-                                            <span class="text-sm font-medium text-gray-200 capitalize truncate max-w-[200px]" title={loc}>{loc}</span>
+                                            <span class="text-xs sm:text-sm font-medium text-gray-200 capitalize truncate flex-1 pr-2" title={loc}>{loc}</span>
                                             <span class="text-xs font-bold text-indigo-200">{count}</span>
                                         </div>
                                         <div class="h-2 bg-white/5 rounded-full overflow-hidden">
@@ -375,7 +376,7 @@ activityLog.reverse(); // Newest first
                                 return (
                                     <div>
                                         <div class="flex items-center justify-between mb-1">
-                                            <span class="text-sm font-medium text-gray-200 capitalize truncate max-w-[150px]" title={source}>{source}</span>
+                                            <span class="text-xs sm:text-sm font-medium text-gray-200 capitalize truncate flex-1 pr-2" title={source}>{source}</span>
                                             <span class="text-xs font-bold text-purple-200">{count}</span>
                                         </div>
                                         <div class="h-2 bg-white/5 rounded-full overflow-hidden">
@@ -408,7 +409,7 @@ activityLog.reverse(); // Newest first
                                 return (
                                     <div>
                                         <div class="flex items-center justify-between mb-1">
-                                            <span class="text-sm font-medium text-gray-200 truncate flex-1 mr-2" title={name}>{name}</span>
+                                            <span class="text-xs sm:text-sm font-medium text-gray-200 truncate flex-1 pr-2" title={name}>{name}</span>
                                             <span class="text-xs font-bold text-indigo-200">{count} vistas</span>
                                         </div>
                                         <div class="h-2 bg-white/5 rounded-full overflow-hidden">
@@ -441,7 +442,7 @@ activityLog.reverse(); // Newest first
                                 return (
                                     <div>
                                         <div class="flex items-center justify-between mb-1">
-                                            <span class="text-sm font-medium text-gray-200 truncate flex-1 mr-2" title={name}>{name}</span>
+                                            <span class="text-xs sm:text-sm font-medium text-gray-200 truncate flex-1 pr-2" title={name}>{name}</span>
                                             <span class="text-xs font-bold text-emerald-200">{count} vistas</span>
                                         </div>
                                         <div class="h-2 bg-white/5 rounded-full overflow-hidden">
@@ -453,7 +454,6 @@ activityLog.reverse(); // Newest first
                                 <div class="text-center text-white/30 text-sm py-8">Sin visitas registradas en blogs</div>
                             )}
                         </div>
-                    </div>
                     </div>
                 </div>
 
@@ -577,69 +577,92 @@ activityLog.reverse(); // Newest first
             <script src="https://cdn.jsdelivr.net/npm/chart.js" is:inline></script>
             <script define:vars={{ chartLabels, chartViews, chartClicks, donutDataArray, activityLog, allReferrers, allLocations, allVisitedProjects, allVisitedBlogs }}>
                 document.addEventListener('astro:page-load', () => {
-                // --- Traffic Chart ---
-                const ctx = document.getElementById('trafficChart');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: chartLabels,
-                        datasets: [
-                            {
-                                label: 'Visitas',
-                                data: chartViews,
-                                borderColor: '#818cf8',
-                                backgroundColor: 'rgba(129, 140, 248, 0.1)',
-                                borderWidth: 2,
-                                tension: 0.4,
-                                fill: true,
-                                pointRadius: 0,
-                                pointHitRadius: 10
-                            },
-                             {
-                                label: 'Interact.',
-                                data: chartClicks,
-                                borderColor: '#4ade80',
-                                backgroundColor: 'rgba(74, 222, 128, 0.1)',
-                                borderWidth: 2,
-                                tension: 0.4,
-                                pointRadius: 3
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { labels: { color: '#e0e7ff' } } },
-                        scales: {
-                            y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#a5b4fc' } },
-                            x: { grid: { display: false }, ticks: { color: '#a5b4fc', maxTicksLimit: 8 } }
+                    const runInit = () => {
+                        if (typeof Chart === 'undefined') {
+                            setTimeout(runInit, 50);
+                            return;
                         }
-                    }
-                });
 
-                // --- Event Distribution Doughnut Chart ---
-                const ctxDevice = document.getElementById('deviceChart');
-                new Chart(ctxDevice, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Vistas', 'Formularios', 'WhatsApp', 'FAQ'],
-                        datasets: [{ 
-                            data: donutDataArray, 
-                            backgroundColor: ['#6366f1', '#4ade80', '#a855f7', '#f59e0b'], 
-                            borderWidth: 0 
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { 
-                            legend: { 
-                                position: 'bottom', 
-                                labels: { color: '#e0e7ff', usePointStyle: true } 
-                            } 
-                        },
-                    }
-                });
+                        // --- Traffic Chart ---
+                        const ctx = document.getElementById('trafficChart');
+                        if (ctx) {
+                            try {
+                                const existingChart = Chart.getChart(ctx);
+                                if (existingChart) existingChart.destroy();
+                            } catch (e) {}
+
+                            new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: chartLabels,
+                                    datasets: [
+                                        {
+                                            label: 'Visitas',
+                                            data: chartViews,
+                                            borderColor: '#818cf8',
+                                            backgroundColor: 'rgba(129, 140, 248, 0.1)',
+                                            borderWidth: 2,
+                                            tension: 0.4,
+                                            fill: true,
+                                            pointRadius: 0,
+                                            pointHitRadius: 10
+                                        },
+                                         {
+                                            label: 'Interact.',
+                                            data: chartClicks,
+                                            borderColor: '#4ade80',
+                                            backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                                            borderWidth: 2,
+                                            tension: 0.4,
+                                            pointRadius: 3
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: { legend: { labels: { color: '#e0e7ff' } } },
+                                    scales: {
+                                        y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#a5b4fc' } },
+                                        x: { grid: { display: false }, ticks: { color: '#a5b4fc', maxTicksLimit: 8 } }
+                                    }
+                                }
+                            });
+                        }
+
+                        // --- Event Distribution Doughnut Chart ---
+                        const ctxDevice = document.getElementById('deviceChart');
+                        if (ctxDevice) {
+                            try {
+                                const existingDeviceChart = Chart.getChart(ctxDevice);
+                                if (existingDeviceChart) existingDeviceChart.destroy();
+                            } catch (e) {}
+
+                            new Chart(ctxDevice, {
+                                type: 'doughnut',
+                                data: {
+                                    labels: ['Vistas', 'Formularios', 'WhatsApp', 'FAQ'],
+                                    datasets: [{ 
+                                        data: donutDataArray, 
+                                        backgroundColor: ['#6366f1', '#4ade80', '#a855f7', '#f59e0b'], 
+                                        borderWidth: 0 
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: { 
+                                        legend: { 
+                                            position: 'bottom', 
+                                            labels: { color: '#e0e7ff', usePointStyle: true } 
+                                        } 
+                                    },
+                                }
+                            });
+                        }
+                    };
+
+                    runInit();
 
                 // --- Client-Side Table Filtering, Search, Pagination & Export ---
                 let currentPage = 1;
