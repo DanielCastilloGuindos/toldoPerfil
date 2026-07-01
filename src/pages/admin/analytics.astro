@@ -3,14 +3,13 @@ import Layout from "@/layouts/AdminLayout.astro";
 import LoginForm from "@/components/admin/LoginForm.astro";
 import { db } from "@/db/client";
 import { Analytics } from "@/db/schema";
-import { desc, gte, sql } from "drizzle-orm";
+import { desc, gte } from "drizzle-orm";
 
 const cookie = Astro.cookies.get("admin_session");
 const isAuthenticated = cookie?.value === "authenticated";
 
 // Range handling
 const range = Astro.url.searchParams.get("range") || "7d";
-const logType = Astro.url.searchParams.get("logType") || "interactions"; // 'all' | 'interactions' | 'views'
 
 const days = range === "30d" ? 30 : range === "90d" ? 90 : range === "365d" ? 365 : 7;
 const dateLimit = new Date();
@@ -24,6 +23,7 @@ const clickByDate: Record<string, number> = {};
 const referrers: Record<string, number> = {};
 const locations: Record<string, number> = {};
 const devices: Record<string, number> = { 'Desktop': 0, 'Mobile': 0 };
+const projectVisits: Record<string, number> = {};
 
 // Initialize Dates
 for (let i = 0; i < days; i++) {
@@ -37,20 +37,31 @@ for (let i = 0; i < days; i++) {
 let totalPageViews = 0;
 let totalContacts = 0;
 let totalWhatsApp = 0;
+let totalFAQClicks = 0;
 
 const activityLog: any[] = [];
+const uniqueIps = new Set<string>();
 
 allEvents.forEach(event => {
     const d = new Date(event.created_at);
     const dateStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
     const eventData = event.data as any;
 
-    // Common Data extraction
-    const city = eventData?.city && eventData?.city !== 'Unknown' ? eventData.city : null;
-    const country = eventData?.country && eventData?.country !== 'Unknown' ? eventData.country : null;
+    // Common Data extraction with URL decoding for Vercel headers (%20 -> spaces)
+    let city = eventData?.city && eventData?.city !== 'Unknown' ? eventData.city : null;
+    let country = eventData?.country && eventData?.country !== 'Unknown' ? eventData.country : null;
+    
+    if (city) {
+        try { city = decodeURIComponent(city); } catch(e) {}
+    }
+    if (country) {
+        try { country = decodeURIComponent(country); } catch(e) {}
+    }
     const locString = city ? `${city}, ${country}` : 'Desconocido';
     const dev = eventData?.device || 'Unknown';
     const ip = eventData?.ip || '-';
+    
+    if (ip && ip !== '-') uniqueIps.add(ip);
 
     // 1. Counters & Charts
     if (event.type === 'page_view') {
@@ -65,7 +76,7 @@ allEvents.forEach(event => {
                source = url.hostname.replace('www.', '');
                if (source.includes('google')) source = 'Google';
                else if (source.includes('facebook') || source.includes('instagram')) source = 'Social';
-               else if (source === window.location.hostname) source = 'Interno'; 
+               else if (source === Astro.url.hostname) source = 'Interno'; 
            } catch(e) { source = 'Externo' }
         }
         if(source !== 'Interno') referrers[source] = (referrers[source] || 0) + 1;
@@ -77,71 +88,109 @@ allEvents.forEach(event => {
         if (dev === 'Mobile' || dev === 'Desktop') devices[dev]++;
         else devices['Desktop']++;
 
-    } else if (event.type === 'contact_click' || event.type === 'whatsapp_click') {
+        // Project visits tracking with trailing slash cleaning
+        const path = eventData?.path || '';
+        const cleanPath = path.endsWith('/') ? path.slice(0, -1) : path;
+        
+        if (cleanPath.startsWith('/proyectos/') || cleanPath.startsWith('/productsDB/')) {
+            const slug = cleanPath.split('/').pop() || '';
+            const id = slug.split('-')[0];
+            const rawTitle = slug.split('-').slice(1).join(' ');
+            const titleName = rawTitle ? rawTitle.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : slug;
+            const displayName = id ? `${titleName} (#${id})` : titleName;
+            if (displayName) {
+                projectVisits[displayName] = (projectVisits[displayName] || 0) + 1;
+            }
+        } else if (cleanPath.startsWith('/products/')) {
+            const client = cleanPath.split('/').pop() || '';
+            const title = client.replace(/([A-Z])/g, ' $1').trim();
+            if (title) {
+                projectVisits[title] = (projectVisits[title] || 0) + 1;
+            }
+        }
+
+    } else if (event.type === 'contact_click' || event.type === 'whatsapp_click' || event.type === 'faq_click') {
         if (event.type === 'contact_click') {
              totalContacts++;
              if (clickByDate[dateStr] !== undefined) clickByDate[dateStr]++;
-        } else {
+        } else if (event.type === 'whatsapp_click') {
              totalWhatsApp++;
+        } else if (event.type === 'faq_click') {
+             totalFAQClicks++;
         }
     }
 
     // 2. Activity Log Logic
-    // Filter based on param
-    let includeInLog = false;
     let actionDescription = '';
     let typeLabel = '';
     let typeColor = '';
 
-    if (logType === 'all') includeInLog = true;
-    else if (logType === 'interactions') includeInLog = ['contact_click', 'whatsapp_click', 'faq_click'].includes(event.type);
-    else if (logType === 'views') includeInLog = event.type === 'page_view';
-
-    if (includeInLog) {
-        if(event.type === 'page_view') {
-            typeLabel = 'Vista';
-            typeColor = 'text-gray-400 bg-gray-500/10 border-gray-500/20';
-            actionDescription = eventData?.path || '/';
-        } else if (event.type === 'contact_click') {
-            typeLabel = 'Formulario';
-            typeColor = 'text-green-400 bg-green-500/10 border-green-500/20';
-            actionDescription = 'Inicio Formulario Contacto';
-        } else if (event.type === 'whatsapp_click') {
-            typeLabel = 'WhatsApp';
-            typeColor = 'text-green-400 bg-green-500/10 border-green-500/20';
-            actionDescription = 'Clic en botón WhatsApp';
-        } else if (event.type === 'faq_click') {
-            typeLabel = 'FAQ';
-            typeColor = 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-            actionDescription = `Leyó: "${eventData?.question || 'Pregunta'}"`;
-        }
-
-        activityLog.push({
-            date: d.toLocaleString(),
-            type: typeLabel,
-            typeColor,
-            action: actionDescription,
-            location: locString,
-            ip,
-            device: dev
-        });
+    if(event.type === 'page_view') {
+        typeLabel = 'Vista';
+        typeColor = 'text-gray-400 bg-gray-500/10 border-gray-500/20';
+        actionDescription = eventData?.path || '/';
+    } else if (event.type === 'contact_click') {
+        typeLabel = 'Formulario';
+        typeColor = 'text-green-400 bg-green-500/10 border-green-500/20';
+        actionDescription = 'Inicio Formulario Contacto';
+    } else if (event.type === 'whatsapp_click') {
+        typeLabel = 'WhatsApp';
+        typeColor = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+        actionDescription = 'Clic en botón WhatsApp';
+    } else if (event.type === 'faq_click') {
+        typeLabel = 'FAQ';
+        typeColor = 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+        actionDescription = `Leyó: "${eventData?.question || 'Pregunta'}"`;
     }
+
+    activityLog.push({
+        date: d.toLocaleString(),
+        type: typeLabel,
+        typeColor,
+        action: actionDescription,
+        location: locString,
+        ip,
+        device: dev
+    });
 });
 
 // Post-process
+const totalEventsCount = allEvents.length;
+const totalUniqueUsers = uniqueIps.size;
+const mobileCount = devices['Mobile'] || 0;
+const mobilePercentage = totalEventsCount > 0 ? Math.round((mobileCount / totalEventsCount) * 100) : 0;
+
 const chartLabels = Object.keys(viewsByDate).reverse();
 const chartViews = Object.values(viewsByDate).reverse();
 const chartClicks = Object.values(clickByDate).reverse();
 
-const topReferrers = Object.entries(referrers).sort(([, a], [, b]) => b - a).slice(0, 5);
-const topLocations = Object.entries(locations).sort(([, a], [, b]) => b - a).slice(0, 5);
-const deviceData = [devices['Desktop'], devices['Mobile']];
+const allReferrers = Object.entries(referrers).sort(([, a], [, b]) => b - a);
+const allLocations = Object.entries(locations).sort(([, a], [, b]) => b - a);
+const allVisitedProjects = Object.entries(projectVisits).sort(([, a], [, b]) => b - a);
+
+const topReferrers = allReferrers.slice(0, 5);
+const topLocations = allLocations.slice(0, 5);
+const topVisitedProjects = allVisitedProjects.slice(0, 5);
+
+const maxLocationViews = topLocations.length > 0 ? Math.max(...topLocations.map(([, count]) => count)) : 1;
+const maxReferrerViews = topReferrers.length > 0 ? Math.max(...topReferrers.map(([, count]) => count)) : 1;
+const maxProjectViews = topVisitedProjects.length > 0 ? Math.max(...topVisitedProjects.map(([, count]) => count)) : 1;
+
+const donutDataArray = [totalPageViews, totalContacts, totalWhatsApp, totalFAQClicks];
+
+const uniqueLocations = new Set<string>();
+activityLog.forEach(log => {
+    if (log.location && log.location !== 'Desconocido') {
+        uniqueLocations.add(log.location);
+    }
+});
+const availableLocations = Array.from(uniqueLocations).sort();
 
 activityLog.reverse(); // Newest first
 ---
 
-<Layout description="Analítica completa" title="Analítica Avanzada" canonical="https://toldoperfil.es">
-    <main class="font-sans min-h-screen">
+<Layout description="Analítica avanzada e historial de eventos" title="Analítica Avanzada" robots="noindex, nofollow">
+    <main class="font-sans min-h-screen text-white">
         {isAuthenticated ? (
             <div class="fixed inset-0 -z-10 bg-neutral-900">
                 <div class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"></div>
@@ -152,88 +201,147 @@ activityLog.reverse(); // Newest first
                 <!-- Header -->
                 <header class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-4">
                      <div class="flex items-center gap-4">
-                        <a href="/admin" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10">
+                        <a href="/admin" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10" aria-label="Volver al panel general">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                             </svg>
                         </a>
                         <div>
-                            <h1 class="text-xl font-bold text-white tracking-tight">Analítica Total</h1>
-                            <p class="text-xs text-indigo-200">Tráfico, Eventos y Ubicaciones</p>
+                            <h1 class="text-xl font-bold text-white tracking-tight">Métricas y Analíticas</h1>
+                            <p class="text-xs text-indigo-200">Monitoriza eventos y comportamiento de usuarios</p>
                         </div>
                     </div>
+                    <div class="flex items-center gap-3">
+                        <button id="exportCsvBtn" class="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-semibold text-white transition-all flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Exportar CSV
+                        </button>
+                        <a href="" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-xl text-sm font-semibold text-white transition-all flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18" />
+                            </svg>
+                            Actualizar
+                        </a>
+                    </div>
+                </header>
+
+                <!-- Time Filter Controls -->
+                <div class="flex justify-end">
                      <div class="flex bg-neutral-900/50 p-1 rounded-lg border border-white/10 overflow-x-auto max-w-full">
                         {['7d', '30d', '90d', '365d'].map(r => (
-                            <a href={`?range=${r}&logType=${logType}`} class={`whitespace-nowrap px-4 py-1.5 rounded-md text-sm font-medium transition-all ${range === r ? 'bg-indigo-600 text-white shadow-lg' : 'text-indigo-200 hover:text-white'}`}>
+                            <a href={`?range=${r}`} class={`whitespace-nowrap px-4 py-1.5 rounded-md text-sm font-medium transition-all ${range === r ? 'bg-indigo-600 text-white shadow-lg' : 'text-indigo-200 hover:text-white'}`}>
                                 {r === '365d' ? '1 Año' : r.toUpperCase()}
                             </a>
                         ))}
                     </div>
-                </header>
+                </div>
 
-                <!-- KPI Cards -->
-                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-indigo-900/30 border border-indigo-500/20 rounded-xl p-5">
-                        <span class="text-indigo-200 text-xs uppercase font-bold tracking-wider">Visitas</span>
-                        <div class="flex items-baseline gap-2 mt-1">
-                            <span class="text-4xl font-bold text-white">{totalPageViews}</span>
+                <!-- Upgraded Stats Grid -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 border-0 shadow-lg shadow-blue-500/20 text-white rounded-2xl p-6 hover:scale-105 transition-transform flex items-center justify-between cursor-pointer group">
+                        <div>
+                            <span class="text-blue-100 text-xs uppercase font-bold tracking-wider opacity-90">Total Eventos</span>
+                            <p class="text-3xl font-bold mt-2 text-white">{totalEventsCount}</p>
+                            <span class="text-xs text-blue-200/80 block mt-2">Interacciones totales</span>
+                        </div>
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
                         </div>
                     </div>
-                    <div class="bg-green-900/30 border border-green-500/20 rounded-xl p-5">
-                        <span class="text-green-200 text-xs uppercase font-bold tracking-wider">Leads Generados</span>
-                        <div class="flex items-baseline gap-2 mt-1">
-                            <span class="text-4xl font-bold text-white">{totalContacts + totalWhatsApp}</span>
+
+                    <div class="bg-gradient-to-br from-purple-500 to-pink-600 border-0 shadow-lg shadow-purple-500/20 text-white rounded-2xl p-6 hover:scale-105 transition-transform flex items-center justify-between cursor-pointer group">
+                        <div>
+                            <span class="text-purple-100 text-xs uppercase font-bold tracking-wider opacity-90">Usuarios Únicos</span>
+                            <p class="text-3xl font-bold mt-2 text-white">{totalUniqueUsers}</p>
+                            <span class="text-xs text-purple-200/80 block mt-2">Direcciones IP únicas</span>
                         </div>
-                        <div class="mt-2 text-[10px] text-green-300/50 flex gap-2">
-                            <span>Forms: {totalContacts}</span>•<span>WhatsApp: {totalWhatsApp}</span>
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
                         </div>
                     </div>
-                    <div class="bg-purple-900/30 border border-purple-500/20 rounded-xl p-5">
-                         <span class="text-purple-200 text-xs uppercase font-bold tracking-wider">Conversión</span>
-                        <div class="flex items-baseline gap-2 mt-1">
-                            <span class="text-4xl font-bold text-white">
-                                {totalPageViews > 0 ? (( (totalContacts + totalWhatsApp) / totalPageViews ) * 100).toFixed(1) : 0}%
-                            </span>
+
+                    <div class="bg-gradient-to-br from-emerald-500 to-teal-600 border-0 shadow-lg shadow-emerald-500/20 text-white rounded-2xl p-6 hover:scale-105 transition-transform flex items-center justify-between cursor-pointer group">
+                        <div>
+                            <span class="text-emerald-100 text-xs uppercase font-bold tracking-wider opacity-90">Tráfico Móvil</span>
+                            <p class="text-3xl font-bold mt-2 text-white">{mobilePercentage}%</p>
+                            <span class="text-xs text-emerald-200/80 block mt-2">{mobileCount} de {totalEventsCount} clics</span>
+                        </div>
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-amber-500 to-orange-600 border-0 shadow-lg shadow-amber-500/20 text-white rounded-2xl p-6 hover:scale-105 transition-transform flex items-center justify-between cursor-pointer group">
+                        <div>
+                            <span class="text-amber-100 text-xs uppercase font-bold tracking-wider opacity-90">Tráfico Escritorio</span>
+                            <p class="text-3xl font-bold mt-2 text-white">{100 - mobilePercentage}%</p>
+                            <span class="text-xs text-amber-200/80 block mt-2">{totalEventsCount - mobileCount} de {totalEventsCount} clics</span>
+                        </div>
+                        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
                         </div>
                     </div>
                 </div>
 
-                <!-- Charts -->
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    <div class="lg:col-span-3 bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+                <!-- Charts Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Main Line Chart -->
+                    <div class="lg:col-span-2 bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
                         <h2 class="text-lg font-bold text-white mb-6">Tendencia de Tráfico</h2>
                         <div class="relative h-64 w-full">
                             <canvas id="trafficChart"></canvas>
                         </div>
                     </div>
-                    <div class="lg:col-span-1 bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col">
-                         <h2 class="text-lg font-bold text-white mb-6">Dispositivos</h2>
-                         <div class="relative h-48 w-full flex-1">
+                    <!-- Doughnut Chart: Distribution of events -->
+                    <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col">
+                         <h2 class="text-lg font-bold text-white mb-6">Distribución de Eventos</h2>
+                         <div class="relative h-56 w-full flex-1">
                             <canvas id="deviceChart"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <!-- Locations & Sources -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Bar Charts (Locations, Sources & Top Visited Projects) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Top Locations -->
                      <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-                        <h2 class="text-lg font-bold text-white mb-6">Top Ubicaciones</h2>
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Top Ubicaciones
+                            </h2>
+                            <button id="openLocationsBtn" class="text-xs font-semibold text-indigo-300 hover:text-white transition-colors" aria-label="Ver todas las ubicaciones">
+                                Ver más →
+                            </button>
+                        </div>
                          <div class="space-y-4">
-                            {topLocations.length > 0 ? topLocations.map(([loc, count], index) => (
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-xs font-mono text-indigo-400 bg-indigo-500/10 w-5 h-5 flex items-center justify-center rounded">{index + 1}</span>
-                                        <span class="text-sm text-white font-medium capitalize truncate max-w-[200px]" title={loc}>{loc}</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                            <div class="h-full bg-indigo-500 rounded-full" style={`width: ${(count / totalPageViews) * 100}%`}></div>
+                            {topLocations.length > 0 ? topLocations.map(([loc, count], index) => {
+                                const colors = ['bg-indigo-500', 'bg-purple-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500'];
+                                return (
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-200 capitalize truncate max-w-[200px]" title={loc}>{loc}</span>
+                                            <span class="text-xs font-bold text-indigo-200">{count}</span>
                                         </div>
-                                        <span class="text-xs text-indigo-200 w-6 text-right">{count}</span>
+                                        <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div class={`h-full ${colors[index] || 'bg-indigo-500'} rounded-full transition-all duration-500`} style={`width: ${(count / maxLocationViews) * 100}%`}></div>
+                                        </div>
                                     </div>
-                                </div>
-                            )) : (
+                                );
+                            }) : (
                                 <div class="text-center text-white/30 text-sm py-8">Sin datos de ubicación</div>
                             )}
                         </div>
@@ -241,41 +349,130 @@ activityLog.reverse(); // Newest first
 
                     <!-- Top Referrers -->
                      <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-                        <h2 class="text-lg font-bold text-white mb-6">Top Fuentes</h2>
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                                </svg>
+                                Fuentes de Tráfico
+                            </h2>
+                            <button id="openReferrersBtn" class="text-xs font-semibold text-purple-300 hover:text-white transition-colors" aria-label="Ver todas las fuentes de tráfico">
+                                Ver más →
+                            </button>
+                        </div>
                          <div class="space-y-4">
-                            {topReferrers.length > 0 ? topReferrers.map(([source, count], index) => (
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-xs font-mono text-purple-400 bg-purple-500/10 w-5 h-5 flex items-center justify-center rounded">{index + 1}</span>
-                                        <span class="text-sm text-white font-medium capitalize truncate max-w-[120px]" title={source}>{source}</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                            <div class="h-full bg-purple-500 rounded-full" style={`width: ${(count / totalPageViews) * 100}%`}></div>
+                            {topReferrers.length > 0 ? topReferrers.map(([source, count], index) => {
+                                const colors = ['bg-purple-500', 'bg-blue-500', 'bg-teal-500', 'bg-pink-500', 'bg-orange-500'];
+                                return (
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-200 capitalize truncate max-w-[150px]" title={source}>{source}</span>
+                                            <span class="text-xs font-bold text-purple-200">{count}</span>
                                         </div>
-                                        <span class="text-xs text-indigo-200 w-6 text-right">{count}</span>
+                                        <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div class={`h-full ${colors[index] || 'bg-purple-500'} rounded-full transition-all duration-500`} style={`width: ${(count / maxReferrerViews) * 100}%`}></div>
+                                        </div>
                                     </div>
-                                </div>
-                            )) : (
+                                );
+                            }) : (
                                 <div class="text-center text-white/30 text-sm py-8">Sin datos de fuentes</div>
+                            )}
+                        </div>
+                    </div>
+
+                    <!-- Top Visited Projects / Awnings -->
+                    <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Toldos más Visualizados
+                            </h2>
+                            <button id="openProjectsBtn" class="text-xs font-semibold text-emerald-300 hover:text-white transition-colors" aria-label="Ver todos los toldos visualizados">
+                                Ver más →
+                            </button>
+                        </div>
+                        <div class="space-y-4">
+                            {topVisitedProjects.length > 0 ? topVisitedProjects.map(([name, count], index) => {
+                                const colors = ['bg-emerald-500', 'bg-indigo-500', 'bg-amber-500', 'bg-rose-500', 'bg-sky-500'];
+                                return (
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-sm font-medium text-gray-200 truncate flex-1 mr-2" title={name}>{name}</span>
+                                            <span class="text-xs font-bold text-emerald-200">{count} vistas</span>
+                                        </div>
+                                        <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+                                            <div class={`h-full ${colors[index] || 'bg-emerald-500'} rounded-full transition-all duration-500`} style={`width: ${(count / maxProjectViews) * 100}%`}></div>
+                                        </div>
+                                    </div>
+                                );
+                            }) : (
+                                <div class="text-center text-white/30 text-sm py-8">Sin visitas registradas en toldos</div>
                             )}
                         </div>
                     </div>
                 </div>
 
-                <!-- Detailed Activity Log -->
-                 <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden flex flex-col">
-                    <div class="p-6 border-b border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <div>
-                            <h2 class="text-lg font-bold text-white">Registro de Actividad</h2>
-                            <p class="text-xs text-indigo-200">Historial completo de eventos</p>
+                <!-- Advanced Filtering and Logs Table -->
+                <div class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden flex flex-col">
+                    <div class="p-6 border-b border-white/5 space-y-4">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h2 class="text-lg font-bold text-white">Registro de Actividad</h2>
+                                <p class="text-xs text-indigo-200">Historial completo de eventos</p>
+                            </div>
+                            <span id="resultsCountSpan" class="text-sm text-indigo-200">
+                                Mostrando <span class="font-semibold text-white">{activityLog.length}</span> eventos encontrados
+                            </span>
                         </div>
-                        <div class="flex bg-neutral-900 p-1 rounded border border-white/10">
-                            <a href={`?range=${range}&logType=interactions`} class={`px-3 py-1 text-xs font-medium rounded transition-colors ${logType === 'interactions' ? 'bg-white/10 text-white' : 'text-indigo-300 hover:text-white'}`}>Interacciones</a>
-                            <a href={`?range=${range}&logType=views`} class={`px-3 py-1 text-xs font-medium rounded transition-colors ${logType === 'views' ? 'bg-white/10 text-white' : 'text-indigo-300 hover:text-white'}`}>Vistas</a>
-                            <a href={`?range=${range}&logType=all`} class={`px-3 py-1 text-xs font-medium rounded transition-colors ${logType === 'all' ? 'bg-white/10 text-white' : 'text-indigo-300 hover:text-white'}`}>Todo</a>
+
+                        <!-- Filters panel -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                            <div>
+                                <label for="searchFilter" class="block text-xs font-semibold text-indigo-200 mb-1.5">Buscar</label>
+                                <input
+                                    id="searchFilter"
+                                    type="text"
+                                    placeholder="Buscar por detalle, IP, tipo..."
+                                    class="w-full px-3 py-2 bg-neutral-950/60 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm text-white placeholder-white/30 transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label for="locationFilter" class="block text-xs font-semibold text-indigo-200 mb-1.5">Ubicación</label>
+                                <select
+                                    id="locationFilter"
+                                    class="w-full px-3 py-2 bg-neutral-950/60 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm text-white transition-all [&>option]:bg-neutral-900"
+                                >
+                                    <option value="">Todas las ubicaciones</option>
+                                    {availableLocations.map(loc => (
+                                        <option value={loc}>{loc}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label for="deviceFilter" class="block text-xs font-semibold text-indigo-200 mb-1.5">Dispositivo</label>
+                                <select
+                                    id="deviceFilter"
+                                    class="w-full px-3 py-2 bg-neutral-950/60 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm text-white transition-all [&>option]:bg-neutral-900"
+                                >
+                                    <option value="">Todos los dispositivos</option>
+                                    <option value="desktop">💻 Escritorio (Desktop)</option>
+                                    <option value="mobile">📱 Móvil (Mobile)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Event Type Toggle Buttons -->
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <button class="type-filter-btn px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-white transition-colors" data-type="">Todos</button>
+                            <button class="type-filter-btn px-3 py-1 rounded-full text-xs font-medium text-indigo-300 hover:text-white transition-colors" data-type="Vista">Vistas</button>
+                            <button class="type-filter-btn px-3 py-1 rounded-full text-xs font-medium text-indigo-300 hover:text-white transition-colors" data-type="Formulario">Formularios</button>
+                            <button class="type-filter-btn px-3 py-1 rounded-full text-xs font-medium text-indigo-300 hover:text-white transition-colors" data-type="WhatsApp">WhatsApp</button>
+                            <button class="type-filter-btn px-3 py-1 rounded-full text-xs font-medium text-indigo-300 hover:text-white transition-colors" data-type="FAQ">FAQ</button>
                         </div>
                     </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm text-indigo-100">
                             <thead class="bg-white/5 text-xs text-indigo-300 font-bold uppercase tracking-wider">
@@ -286,35 +483,58 @@ activityLog.reverse(); // Newest first
                                     <th class="px-6 py-3">Origen</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-white/5">
-                                {activityLog.length > 0 ? activityLog.slice(0, 20).map(log => (
-                                    <tr class="hover:bg-white/5 group transition-colors">
-                                        <td class="px-6 py-3 whitespace-nowrap text-xs text-white/50">{log.date}</td>
-                                        <td class="px-6 py-3">
-                                            <span class={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${log.typeColor}`}>
-                                                {log.type}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-3 text-xs w-full max-w-xs truncate" title={log.action}>
-                                            <span class="text-white font-medium">{log.action}</span>
-                                        </td>
-                                        <td class="px-6 py-3 text-xs text-nowrap">
-                                            <div class="text-white/80">{log.location}</div>
-                                            <div class="text-[10px] text-white/30">{log.device} • {log.ip}</div>
-                                        </td>
-                                    </tr>
-                                )) : (
-                                    <tr><td colspan="4" class="px-6 py-8 text-center text-white/30">No hay eventos para este filtro</td></tr>
-                                )}
+                            <tbody id="logsTableBody" class="divide-y divide-white/5">
+                                <!-- Rendered client-side via JavaScript -->
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Client-Side Pagination Controls -->
+                    <div class="px-6 py-4 border-t border-white/5 flex items-center justify-between bg-white/5">
+                        <span id="paginationInfoSpan" class="text-xs text-indigo-200">
+                            Página 1 de 1
+                        </span>
+                        <div class="flex gap-2">
+                            <button id="prevPageBtn" class="px-3 py-1.5 text-xs font-semibold rounded bg-white/5 text-indigo-200 hover:text-white border border-white/10 disabled:opacity-30 disabled:pointer-events-none transition-all">
+                                Anterior
+                            </button>
+                            <button id="nextPageBtn" class="px-3 py-1.5 text-xs font-semibold rounded bg-white/5 text-indigo-200 hover:text-white border border-white/10 disabled:opacity-30 disabled:pointer-events-none transition-all">
+                                Siguiente
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Drawer Sidebar (Slide-out) -->
+                <div id="analyticsDrawer" class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-neutral-950 border-l border-white/10 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+                    <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                        <h3 id="drawerTitle" class="text-lg font-bold text-white">Detalle</h3>
+                        <button id="closeDrawerBtn" class="p-1 hover:bg-white/10 rounded-lg transition-colors text-white/50 hover:text-white" aria-label="Cerrar panel lateral">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Drawer Search -->
+                    <div class="p-4 border-b border-white/5 bg-neutral-900/50">
+                        <input 
+                            id="drawerSearchInput" 
+                            type="text" 
+                            placeholder="Buscar..." 
+                            class="w-full px-3 py-2 bg-neutral-950/60 border border-white/10 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm text-white placeholder-white/30 transition-all"
+                        />
+                    </div>
+                    <!-- Drawer Content List -->
+                    <div id="drawerContentList" class="flex-1 overflow-y-auto p-6 space-y-4">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+                <!-- Backdrop -->
+                <div id="drawerBackdrop" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300"></div>
             </div>
 
-             <script src="https://cdn.jsdelivr.net/npm/chart.js" is:inline></script>
-            <script define:vars={{ chartLabels, chartViews, chartClicks, deviceData }}>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js" is:inline></script>
+            <script define:vars={{ chartLabels, chartViews, chartClicks, donutDataArray, activityLog, allReferrers, allLocations, allVisitedProjects }}>
                 // --- Traffic Chart ---
                 const ctx = document.getElementById('trafficChart');
                 new Chart(ctx, {
@@ -355,20 +575,289 @@ activityLog.reverse(); // Newest first
                     }
                 });
 
-                // --- Device Chart ---
+                // --- Event Distribution Doughnut Chart ---
                 const ctxDevice = document.getElementById('deviceChart');
                 new Chart(ctxDevice, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Desktop', 'Móvil'],
-                        datasets: [{ data: deviceData, backgroundColor: ['#6366f1', '#a855f7'], borderWidth: 0 }]
+                        labels: ['Vistas', 'Formularios', 'WhatsApp', 'FAQ'],
+                        datasets: [{ 
+                            data: donutDataArray, 
+                            backgroundColor: ['#6366f1', '#4ade80', '#a855f7', '#f59e0b'], 
+                            borderWidth: 0 
+                        }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: { color: '#e0e7ff', usePointStyle: true } } },
+                        plugins: { 
+                            legend: { 
+                                position: 'bottom', 
+                                labels: { color: '#e0e7ff', usePointStyle: true } 
+                            } 
+                        },
                     }
                 });
+
+                // --- Client-Side Table Filtering, Search, Pagination & Export ---
+                let currentPage = 1;
+                const itemsPerPage = 15;
+                let filteredLogs = [...activityLog];
+                let activeTypeFilter = "";
+
+                function renderTable() {
+                    const tbody = document.getElementById("logsTableBody");
+                    if (!tbody) return;
+
+                    const startIdx = (currentPage - 1) * itemsPerPage;
+                    const endIdx = startIdx + itemsPerPage;
+                    const pageItems = filteredLogs.slice(startIdx, endIdx);
+
+                    // Update count text
+                    const countSpan = document.getElementById("resultsCountSpan");
+                    if (countSpan) {
+                        countSpan.innerHTML = `Mostrando <span class="font-semibold text-white">${filteredLogs.length}</span> eventos encontrados`;
+                    }
+
+                    if (pageItems.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-white/30">No hay eventos para este filtro</td></tr>`;
+                        updatePaginationControls();
+                        return;
+                    }
+
+                    tbody.innerHTML = pageItems.map(log => {
+                        return `
+                            <tr class="hover:bg-white/5 group transition-colors">
+                                <td class="px-6 py-3 whitespace-nowrap text-xs text-white/50">${log.date}</td>
+                                <td class="px-6 py-3">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${log.typeColor}">
+                                        ${log.type}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-3 text-xs w-full max-w-xs truncate" title="${log.action}">
+                                    <span class="text-white font-medium">${log.action}</span>
+                                </td>
+                                <td class="px-6 py-3 text-xs text-nowrap">
+                                    <div class="text-white/80">${log.location}</div>
+                                    <div class="text-[10px] text-white/30">${log.device} • ${log.ip}</div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    updatePaginationControls();
+                }
+
+                function updatePaginationControls() {
+                    const prevBtn = document.getElementById("prevPageBtn");
+                    const nextBtn = document.getElementById("nextPageBtn");
+                    const infoSpan = document.getElementById("paginationInfoSpan");
+                    
+                    const totalPages = Math.ceil(filteredLogs.length / itemsPerPage) || 1;
+
+                    if (prevBtn) prevBtn.disabled = currentPage === 1;
+                    if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+                    
+                    if (infoSpan) {
+                        infoSpan.textContent = `Página ${currentPage} de ${totalPages}`;
+                    }
+                }
+
+                function applyFilters() {
+                    const searchInput = document.getElementById("searchFilter");
+                    const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
+                    
+                    const locationSelect = document.getElementById("locationFilter");
+                    const locationVal = locationSelect ? locationSelect.value : "";
+                    
+                    const deviceSelect = document.getElementById("deviceFilter");
+                    const deviceVal = deviceSelect ? deviceSelect.value : "";
+
+                    filteredLogs = activityLog.filter(log => {
+                        const matchesSearch = !searchVal || 
+                            log.action.toLowerCase().includes(searchVal) ||
+                            log.location.toLowerCase().includes(searchVal) ||
+                            log.ip.toLowerCase().includes(searchVal) ||
+                            log.type.toLowerCase().includes(searchVal);
+                            
+                        const matchesLocation = !locationVal || log.location === locationVal;
+                        const matchesDevice = !deviceVal || log.device.toLowerCase() === deviceVal.toLowerCase();
+                        const matchesType = !activeTypeFilter || log.type === activeTypeFilter;
+                        
+                        return matchesSearch && matchesLocation && matchesDevice && matchesType;
+                    });
+
+                    currentPage = 1;
+                    renderTable();
+                }
+
+                function exportToCSV() {
+                    const headers = ["Fecha", "Evento", "Detalle", "Ubicacion", "Dispositivo", "IP"];
+                    const rows = filteredLogs.map(log => [
+                        log.date,
+                        log.type,
+                        log.action.replace(/"/g, '""'),
+                        log.location,
+                        log.device,
+                        log.ip
+                    ]);
+                    
+                    const blob = new Blob([ [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n") ], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const link = document.createElement("a");
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", `toldo_perfil_analytics_${new Date().toISOString().slice(0,10)}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+
+                // --- Drawer Sidebar Handling ---
+                let currentDrawerData = [];
+                let currentDrawerType = "";
+
+                function openDrawer(title, data, type) {
+                    const titleEl = document.getElementById("drawerTitle");
+                    const searchInput = document.getElementById("drawerSearchInput");
+                    const drawer = document.getElementById("analyticsDrawer");
+                    const backdrop = document.getElementById("drawerBackdrop");
+
+                    if (titleEl) titleEl.textContent = title;
+                    currentDrawerData = data;
+                    currentDrawerType = type;
+                    if (searchInput) searchInput.value = "";
+                    
+                    renderDrawerList(data);
+                    
+                    if (drawer) drawer.classList.remove("translate-x-full");
+                    if (backdrop) backdrop.classList.remove("opacity-0", "pointer-events-none");
+                }
+
+                function closeDrawer() {
+                    const drawer = document.getElementById("analyticsDrawer");
+                    const backdrop = document.getElementById("drawerBackdrop");
+                    
+                    if (drawer) drawer.classList.add("translate-x-full");
+                    if (backdrop) backdrop.classList.add("opacity-0", "pointer-events-none");
+                }
+
+                function renderDrawerList(items) {
+                    const listContainer = document.getElementById("drawerContentList");
+                    if (!listContainer) return;
+                    
+                    if (items.length === 0) {
+                        listContainer.innerHTML = `<div class="text-center text-white/30 text-sm py-8">No hay datos para mostrar</div>`;
+                        return;
+                    }
+                    
+                    const maxVal = Math.max(...items.map(([, count]) => count)) || 1;
+                    
+                    const colors = {
+                        'location': 'bg-indigo-500',
+                        'referrer': 'bg-purple-500',
+                        'project': 'bg-emerald-500'
+                    };
+                    const colorClass = colors[currentDrawerType] || 'bg-indigo-500';
+                    
+                    listContainer.innerHTML = items.map(([name, count]) => {
+                        return `
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm font-medium text-gray-200 capitalize truncate max-w-[250px]" title="${name}">${name}</span>
+                                    <span class="text-xs font-bold text-white">${count}</span>
+                                </div>
+                                <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full ${colorClass} rounded-full transition-all duration-500" style="width: ${(count / maxVal) * 100}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                function handleDrawerSearch() {
+                    const query = document.getElementById("drawerSearchInput").value.toLowerCase();
+                    const filtered = currentDrawerData.filter(([name]) => name.toLowerCase().includes(query));
+                    renderDrawerList(filtered);
+                }
+
+                // Initial event binding
+                const searchInput = document.getElementById("searchFilter");
+                if (searchInput) searchInput.addEventListener("input", applyFilters);
+
+                const locationSelect = document.getElementById("locationFilter");
+                if (locationSelect) locationSelect.addEventListener("change", applyFilters);
+                
+                const deviceSelect = document.getElementById("deviceFilter");
+                if (deviceSelect) deviceSelect.addEventListener("change", applyFilters);
+
+                const typeButtons = document.querySelectorAll(".type-filter-btn");
+                typeButtons.forEach(btn => {
+                    btn.addEventListener("click", () => {
+                        typeButtons.forEach(b => b.classList.remove("bg-white/10", "text-white"));
+                        typeButtons.forEach(b => b.classList.add("text-indigo-300", "hover:text-white"));
+                        
+                        btn.classList.remove("text-indigo-300", "hover:text-white");
+                        btn.classList.add("bg-white/10", "text-white");
+                        
+                        activeTypeFilter = btn.getAttribute("data-type") || "";
+                        applyFilters();
+                    });
+                });
+
+                const prevBtn = document.getElementById("prevPageBtn");
+                if (prevBtn) prevBtn.addEventListener("click", () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderTable();
+                    }
+                });
+
+                const nextBtn = document.getElementById("nextPageBtn");
+                if (nextBtn) nextBtn.addEventListener("click", () => {
+                    const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderTable();
+                    }
+                });
+
+                const exportBtn = document.getElementById("exportCsvBtn");
+                if (exportBtn) exportBtn.addEventListener("click", exportToCSV);
+
+                // --- Drawer Bindings ---
+                const openLocationsBtn = document.getElementById("openLocationsBtn");
+                if (openLocationsBtn) {
+                    openLocationsBtn.addEventListener("click", () => {
+                        openDrawer("Ubicaciones de Tráfico", allLocations, "location");
+                    });
+                }
+
+                const openReferrersBtn = document.getElementById("openReferrersBtn");
+                if (openReferrersBtn) {
+                    openReferrersBtn.addEventListener("click", () => {
+                        openDrawer("Fuentes de Tráfico", allReferrers, "referrer");
+                    });
+                }
+
+                const openProjectsBtn = document.getElementById("openProjectsBtn");
+                if (openProjectsBtn) {
+                    openProjectsBtn.addEventListener("click", () => {
+                        openDrawer("Toldos más Visualizados", allVisitedProjects, "project");
+                    });
+                }
+
+                const closeDrawerBtn = document.getElementById("closeDrawerBtn");
+                if (closeDrawerBtn) closeDrawerBtn.addEventListener("click", closeDrawer);
+
+                const drawerBackdrop = document.getElementById("drawerBackdrop");
+                if (drawerBackdrop) drawerBackdrop.addEventListener("click", closeDrawer);
+
+                const drawerSearchInput = document.getElementById("drawerSearchInput");
+                if (drawerSearchInput) drawerSearchInput.addEventListener("input", handleDrawerSearch);
+
+                // Perform first render
+                renderTable();
             </script>
         ) : (
             <LoginForm />

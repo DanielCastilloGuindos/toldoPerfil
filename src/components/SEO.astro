@@ -18,9 +18,10 @@ interface Props {
 	preload?: Array<Preload>
 	canonical?: string
 	image?: string
+	robots?: string
 }
 
-const { title, description, preload, canonical, image = "/img/og.jpeg" } = Astro.props as Props
+const { title, description, preload, canonical, image = "/img/og.jpeg", robots = "index, follow" } = Astro.props as Props
 
 const canonicalURL = canonical
 	? new URL(canonical, Astro.site)
@@ -66,8 +67,8 @@ const canonicalURL = canonical
 <meta name="ai:page-type" content="website" />
 <meta name="ai:token-count" content="1000" />
 
-<meta name="robots" content="index, follow" />
-<meta name="googlebot" content="index, follow" />
+<meta name="robots" content={robots} />
+<meta name="googlebot" content={robots} />
 
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="icon" type="image/jpeg" href="/favicon.jpeg" sizes="120x120" />

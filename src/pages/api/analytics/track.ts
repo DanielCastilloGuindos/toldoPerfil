@@ -6,6 +6,22 @@ import type { APIRoute } from "astro";
 
 export const POST: APIRoute = async ({ request }) => {
     try {
+        // Safe Header Access
+        const getHeader = (key: string) => request.headers.get(key) || "";
+
+        // Skip analytics if in development (checked via local DEV=TRUE variable) or if the developer/admin block cookie is present
+        const isDev = import.meta.env.DEV === true || String(import.meta.env.DEV).toUpperCase() === "TRUE";
+        const isProd = !isDev;
+        const cookieHeader = getHeader("cookie");
+        const hasBlockCookie = cookieHeader.includes("disable_analytics=true") || cookieHeader.includes("admin");
+
+        if (!isProd || hasBlockCookie) {
+            return new Response(JSON.stringify({ success: true, ignored: true }), {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
         let body;
         try {
             body = await request.json();
@@ -19,12 +35,11 @@ export const POST: APIRoute = async ({ request }) => {
             return new Response("Missing type", { status: 400 });
         }
 
-        // Safe Header Access
-        const getHeader = (key: string) => request.headers.get(key) || "Unknown";
-
-        const ip = getHeader("x-forwarded-for") || getHeader("x-real-ip");
-        const city = getHeader("x-vercel-ip-city");
-        const country = getHeader("x-vercel-ip-country");
+        const ip = getHeader("x-forwarded-for") || getHeader("x-real-ip") || "Unknown";
+        const rawCity = getHeader("x-vercel-ip-city");
+        const city = rawCity ? decodeURIComponent(rawCity) : "Unknown";
+        const rawCountry = getHeader("x-vercel-ip-country");
+        const country = rawCountry ? decodeURIComponent(rawCountry) : "Unknown";
         const userAgent = getHeader("user-agent");
 
         // Basic device detection (server-side)
