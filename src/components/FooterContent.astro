@@ -2,6 +2,8 @@
 import Typography from "@/components/Typography.astro";
 import SocialButtons from "@/components/SocialButtons.astro";
 import Lock from "@/icons/lock.astro";
+
+const isDev = import.meta.env.DEV;
 ---
 
 <div class="w-full flex flex-col justify-center items-center">
@@ -15,7 +17,7 @@ import Lock from "@/icons/lock.astro";
 			<ul class="text-gray-500 dark:text-gray-400 leading-3">
 				<li class="mb-4">
 					<a
-						href="#brandsAndFranchises"
+						href="/#brandsAndFranchises"
 						class="hover:underline"
 						aria-label='Enlace a la sección "Productos"'
 						>Productos</a
@@ -23,7 +25,7 @@ import Lock from "@/icons/lock.astro";
 				</li>
 				<li class="mb-4">
 					<a
-						href="#services"
+						href="/#communities"
 						class="hover:underline"
 						aria-label='Enlace a la sección "Servicios"'
 						>Servicios</a
@@ -31,14 +33,14 @@ import Lock from "@/icons/lock.astro";
 				</li>
 				<li class="mb-4">
 					<a
-						href="#about-us"
+						href="/#about-us"
 						class="hover:underline"
 						aria-label='Enlace a la sección "Nosotros"'>Nosotros</a
 					>
 				</li>
 				<li class="mb-4">
 					<a
-						href="#get-a-quote"
+						href="/#contact-us"
 						class="hover:underline"
 						aria-label='Enlace a la sección "Tu prespuesto"'
 						>Tu prespuesto</a
@@ -71,65 +73,69 @@ import Lock from "@/icons/lock.astro";
 				</li>
 			</ul>
 		</div>
-		<div class="w-60">
-			<h2
-				class="mb-6 text-lg font-semibold text-gray-900 uppercase dark:text-white"
-			>
-				Desarrolladores & IA
-			</h2>
-			<ul class="text-gray-500 dark:text-gray-400 leading-3">
-				<li class="mb-4">
-					<a
-						href="/llms.txt"
-						class="hover:underline"
-						aria-label="Enlace a llms.txt"
-						>llms.txt (AI Index)</a
-					>
-				</li>
-				<li class="mb-4">
-					<a
-						href="/AGENTS.md"
-						class="hover:underline"
-						aria-label="Instrucciones para agentes de IA"
-						>AGENTS.md (View Source)</a
-					>
-				</li>
-				<li class="mb-4">
-					<a
-						href="/skill.md"
-						class="hover:underline"
-						aria-label="Habilidades del agente de IA"
-						>skill.md (View Raw)</a
-					>
-				</li>
-				<li class="mb-4">
-					<button
-						class="hover:underline copy-code text-left"
-						data-copy-ai
-						id="copy-for-ai-btn"
-						aria-label="Copiar datos para IA"
-						>Copy for AI</button
-					>
-				</li>
-			</ul>
-		</div>
+		{isDev && (
+			<div class="w-60">
+				<h2
+					class="mb-6 text-lg font-semibold text-gray-900 uppercase dark:text-white"
+				>
+					Desarrolladores & IA
+				</h2>
+				<ul class="text-gray-500 dark:text-gray-400 leading-3">
+					<li class="mb-4">
+						<a
+							href="/llms.txt"
+							class="hover:underline"
+							aria-label="Enlace a llms.txt"
+							>llms.txt (AI Index)</a
+						>
+					</li>
+					<li class="mb-4">
+						<a
+							href="/AGENTS.md"
+							class="hover:underline"
+							aria-label="Instrucciones para agentes de IA"
+							>AGENTS.md (View Source)</a
+						>
+					</li>
+					<li class="mb-4">
+						<a
+							href="/skill.md"
+							class="hover:underline"
+							aria-label="Habilidades del agente de IA"
+							>skill.md (View Raw)</a
+						>
+					</li>
+					<li class="mb-4">
+						<button
+							class="hover:underline copy-code text-left"
+							data-copy-ai
+							id="copy-for-ai-btn"
+							aria-label="Copiar datos para IA"
+							>Copy for AI</button
+						>
+					</li>
+				</ul>
+			</div>
+		)}
 	</div>
 
-	<script>
-		const btn = document.getElementById("copy-for-ai-btn");
-		if (btn) {
-			btn.addEventListener("click", () => {
-				const text = `# Toldo Perfil\\n\\nInstalación de toldos y pérgolas en Velilla de San Antonio, Loeches y Madrid.\\nWeb: https://toldoperfil.es`;
-				navigator.clipboard.writeText(text).then(() => {
-					const originalText = btn.textContent;
-					btn.textContent = "¡Copiado! / Copied!";
-					setTimeout(() => {
-						btn.textContent = originalText;
-					}, 2000);
+	{isDev && (
+		<script>
+			const btn = document.getElementById("copy-for-ai-btn");
+			if (btn) {
+				btn.addEventListener("click", () => {
+					const text = `# Toldo Perfil\\n\\nInstalación de toldos y pérgolas en Velilla de San Antonio, Loeches y Madrid.\\nWeb: https://toldoperfil.es`;
+					navigator.clipboard.writeText(text).then(() => {
+						const originalText = btn.textContent;
+						btn.textContent = "¡Copiado! / Copied!";
+						setTimeout(() => {
+							btn.textContent = originalText;
+						}, 2000);
+					});
 				});
-			});
-		}
-	</script>
+			}
+		</script>
+	)}
 
 	<hr
 		class="my-12 h-[2px] w-full border-t-0 bg-transparent bg-gradient-to-r from-transparent via-white to-transparent bg-center block"
