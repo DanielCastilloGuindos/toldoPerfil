@@ -107,6 +107,13 @@ allEvents.forEach(event => {
             if (title) {
                 projectVisits[title] = (projectVisits[title] || 0) + 1;
             }
+        } else if (cleanPath.startsWith('/blog/')) {
+            const blogSlug = cleanPath.split('/').pop() || '';
+            const rawTitle = blogSlug.split('-').join(' ');
+            const title = 'Blog: ' + (rawTitle ? rawTitle.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : blogSlug);
+            if (title) {
+                projectVisits[title] = (projectVisits[title] || 0) + 1;
+            }
         }
 
     } else if (event.type === 'contact_click' || event.type === 'whatsapp_click' || event.type === 'faq_click') {

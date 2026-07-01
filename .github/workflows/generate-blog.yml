@@ -1,0 +1,43 @@
+name: Autogenerar Blog Semanal
+
+on:
+  schedule:
+    # Se ejecuta todos los días a las 08:00 UTC
+    - cron: '0 8 * * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente desde la pestaña Actions de GitHub
+
+jobs:
+  generate-content:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Código Source
+        uses: actions/checkout@v3
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Instalar Dependencias
+        run: |
+          npm ci
+
+      - name: Ejecutar Generador de Contenido
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: node scripts/generate-blog.js
+
+      - name: Commitear y Subir Artículo al Repositorio
+        run: |
+          git config --global user.name "Toldo Perfil Blog Bot"
+          git config --global user.email "bot@toldoperfil.es"
+          git add src/blog-posts/*.md
+          
+          # Solo hacer commit si hay cambios o nuevos archivos
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "chore: publicar nuevo artículo SEO semanal [skip ci]"
+            git push
+          else
+            echo "No se ha generado ningún archivo nuevo."
+          fi
