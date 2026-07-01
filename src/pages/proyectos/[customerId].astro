@@ -1,4 +1,6 @@
 ---
+export const prerender = true;
+
 import { db } from "@/db/client";
 import { Customers } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -6,6 +8,34 @@ import ClientLayout from "@/layouts/ClientLayout.astro";
 
 import Header from "@/sections/clients/Header.astro";
 import InfoGalery from "@/sections/clients/Info&Galery.astro";
+
+export async function getStaticPaths() {
+	const slugify = (text: string) => {
+		return text
+			.toString()
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.replace(/\s+/g, '-')
+			.replace(/[^\w\-]+/g, '')
+			.replace(/\-\-+/g, '-')
+			.replace(/^-+/, '')
+			.replace(/-+$/, '');
+	}
+
+	try {
+		const allCustomers = await db.select().from(Customers);
+		return allCustomers.map((c) => {
+			const slug = `${c.customer_id}-${slugify(c.title)}`;
+			return {
+				params: { customerId: slug },
+			};
+		});
+	} catch (e) {
+		console.error("Error generating static paths for proyectos:", e);
+		return [];
+	}
+}
 
 const { customerId } = Astro.params;
 

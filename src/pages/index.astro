@@ -17,6 +17,13 @@ import Form from "@/sections/Form.astro";
 	canonical="https://toldoperfil.es"
 	image="/img/og-seo.png"
 	isVisibleNav={true}
+	preload={[
+		{
+			as: "image",
+			href: "/img/carousel/protrait01.webp",
+			type: "image/webp",
+		},
+	]}
 >
 	<Hero />
 	<main class="font-sans">
