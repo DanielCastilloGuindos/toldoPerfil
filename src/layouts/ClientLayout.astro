@@ -32,6 +32,14 @@ const { title, description, preload, image, canonical = 'https://toldoperfil.es'
 	</head>
 	<body transition:name="body" >
 		<slot />
+
+		<!-- AI Agents AEO Bridge -->
+		<div class="hidden" aria-hidden="true">
+			<a href="/llms.txt">llms.txt (AI Index)</a>
+			<a href="/AGENTS.md">AGENTS.md (View Source)</a>
+			<a href="/skill.md">skill.md (View Raw)</a>
+			<button class="copy-code" data-copy-ai id="copy-for-ai-btn">Copy for AI</button>
+		</div>
 	</body>
 </html>
 <style is:global>
