@@ -38,6 +38,16 @@
       "runtimeArgs": ["-r", "dotenv/config"],
       "envFile": "${workspaceFolder}/.env",
       "outputCapture": "std"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run News Blog Cron (generate-news-blog)",
+      "program": "${workspaceFolder}/scripts/generate-news-blog.js",
+      "cwd": "${workspaceFolder}",
+      "runtimeArgs": ["-r", "dotenv/config"],
+      "envFile": "${workspaceFolder}/.env",
+      "outputCapture": "std"
     }
   ]
 }

@@ -234,3 +234,169 @@ export async function generateBlogPost(publishDate?: Date) {
         publishedAt: finalPublishDate
     };
 }
+
+/**
+ * Generates a blog post based on a news article about JCDesign or ToldoPerfil
+ */
+export async function generateNewsBlogPost(newsData: { title: string, link: string, pubDate: Date }) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        throw new Error('GEMINI_API_KEY is not defined in environment variables.');
+    }
+
+    const settings = await getOrInitializeSettings();
+
+    console.log(`Generando artículo de noticias utilizando ${settings.modelName} (temp: ${settings.temperature})...`);
+    console.log(`Noticia base: "${newsData.title}" (${newsData.pubDate.toLocaleDateString('es-ES')})`);
+
+    const userPrompt = `Eres un redactor experto en SEO, comunicación y relaciones públicas para "Toldo Perfil", una marca comercial líder en toldos, pérgolas y cerramientos a medida en Madrid, perteneciente a la empresa "JCDesign Rótulos S.L." (ubicada en Velilla de San Antonio).
+    
+Escribe un artículo de blog corporativo y periodístico detallado basado en la siguiente noticia:
+Noticia: "${newsData.title}"
+Fecha de publicación original: ${newsData.pubDate.toLocaleDateString('es-ES')}
+Enlace de referencia de la noticia: ${newsData.link}
+
+El artículo debe cumplir las siguientes pautas:
+1. Comentar la noticia de forma profesional y con gancho comercial, explicando cómo se relaciona con la trayectoria, productos o el ecosistema de JCDesign Rótulos y Toldo Perfil.
+2. Destacar nuestro compromiso con la calidad, la innovación en la protección solar, y la gran capacidad técnica heredada de JCDesign en la Comunidad de Madrid.
+3. Mencionar que somos una marca de toldos consolidada en Velilla de San Antonio.
+4. Al final del artículo, incluir de forma natural e integrada un párrafo donde se enlace a la noticia original de referencia. Por ejemplo: "Puedes leer la información oficial en la noticia publicada el ${newsData.pubDate.toLocaleDateString('es-ES')} aquí: [Referencia original](${newsData.link})".
+5. Cerrar con una llamada a la acción atractiva para solicitar presupuesto gratuito para toldos o cerramientos.
+
+REQUISITO DE FORMATO CRÍTICO:
+Debes devolver estrictamente el texto con un bloque Frontmatter en formato YAML al inicio, delimitado por "---", y el contenido del post en formato Markdown estándar justo después. No añadas bloques envolventes de código tipo \`\`\`markdown al principio o final.
+
+Esquema de la salida:
+---
+title: "Título atractivo relacionado con la noticia (incluyendo algún elemento local o comercial de Madrid)"
+description: "Meta descripción corta de menos de 150 caracteres para SEO."
+---
+[Breve introducción conectando la noticia con el lector...]
+
+## [Subtítulo 1 (H2)]
+[Explicación de la noticia y su contexto con nuestra marca...]
+
+## [Subtítulo 2 (H2)]
+[Por qué elegir a Toldo Perfil / JCDesign y los beneficios de nuestros productos...]
+
+## Referencia y Presupuesto (H2)
+[Mención al enlace original de la noticia: [Noticia original](${newsData.link})]
+[Llamada a la acción clara para pedir presupuesto gratuito...]`;
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ 
+        model: settings.modelName,
+        generationConfig: {
+            temperature: parseFloat(settings.temperature) || 0.7
+        }
+    });
+
+    const result = await model.generateContent(userPrompt);
+    const text = result.response.text().trim();
+
+    // Clean backticks
+    let cleanText = text;
+    if (cleanText.startsWith('```markdown')) {
+        cleanText = cleanText.substring(11, cleanText.length - 3).trim();
+    } else if (cleanText.startsWith('```')) {
+        cleanText = cleanText.substring(3, cleanText.length - 3).trim();
+    }
+
+    // Parse YAML Frontmatter
+    let title = '';
+    let description = '';
+    let contentBody = cleanText;
+
+    const frontmatterMatch = cleanText.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+    if (frontmatterMatch) {
+        const yaml = frontmatterMatch[1];
+        contentBody = frontmatterMatch[2].trim();
+
+        const yamlLines = yaml.split('\n');
+        for (const line of yamlLines) {
+            const parts = line.split(':');
+            if (parts.length >= 2) {
+                const key = parts[0].trim().toLowerCase();
+                let val = parts.slice(1).join(':').trim();
+                if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+                    val = val.substring(1, val.length - 1);
+                }
+                if (key === 'title') {
+                    title = val;
+                } else if (key === 'description') {
+                    description = val;
+                }
+            }
+        }
+    }
+
+    if (!title) {
+        const titleMatch = cleanText.match(/title:\s*"(.*)"/i);
+        title = titleMatch ? titleMatch[1] : `noticia-${Date.now()}`;
+    }
+    if (!description) {
+        description = title;
+    }
+
+    const slug = title
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // remove accents
+        .replace(/[^a-z0-9]+/g, '-')     // replace spaces with hyphens
+        .replace(/(^-|-$)+/g, '');       // remove trailing/leading hyphens
+
+    // Pick a random stock photo
+    const randomStockUrl = STOCK_IMAGES[Math.floor(Math.random() * STOCK_IMAGES.length)];
+
+    let finalImageUrl = '';
+    const imgDir = path.join(process.cwd(), 'public/img/blog');
+    if (!fs.existsSync(imgDir)) {
+        fs.mkdirSync(imgDir, { recursive: true });
+    }
+
+    const localImagePath = path.join(imgDir, `${slug}.webp`);
+    const dbImagePath = `/img/blog/${slug}.webp`;
+
+    try {
+        console.log(`Descargando imagen real de stock: ${randomStockUrl}...`);
+        const imgRes = await fetch(randomStockUrl);
+        if (!imgRes.ok) {
+            throw new Error(`Fallo al descargar imagen: ${imgRes.statusText}`);
+        }
+        const arrayBuffer = await imgRes.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        console.log(`Procesando a WebP optimizado con Sharp...`);
+        await sharp(buffer)
+            .resize(1024, 768, {
+                fit: 'cover',
+                position: 'center'
+            })
+            .webp({ quality: 80 })
+            .toFile(localImagePath);
+
+        finalImageUrl = dbImagePath;
+        console.log(`Imagen WebP guardada en: ${localImagePath}`);
+    } catch (err) {
+        console.error('Error al descargar u optimizar la imagen:', err);
+    }
+
+    const publishDate = newsData.pubDate;
+
+    await db.insert(Blogs).values({
+        slug,
+        title,
+        description,
+        image: finalImageUrl || null,
+        content: contentBody,
+        isVisible: true,
+        publishedAt: publishDate
+    });
+
+    return {
+        slug,
+        title,
+        publishedAt: publishDate
+    };
+}
+
