@@ -1,6 +1,6 @@
 <div class="relative w-full aspect-[4:3] sm:aspect-[16/9] min-h-[400px] sm:min-h-[600px] overflow-hidden bg-neutral-900" id="carousel-container">
     <!-- Slide 1 -->
-    <figure class="carousel-slide absolute inset-0 w-full h-full opacity-100 transition-opacity duration-[600ms] ease-in-out bg-neutral-900" data-index="0">
+    <figure class="carousel-slide absolute inset-0 w-full h-full opacity-100 active transition-opacity duration-[600ms] ease-in-out bg-neutral-900" data-index="0">
         <img class="w-full h-full object-cover aspect-[4:3] sm:aspect-[16/9] min-h-[400px] sm:min-h-[600px]" src="/img/carousel/protrait01.webp" alt="Imagen de Toldos en Velilla de San Antonio y Madrid" loading="eager" />
         <figcaption class="absolute inset-0 w-full h-full flex flex-col sm:gap-4 justify-center items-center bg-gray-900/50 text-center sm:text-start sm:px-16">
             <div class="w-full h-full flex flex-col justify-center items-center sm:items-start gap-4 px-4">
@@ -11,9 +11,11 @@
                 <p class="text-[14px] sm:text-xl font-light text-center tracking-wider text-white">
                     Toldos y pérgolas en Velilla de San Antonio, Loeches y todo Madrid.
                 </p>
-                <a href="#contact-us" aria-label="Solicitar presupuesto gratuito para instalación de toldos" class="py-3 px-5 bg-indigo-50 font-bold duration-200 ease-linear hover:-translate-y-0.5 secondary-button z-10">
-                    Presupuesto Gratuito
-                </a>
+                <div class="carousel-btn-wrapper">
+                    <a href="#contact-us" aria-label="Solicitar presupuesto gratuito para instalación de toldos" class="py-3 px-5 bg-indigo-50 font-bold duration-200 ease-linear hover:-translate-y-0.5 secondary-button z-10">
+                        Presupuesto Gratuito
+                    </a>
+                </div>
             </div>
         </figcaption>
     </figure>
@@ -85,16 +87,16 @@
         
         let currentIndex = 0;
         let intervalId: any = null;
-        const intervalTime = 8000;
+        const intervalTime = 5000;
 
         function showSlide(index: number) {
             slides.forEach((slide, idx) => {
                 if (idx === index) {
                     slide.classList.remove("opacity-0");
-                    slide.classList.add("opacity-100");
+                    slide.classList.add("opacity-100", "active");
                     slide.setAttribute("aria-hidden", "false");
                 } else {
-                    slide.classList.remove("opacity-100");
+                    slide.classList.remove("opacity-100", "active");
                     slide.classList.add("opacity-0");
                     slide.setAttribute("aria-hidden", "true");
                 }
@@ -143,3 +145,35 @@
     // Initialize on page load and View Transitions load
     document.addEventListener("astro:page-load", initCarousel);
 </script>
+
+<style>
+    /* Estado inicial no activo para los elementos de texto en la diapositiva */
+    .carousel-slide h1,
+    .carousel-slide h2,
+    .carousel-slide p,
+    .carousel-slide .carousel-btn-wrapper {
+        opacity: 0;
+        transform: translateY(-30px);
+        transition: opacity 800ms cubic-bezier(0.16, 1, 0.3, 1), transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Diapositiva activa: Animación de arriba a abajo en cascada */
+    .carousel-slide.active h1,
+    .carousel-slide.active h2 {
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: 350ms;
+    }
+
+    .carousel-slide.active p {
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: 550ms;
+    }
+
+    .carousel-slide.active .carousel-btn-wrapper {
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: 750ms;
+    }
+</style>
