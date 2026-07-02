@@ -137,6 +137,56 @@ const {
 		animation-range: entry 10% cover 30%;
 		animation-fill-mode: both;
 	}
+
+	html::view-transition-group(*) {
+		position: absolute;
+		top: 0;
+		left: 0;
+
+		animation-duration: .5s;
+		animation-fill-mode: both;
+	}
+
+	/* Desactivar la transición de página por defecto del root para evitar saltos de scroll */
+	::view-transition-old(root),
+	::view-transition-new(root) {
+		animation: none !important;
+		mix-blend-mode: normal !important;
+	}
+
+	/* Animación Hover de Workspace Items (Áreas de trabajo / Product Cards) */
+	@media (min-width: 640px) {
+		.workspace-title,
+		.workspace-subtitle {
+			opacity: 0;
+			transform: translateY(-20px);
+			transition-property: transform, opacity;
+			transition-duration: 400ms;
+			transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+		}
+
+		/* Estado NO Hover (Hover out / Reversa):
+		   El subtítulo desaparece rápido (sin delay), y el título después (delay de 150ms) */
+		.group .workspace-subtitle {
+			transition-delay: 0ms;
+		}
+		.group .workspace-title {
+			transition-delay: 150ms;
+		}
+
+		/* Estado Hover (Entrada):
+		   El título aparece rápido (delay de 100ms), y el subtítulo después (delay de 250ms) */
+		.group:hover .workspace-title {
+			opacity: 1;
+			transform: translateY(0);
+			transition-delay: 100ms;
+		}
+		.group:hover .workspace-subtitle {
+			opacity: 1;
+			transform: translateY(0);
+			transition-delay: 250ms;
+		}
+	}
 </style>
 
 <script>

@@ -1,7 +1,7 @@
 ---
 import { Image } from "astro:assets";
 
-const { path, alt, images } = Astro.props; 
+const { path, alt, images, transitionImageName } = Astro.props; 
 ---
 
 <aside class:list={[
@@ -16,7 +16,7 @@ const { path, alt, images } = Astro.props;
 				src={ path + image }
 				width={800}
 				height={440}
-				transition:name={"image_" + image}
+				transition:name={index === 0 && transitionImageName ? transitionImageName : "image_" + image}
 				loading={index === 0 ? "eager" : "lazy"}
 			/>
 		)

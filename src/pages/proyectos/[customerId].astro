@@ -83,9 +83,9 @@ try {
 				<>
 					<Header
 						title={customer.title}
-						transitionName={"title_" + customer.id}
+						transitionName={"title_" + customer.title.replaceAll(' ', '_')}
 					/>
-					<InfoGalery data={customer} path="" />
+					<InfoGalery data={customer} path="" transitionImageName={"image_" + customer.title.replaceAll(' ', '_')} />
 				</>
 			) : (
 				<section class="flex flex-col items-center justify-center min-h-[50vh] px-4 text-center">
