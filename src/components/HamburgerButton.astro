@@ -11,16 +11,26 @@
 
 <script>
 	import { $, $$ } from "@/consts/dom-selector";
-	const hamburgerButton = $('#HamburgerButton');
-	const menu = $('#menu');
 
-	// document.addEventListener("astro:page-load", () => {
-		hamburgerButton.addEventListener('click', () => {
-			hamburgerButton.classList.toggle('open');
-			menu.classList.toggle('open');
+	const initMenuToggle = () => {
+		const hamburgerButton = $('#HamburgerButton');
+		const menu = $('#menu');
 
-			const hamburgerButtonClick = new CustomEvent('hamburgerButtonClick');
-			hamburgerButton.dispatchEvent(hamburgerButtonClick);
-		});
-		// });
+		if (hamburgerButton && menu) {
+			// Remove any existing event listener to prevent duplicate binding (especially if elements persist)
+			const clickHandler = () => {
+				hamburgerButton.classList.toggle('open');
+				menu.classList.toggle('open');
+
+				const hamburgerButtonClick = new CustomEvent('hamburgerButtonClick');
+				hamburgerButton.dispatchEvent(hamburgerButtonClick);
+			};
+			
+			// We can clone and replace, or just toggle class directly.
+			// Since we want to ensure only one listener is active on these elements (since Header persists):
+			hamburgerButton.onclick = clickHandler;
+		}
+	};
+
+	document.addEventListener("astro:page-load", initMenuToggle);
 </script>

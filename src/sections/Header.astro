@@ -53,7 +53,7 @@ const { isVisibleNav } = Astro.props
 						href={href}
 						aria-label=`Enlace a la sección "${name}"`
 						class:list={[
-							"py-3 px-5 opacity-0 sm:opacity-100 [transition-property: opacity] sm:[transition-property: translate] duration-1000 sm:duration-200 ease-linear group-[.open]:opacity-100 delay-1000 sm:delay-0  sm:hover:-translate-y-0.5",
+							"py-3 px-5 sm:opacity-100 transition-all duration-300 sm:hover:-translate-y-0.5 nav-link",
 							{ button: buttonStyles },
 							{ "pointer-events-none": disabled },
 							{ "current-page": active },
@@ -80,32 +80,67 @@ html {
 }
 </style>
 
+<style>
+	/* Estado inicial oculto en móvil con desplazamiento vertical */
+	@media (max-width: 639px) {
+		#menu nav a {
+			opacity: 0;
+			transform: translateY(20px);
+			transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+		}
+
+		/* Aparición escalonada cuando el menú móvil se abre */
+		#menu.open nav a {
+			opacity: 1;
+			transform: translateY(0);
+		}
+
+		/* Delays escalonados para cada una de las opciones */
+		#menu.open nav a:nth-child(1) { transition-delay: 100ms; }
+		#menu.open nav a:nth-child(2) { transition-delay: 175ms; }
+		#menu.open nav a:nth-child(3) { transition-delay: 250ms; }
+		#menu.open nav a:nth-child(4) { transition-delay: 325ms; }
+		#menu.open nav a:nth-child(5) { transition-delay: 400ms; }
+		#menu.open nav a:nth-child(6) { transition-delay: 475ms; }
+	}
+</style>
+
 <script>
 	import { $, $$ } from "@/consts/dom-selector";
-	const menu = $('#menu');
-	const hamburgerButton = $('#HamburgerButton');
-	
-	document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
-		anchor.addEventListener("click", function (e) {
-			e.preventDefault();
-			
-			menu?.classList.remove('open');
-			hamburgerButton?.classList.remove('open');
-			
-			const targetId = this.getAttribute("href");
-			
-			if ( $(targetId) ) {
-				const targetOffset = $(targetId).offsetTop;
-				const targetHeight = $(targetId).offsetHeight;
-				// Header height offset (approx 80px-100px)
-				const headerOffset = 100; 
-				const elementPosition = targetOffset - headerOffset;
 
-				window.scrollTo({
-					top: elementPosition,
-					behavior: "smooth",
-				});
-			}
+	const initHeaderBehavior = () => {
+		const menu = $('#menu');
+		const hamburgerButton = $('#HamburgerButton');
+		
+		document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+			// Remove existing listeners by replacing the element or just redefining it (it's safe to add since we target new anchor elements, but if they persist we need care. Here, anchors are inside the navigation of Header which has transition:persist. So we must be careful not to double-add event listeners if they persist!)
+			// A clean way to avoid double-adding is to clone the anchor or check a custom data attribute:
+			if (anchor.getAttribute('data-has-scroll-listener')) return;
+			anchor.setAttribute('data-has-scroll-listener', 'true');
+
+			anchor.addEventListener("click", function (e) {
+				e.preventDefault();
+				
+				menu?.classList.remove('open');
+				hamburgerButton?.classList.remove('open');
+				
+				const targetId = this.getAttribute("href");
+				
+				if (targetId && $(targetId)) {
+					const targetElement = $(targetId);
+					const targetOffset = targetElement.offsetTop;
+					// Header height offset (approx 80px-100px)
+					const headerOffset = 100; 
+					const elementPosition = targetOffset - headerOffset;
+
+					window.scrollTo({
+						top: elementPosition,
+						behavior: "smooth",
+					});
+				}
+			});
 		});
-	});
+	};
+
+	document.addEventListener("astro:page-load", initHeaderBehavior);
 </script>
