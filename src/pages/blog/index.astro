@@ -8,7 +8,7 @@ const isDev = import.meta.env.DEV === true || String(import.meta.env.DEV).toUppe
 const cookie = Astro.cookies.get("admin_session");
 const isAuthenticated = cookie?.value === "authenticated";
 
-if (!isDev && !isAuthenticated) {
+if (!isDev) {
     return Astro.redirect("/");
 }
 
