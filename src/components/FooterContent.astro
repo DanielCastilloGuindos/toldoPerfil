@@ -134,7 +134,7 @@ const blogEnabled = await isBlogEnabled();
 				</li>
 			</ul>
 		</div>
-		<div class:list={["w-60", { "hidden": !isDev }]}>
+		<div class:list={["w-60", { "hidden": !blogEnabled }]}>
 			<h2
 				class="mb-6 text-lg font-semibold text-gray-900 uppercase dark:text-white"
 			>

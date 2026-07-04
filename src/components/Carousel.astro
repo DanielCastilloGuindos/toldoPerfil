@@ -11,7 +11,7 @@
                 <p class="text-[14px] sm:text-xl font-light text-center tracking-wider text-white">
                     Toldos y pérgolas en Velilla de San Antonio, Loeches y todo Madrid.
                 </p>
-                <div class="carousel-btn-wrapper">
+                <div class="carousel-btn-wrapper relative z-10 pointer-events-auto">
                     <a href="#contact-us" aria-label="Solicitar presupuesto gratuito para instalación de toldos" class="py-3 px-5 bg-indigo-50 font-bold duration-200 ease-linear hover:-translate-y-0.5 secondary-button z-10">
                         Presupuesto Gratuito
                     </a>
@@ -65,12 +65,12 @@
         </figcaption>
     </figure>
 
-    <!-- Navigation Arrows -->
-    <div class="absolute top-0 left-0 w-full h-full grid grid-flow-col">
-        <button id="arrowLeft" aria-label="Flecha izquierda" class="cursor-[url(/img/carousel/arrow-left.png),_pointer] text-transparent outline-none">
+    <!-- Navigation Arrows: pointer-events-none en el contenedor, re-activado solo en los botones -->
+    <div class="absolute top-0 left-0 w-full h-full grid grid-flow-col pointer-events-none">
+        <button id="arrowLeft" aria-label="Flecha izquierda" class="pointer-events-auto cursor-[url(/img/carousel/arrow-left.png),_pointer] text-transparent outline-none">
             arrowLeft
         </button>
-        <button id="arrowRigth" aria-label="Flecha derecha" class="cursor-[url(/img/carousel/arrow-right.png),_pointer] text-transparent outline-none">
+        <button id="arrowRigth" aria-label="Flecha derecha" class="pointer-events-auto cursor-[url(/img/carousel/arrow-right.png),_pointer] text-transparent outline-none">
             arrowRigth
         </button>
     </div>
