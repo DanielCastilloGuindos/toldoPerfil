@@ -2,9 +2,11 @@
 import Typography from "@/components/Typography.astro";
 import SocialButtons from "@/components/SocialButtons.astro";
 import Lock from "@/icons/lock.astro";
+import { isBlogEnabled } from "@/utils/settings";
 
-const isDev = import.meta.env.DEV === true || String(import.meta.env.DEV).toUpperCase() === "TRUE" || (typeof process !== "undefined" && process.env?.DEV?.toUpperCase() === "TRUE");
+const blogEnabled = await isBlogEnabled();
 ---
+
 
 <div class="w-full flex flex-col justify-center items-center">
 	<div class="w-full px-20 grid sm:grid-cols-3 md:grid-cols-5 gap-y-7">
@@ -115,7 +117,7 @@ const isDev = import.meta.env.DEV === true || String(import.meta.env.DEV).toUppe
 				</li>
 			</ul>
 		</div>
-		<div class:list={["w-60", { "hidden": !isDev }]}>
+		<div class:list={["w-60", { "hidden": !blogEnabled }]}>
 			<h2
 				class="mb-6 text-lg font-semibold text-gray-900 uppercase dark:text-white"
 			>

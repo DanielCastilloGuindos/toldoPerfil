@@ -1,0 +1,189 @@
+---
+import Layout from "@/layouts/AdminLayout.astro";
+import LoginForm from "@/components/admin/LoginForm.astro";
+import { db } from "@/db/client";
+import { Settings } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { getSiteSettings } from "@/utils/settings";
+
+const cookie = Astro.cookies.get("admin_session");
+const isAuthenticated = cookie?.value === "authenticated";
+
+let settings;
+let successMessage = "";
+let errorMessage = "";
+
+if (isAuthenticated) {
+    settings = await getSiteSettings();
+}
+
+// Handle POST to toggle blog setting
+if (isAuthenticated && Astro.request.method === "POST") {
+    try {
+        const data = await Astro.request.formData();
+        const blogEnabled = data.get("blogEnabled") === "true";
+
+        await db
+            .update(Settings)
+            .set({
+                blogEnabled,
+                updated_at: new Date(),
+            })
+            .where(eq(Settings.id, 1));
+
+        settings = await getSiteSettings();
+        successMessage = blogEnabled
+            ? "Blog activado correctamente. Ya es visible para los usuarios."
+            : "Blog desactivado. Las páginas del blog redirigen al inicio.";
+    } catch (e) {
+        console.error("Error saving blog settings:", e);
+        errorMessage = `Error al guardar la configuración: ${e}`;
+    }
+}
+---
+
+<Layout
+    description="Configuración del Blog - Toldo Perfil"
+    title="Configuración del Blog - Toldo Perfil"
+    canonical="https://toldoperfil.es"
+>
+    <main class="font-sans min-h-screen">
+        {isAuthenticated ? (
+            <div class="fixed inset-0 -z-10 bg-neutral-900">
+                <div class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"></div>
+                <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div>
+            </div>
+
+            <div class="text-white p-6 max-w-3xl mx-auto space-y-8">
+                <!-- Header -->
+                <header class="relative z-20 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-4">
+                    <div class="flex items-center gap-4">
+                        <a href="/admin/blogs" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10" aria-label="Volver a la gestión del blog">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                        </a>
+                        <div>
+                            <h1 class="text-xl font-bold tracking-tight">Configuración del Blog</h1>
+                            <p class="text-xs text-indigo-200">Activa o desactiva la sección de blog públicamente</p>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Success / Error messages -->
+                {successMessage && (
+                    <div id="blog-settings-success" class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 rounded-2xl px-5 py-4 text-sm flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {successMessage}
+                    </div>
+                )}
+                {errorMessage && (
+                    <div class="bg-red-500/10 border border-red-500/30 text-red-300 rounded-2xl px-5 py-4 text-sm flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {errorMessage}
+                    </div>
+                )}
+
+                <!-- Settings Card -->
+                <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8 space-y-8">
+
+                    <!-- Blog Enable / Disable -->
+                    <div>
+                        <h2 class="text-base font-semibold text-white mb-1">Visibilidad del Blog</h2>
+                        <p class="text-xs text-indigo-300 mb-6">
+                            Cuando está <strong class="text-white">desactivado</strong>, las rutas <code class="bg-white/10 px-1 py-0.5 rounded text-indigo-200">/blog</code> y <code class="bg-white/10 px-1 py-0.5 rounded text-indigo-200">/blog/[slug]</code> redirigen al inicio, y el enlace del blog desaparece del footer.
+                        </p>
+
+                        <!-- Current status indicator -->
+                        <div class="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-5 py-4 mb-6">
+                            <div class="flex items-center gap-3">
+                                <div class:list={[
+                                    "w-3 h-3 rounded-full",
+                                    settings?.blogEnabled ? "bg-emerald-400 shadow-[0_0_8px_2px_rgba(52,211,153,0.5)]" : "bg-red-400 shadow-[0_0_8px_2px_rgba(248,113,113,0.5)]"
+                                ]}></div>
+                                <span class="text-sm font-medium text-white">
+                                    Estado actual: 
+                                    <span class:list={[settings?.blogEnabled ? "text-emerald-400" : "text-red-400", "font-bold"]}>
+                                        {settings?.blogEnabled ? "Activado" : "Desactivado"}
+                                    </span>
+                                </span>
+                            </div>
+                            {settings?.updated_at && (
+                                <span class="text-xs text-white/30">
+                                    Última modificación: {new Date(settings.updated_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                            )}
+                        </div>
+
+                        <!-- Toggle buttons -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Enable -->
+                            <form method="POST" id="form-enable-blog">
+                                <input type="hidden" name="blogEnabled" value="true" />
+                                <button
+                                    type="submit"
+                                    id="btn-enable-blog"
+                                    disabled={settings?.blogEnabled}
+                                    class:list={[
+                                        "w-full flex items-center justify-center gap-3 px-5 py-4 rounded-xl font-semibold text-sm transition-all duration-200 border",
+                                        settings?.blogEnabled
+                                            ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300 cursor-not-allowed opacity-60"
+                                            : "bg-emerald-600 border-emerald-500 text-white hover:bg-emerald-500 hover:-translate-y-0.5 shadow-lg hover:shadow-emerald-500/20 cursor-pointer"
+                                    ]}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    {settings?.blogEnabled ? "Blog ya activado" : "Activar Blog"}
+                                </button>
+                            </form>
+
+                            <!-- Disable -->
+                            <form method="POST" id="form-disable-blog">
+                                <input type="hidden" name="blogEnabled" value="false" />
+                                <button
+                                    type="submit"
+                                    id="btn-disable-blog"
+                                    disabled={!settings?.blogEnabled}
+                                    class:list={[
+                                        "w-full flex items-center justify-center gap-3 px-5 py-4 rounded-xl font-semibold text-sm transition-all duration-200 border",
+                                        !settings?.blogEnabled
+                                            ? "bg-red-500/20 border-red-500/50 text-red-300 cursor-not-allowed opacity-60"
+                                            : "bg-red-600 border-red-500 text-white hover:bg-red-500 hover:-translate-y-0.5 shadow-lg hover:shadow-red-500/20 cursor-pointer"
+                                    ]}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                    </svg>
+                                    {!settings?.blogEnabled ? "Blog ya desactivado" : "Desactivar Blog"}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Info box -->
+                    <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 text-xs text-indigo-300 space-y-2">
+                        <p class="font-semibold text-indigo-200 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            ¿Qué afecta esta configuración?
+                        </p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>La ruta pública <code class="bg-white/10 px-1 rounded">/blog</code> (índice de artículos).</li>
+                            <li>Las rutas de artículos individuales <code class="bg-white/10 px-1 rounded">/blog/[slug]</code>.</li>
+                            <li>El enlace "Blog" en el footer del sitio.</li>
+                            <li>La gestión interna del blog en <code class="bg-white/10 px-1 rounded">/admin/blogs</code> no se ve afectada.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        ) : (
+            <LoginForm />
+        )}
+    </main>
+</Layout>

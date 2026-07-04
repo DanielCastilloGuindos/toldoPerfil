@@ -1,14 +1,15 @@
----
+export const prerender = true;
 import Layout from "@/layouts/Layout.astro";
 import { db } from "@/db/client";
 import { Blogs } from "@/db/schema";
 import { desc, and, eq, lte } from "drizzle-orm";
+import { isBlogEnabled } from "@/utils/settings";
 
-const isDev = import.meta.env.DEV === true || String(import.meta.env.DEV).toUpperCase() === "TRUE" || (typeof process !== "undefined" && process.env?.DEV?.toUpperCase() === "TRUE");
-const cookie = Astro.cookies.get("admin_session");
-const isAuthenticated = cookie?.value === "authenticated";
+// Este check se evalúa UNA VEZ durante el build, no en cada request.
+const blogEnabled = await isBlogEnabled();
 
-if (!isDev) {
+// Si el blog está desactivado en la build, se genera una redirección estática.
+if (!blogEnabled) {
     return Astro.redirect("/");
 }
 

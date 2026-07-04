@@ -1,39 +1,34 @@
 ---
+export const prerender = true;
 import Layout from "@/layouts/Layout.astro";
 import { marked } from "marked";
 import { db } from "@/db/client";
 import { Blogs } from "@/db/schema";
 import { eq, and, lte } from "drizzle-orm";
+import { isBlogEnabled } from "@/utils/settings";
 
-const { slug } = Astro.params;
+// getStaticPaths se ejecuta UNA VEZ durante el build.
+export async function getStaticPaths() {
+    const blogEnabled = await isBlogEnabled();
 
-const isDev = import.meta.env.DEV === true || String(import.meta.env.DEV).toUpperCase() === "TRUE" || (typeof process !== "undefined" && process.env?.DEV?.toUpperCase() === "TRUE");
-const cookie = Astro.cookies.get("admin_session");
-const isAdmin = cookie?.value === "authenticated";
+    // Si el blog está desactivado, no se genera ninguna ruta.
+    if (!blogEnabled) return [];
 
-if (!isDev) {
-    return Astro.redirect("/");
-}
-
-let posts = [];
-if (isAdmin) {
-    posts = await db.select().from(Blogs).where(eq(Blogs.slug, slug));
-} else {
     const now = new Date();
-    posts = await db.select().from(Blogs).where(
+    const posts = await db.select().from(Blogs).where(
         and(
-            eq(Blogs.slug, slug),
             eq(Blogs.isVisible, true),
             lte(Blogs.publishedAt, now)
         )
     );
+
+    return posts.map(post => ({
+        params: { slug: post.slug },
+        props: { post },
+    }));
 }
 
-if (posts.length === 0) {
-    return Astro.redirect('/404');
-}
-
-const post = posts[0];
+const { post } = Astro.props;
 const { id, title, description, content, publishedAt, isVisible } = post;
 
 const formattedDate = new Date(publishedAt).toLocaleDateString('es-ES', {
@@ -42,7 +37,9 @@ const formattedDate = new Date(publishedAt).toLocaleDateString('es-ES', {
     year: 'numeric'
 });
 
-const htmlContent = marked.parse(content);
+const htmlContent = await marked.parse(content);
+const slug = post.slug;
+
 
 const schema = {
     "@context": "https://schema.org",
@@ -81,20 +78,8 @@ const schema = {
     <!-- Inject JSON-LD Schema Markup -->
     <script type="application/ld+json" set:html={JSON.stringify(schema)} />
     <main class="max-w-3xl mx-auto px-6 py-16 text-gray-800">
-        {isAdmin && (!isVisible || new Date(publishedAt) > new Date()) && (
-            <div class="mb-6 bg-amber-500/10 border border-amber-500/20 text-amber-900 px-4 py-3 rounded-2xl text-xs font-semibold flex items-center justify-between gap-4">
-                <span class="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    <span>Modo Vista Previa: Este artículo está actualmente {!isVisible ? 'oculto' : 'programado'} para el público general.</span>
-                </span>
-                <a href={`/admin/blog/edit/${id}`} class="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-800 border border-amber-500/30 rounded-lg transition-colors shrink-0">
-                    Editar
-                </a>
-            </div>
-        )}
+        {/* Artículos ocultos o con fecha futura no se generan en build — el admin puede verlos desde /admin/blogs */}
+
         <!-- Back navigation link -->
         <div class="mb-8">
             <a 

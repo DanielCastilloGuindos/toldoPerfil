@@ -31,6 +31,12 @@ export const Blogs = sqliteTable('Blogs', {
     created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
 });
 
+export const Settings = sqliteTable('Settings', {
+    id: integer('id').primaryKey(),
+    blogEnabled: integer('blogEnabled', { mode: 'boolean' }).default(false).notNull(),
+    updated_at: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+});
+
 export const AiSettings = sqliteTable('AiSettings', {
     id: integer('id').primaryKey(),
     modelName: text('modelName').notNull().default('gemini-2.5-flash'),
