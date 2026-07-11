@@ -5,7 +5,7 @@ import { FAQs } from "@/components/RichResults.astro";
 <div class="w-full divide-y divide-indigo-900/10">
 	{
 		FAQs.map(({ answer, question }, index) => {
-			const isOpen = index === 0;
+			const isOpen = false;
 			return (
 				<div class="faq-item py-1">
 					<button
@@ -53,14 +53,6 @@ import { FAQs } from "@/components/RichResults.astro";
 
 	const setupFAQs = () => {
 		const buttons = $$(".toggle-faq-btn");
-		
-		// Initialize the first one's height on load/mount
-		const firstContent = $(".faq-content") as HTMLElement;
-		if (firstContent) {
-			firstContent.style.maxHeight = firstContent.scrollHeight + "px";
-			const firstPlus = firstContent.previousElementSibling?.querySelector(".faq-plus-line") as HTMLElement;
-			if (firstPlus) firstPlus.style.transform = "rotate(90deg)";
-		}
 
 		buttons.forEach((btn) => {
 			btn.addEventListener("click", () => {
