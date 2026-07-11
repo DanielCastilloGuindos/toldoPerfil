@@ -1,7 +1,4 @@
 {
-  "env": {
-    "TZ": "Europe/Madrid"
-  },
   "headers": [
     {
       "source": "/_astro/(.*)",
