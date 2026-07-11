@@ -10,6 +10,7 @@ export interface Preload {
 	type: string
 	rel?: "preload" | "prefetch"
 	crossorigin?: string
+	fetchpriority?: "high" | "low" | "auto"
 }
 
 interface Props {
@@ -37,8 +38,8 @@ const canonicalURL = canonical
 <link rel="preload" href={jost} as="font" type="font/woff2" crossorigin /> -->
 
 {
-	preload?.map(({ href, as, type, rel = "preload", crossorigin }) => (
-		<link {rel} {href} {as} {type} {crossorigin} />
+	preload?.map(({ href, as, type, rel = "preload", crossorigin, fetchpriority }) => (
+		<link {rel} {href} {as} {type} {crossorigin} fetchpriority={fetchpriority} />
 	))
 }
 

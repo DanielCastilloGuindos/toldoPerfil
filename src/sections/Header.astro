@@ -1,6 +1,7 @@
 ---
 import HamburgerButton from "@/components/HamburgerButton.astro";
 import { Image } from "astro:assets";
+import logoImg from "../../public/img/logo.png";
 
 const pages = [
 	{ name: "Nosotros ", href: "#about-us" },
@@ -31,10 +32,10 @@ const { isVisibleNav } = Astro.props
 	<a href="/" class="py-3 text-lg sm:text-base z-10" aria-label="Enlace a la página principal de Toldo Perfil">
 		<span class="hidden" aria-hidden="true">Toldo Perfil</span>
 		<Image
-			src='/img/logo.png'
+			src={logoImg}
 			alt='Logo de ToldoPerfil'
-			width='128'
-			height='44'
+			width={128}
+			height={44}
 			class='w-[128px] h-[44px] object-contain'
 		/>
 	</a>
