@@ -1,0 +1,298 @@
+---
+import Layout from "@/layouts/AdminLayout.astro";
+import LoginForm from "@/components/admin/LoginForm.astro";
+import { db } from "@/db/client";
+import { PageSections } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+import { v2 as cloudinary } from "cloudinary";
+
+const cookie = Astro.cookies.get("admin_session");
+const isAuthenticated = cookie?.value === "authenticated";
+
+const { id } = Astro.params;
+
+if (!id) {
+    return Astro.redirect("/admin/sections/carousel");
+}
+
+let slide: any;
+if (isAuthenticated) {
+    const result = await db.select()
+        .from(PageSections)
+        .where(
+            and(
+                eq(PageSections.id, Number(id)),
+                eq(PageSections.type, "carousel_slide")
+            )
+        )
+        .limit(1);
+    
+    slide = result[0];
+}
+
+if (!slide && isAuthenticated) {
+    return Astro.redirect("/admin/sections/carousel");
+}
+
+const slideData = slide?.data as any;
+
+// Configurar Cloudinary
+cloudinary.config({
+    api_key: import.meta.env.CLOUDINARY_API_KEY,
+    api_secret: import.meta.env.CLOUDINARY_API_SECRET,
+    cloud_name: import.meta.env.CLOUDINARY_CLOUD_NAME,
+});
+
+const uploadStream = async (buffer: Uint8Array, options: any) => {
+    return new Promise((resolve, reject) => {
+        cloudinary.uploader
+            .upload_stream(options, (error: any, result: unknown) => {
+                if (error) return reject(error);
+                resolve(result);
+            })
+            .end(buffer);
+    });
+};
+
+let errorMessage = "";
+
+if (Astro.request.method === "POST" && isAuthenticated) {
+    try {
+        const formData = await Astro.request.formData();
+        const title = formData.get("title")?.toString() || "";
+        const subtitle = formData.get("subtitle")?.toString() || "";
+        const ctaText = formData.get("ctaText")?.toString() || "";
+        const ctaHref = formData.get("ctaHref")?.toString() || "";
+        const imageFile = formData.get("image") as File;
+        const isEnabled = formData.get("isEnabled") === "on";
+
+        let imageUrl = slideData.cloudinaryUrl;
+
+        // Subir nueva imagen si se proporciona
+        if (imageFile && imageFile.size > 0) {
+            const arrayBuffer = await imageFile.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+            
+            const response: any = await uploadStream(uint8Array, {
+                folder: "toldoperfil/carousel",
+                transformation: [
+                    { quality: "auto:best", fetch_format: "auto" },
+                    { width: 1920, crop: "limit" }
+                ]
+            });
+            imageUrl = response.url;
+        }
+
+        // Determinar el botón CTA
+        const cta = (ctaText && ctaHref) ? { text: ctaText, href: ctaHref } : null;
+
+        // Actualizar en base de datos
+        await db.update(PageSections)
+            .set({
+                isEnabled: isEnabled,
+                data: {
+                    cloudinaryUrl: imageUrl,
+                    localFallback: slideData.localFallback || "",
+                    alt: title || "Imagen de carrusel",
+                    title,
+                    subtitle,
+                    cta
+                }
+            })
+            .where(eq(PageSections.id, Number(id)));
+
+        return Astro.redirect("/admin/sections/carousel");
+    } catch (e) {
+        console.error("Error al actualizar slide:", e);
+        errorMessage = "Ocurrió un error inesperado al guardar los cambios.";
+    }
+}
+---
+
+<Layout
+    description="Editar diapositiva del Carrusel - Toldo Perfil"
+    title="Editar Diapositiva - Toldo Perfil"
+    canonical="https://toldoperfil.es"
+>
+    <main class="font-sans min-h-screen">
+        {isAuthenticated ? (
+            <>
+            <div class="fixed inset-0 -z-10 bg-neutral-900">
+                <div class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"></div>
+                <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div>
+            </div>
+
+            <div class="text-white p-6 max-w-2xl mx-auto space-y-8">
+                <!-- Header -->
+                <header class="flex items-center gap-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-4">
+                    <a href="/admin/sections/carousel" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight">Editar Diapositiva</h1>
+                        <p class="text-xs text-indigo-200">Modifica los textos o la imagen del Hero</p>
+                    </div>
+                </header>
+
+                {errorMessage && (
+                    <div class="bg-red-500/10 border border-red-500/20 text-red-300 p-4 rounded-xl text-xs font-bold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>{errorMessage}</span>
+                    </div>
+                )}
+
+                <!-- Formulario -->
+                <form method="POST" enctype="multipart/form-data" class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 space-y-6 shadow-xl">
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-indigo-200 uppercase tracking-wider">Imagen de fondo</label>
+                        
+                        <!-- Miniatura actual -->
+                        <div class="flex items-center gap-4 p-3 bg-white/5 border border-white/5 rounded-xl">
+                            <div class="h-16 w-28 rounded-lg overflow-hidden border border-white/10 shrink-0 bg-neutral-800">
+                                <img 
+                                    src={slideData.cloudinaryUrl || slideData.localFallback || "/img/placeholder.webp"} 
+                                    class="w-full h-full object-cover" 
+                                    alt="Diapositiva actual"
+                                />
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-white">Imagen Actual</h4>
+                                <p class="text-[10px] text-neutral-400 mt-0.5">Sube una nueva si deseas reemplazarla</p>
+                            </div>
+                        </div>
+
+                        <!-- Image Upload Area -->
+                        <div id="dropzone" class="border-2 border-dashed border-white/10 hover:border-indigo-500/40 hover:bg-indigo-500/5 rounded-xl p-8 text-center cursor-pointer transition-all duration-300 relative group">
+                            <input 
+                                type="file" 
+                                name="image" 
+                                id="image-input" 
+                                accept="image/*" 
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                            <div class="space-y-2" id="upload-prompt">
+                                <div class="text-3xl">🔄</div>
+                                <p class="text-xs text-neutral-400">Selecciona otra imagen para reemplazar la actual</p>
+                                <p class="text-[10px] text-neutral-500">Deja este campo vacío para mantener la imagen actual</p>
+                            </div>
+                            <div class="hidden space-y-2" id="upload-preview-container">
+                                <img id="upload-preview" class="max-h-40 mx-auto rounded-lg object-cover border border-white/10 shadow-lg" />
+                                <p class="text-[10px] text-indigo-300 font-semibold" id="filename-label"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-indigo-200 uppercase tracking-wider font-semibold">Título Principal</label>
+                            <input 
+                                type="text" 
+                                name="title" 
+                                value={slideData.title || ""}
+                                placeholder="Ej: Creación de Toldos a Medida"
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                            />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold text-indigo-200 uppercase tracking-wider font-semibold">Subtítulo o Párrafo</label>
+                            <input 
+                                type="text" 
+                                name="subtitle" 
+                                value={slideData.subtitle || ""}
+                                placeholder="Ej: Toldos y pérgolas en Velilla de San Antonio"
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                            />
+                        </div>
+                    </div>
+
+                    <hr class="border-white/5" />
+
+                    <!-- CTA Buttons Config -->
+                    <div class="space-y-4">
+                        <h3 class="text-xs font-bold text-indigo-300 uppercase tracking-wider">Configuración del Botón (Opcional)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Texto del botón</label>
+                                <input 
+                                    type="text" 
+                                    name="ctaText" 
+                                    value={slideData.cta?.text || ""}
+                                    placeholder="Ej: Presupuesto Gratuito"
+                                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                                />
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="block text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Enlace de destino (href)</label>
+                                <input 
+                                    type="text" 
+                                    name="ctaHref" 
+                                    value={slideData.cta?.href || ""}
+                                    placeholder="Ej: #contact-us"
+                                    class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="border-white/5" />
+
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    name="isEnabled" 
+                                    class="sr-only peer" 
+                                    checked={slide.isEnabled} 
+                                />
+                                <div class="w-9 h-5 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-neutral-400 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600 peer-checked:after:bg-white"></div>
+                            </label>
+                            <span class="text-xs font-semibold text-neutral-300">Activo (mostrar en la web)</span>
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all"
+                        >
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+            </>
+        ) : (
+            <LoginForm />
+        )}
+    </main>
+</Layout>
+
+<script>
+    const input = document.getElementById('image-input') as HTMLInputElement;
+    const dropzone = document.getElementById('dropzone');
+    const prompt = document.getElementById('upload-prompt');
+    const previewContainer = document.getElementById('upload-preview-container');
+    const preview = document.getElementById('upload-preview') as HTMLImageElement;
+    const filenameLabel = document.getElementById('filename-label');
+
+    if (input && dropzone && prompt && previewContainer && preview && filenameLabel) {
+        input.addEventListener('change', () => {
+            const file = input.files?.[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target?.result as string;
+                    prompt.classList.add('hidden');
+                    previewContainer.classList.remove('hidden');
+                    filenameLabel.textContent = file.name;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+</script>

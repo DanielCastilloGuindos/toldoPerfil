@@ -1,0 +1,158 @@
+---
+import Layout from "@/layouts/AdminLayout.astro";
+import LoginForm from "@/components/admin/LoginForm.astro";
+import { db } from "@/db/client";
+import { PageSections } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
+
+const cookie = Astro.cookies.get("admin_session");
+const isAuthenticated = cookie?.value === "authenticated";
+
+const { id } = Astro.params;
+
+if (!id) {
+    return Astro.redirect("/admin/sections/faqs");
+}
+
+let faq: any;
+if (isAuthenticated) {
+    const result = await db.select()
+        .from(PageSections)
+        .where(
+            and(
+                eq(PageSections.id, Number(id)),
+                eq(PageSections.type, "faq")
+            )
+        )
+        .limit(1);
+    faq = result[0];
+}
+
+if (!faq && isAuthenticated) {
+    return Astro.redirect("/admin/sections/faqs");
+}
+
+const faqData = faq?.data as any;
+let errorMessage = "";
+
+if (Astro.request.method === "POST" && isAuthenticated) {
+    try {
+        const formData = await Astro.request.formData();
+        const question = formData.get("question")?.toString().trim() || "";
+        const answer = formData.get("answer")?.toString().trim() || "";
+        const isEnabled = formData.get("isEnabled") === "on";
+
+        if (!question || !answer) {
+            errorMessage = "La pregunta y la respuesta son campos obligatorios.";
+        } else {
+            // Actualizar en DB
+            await db.update(PageSections)
+                .set({
+                    isEnabled: isEnabled,
+                    data: {
+                        question,
+                        answer
+                    }
+                })
+                .where(eq(PageSections.id, Number(id)));
+
+            return Astro.redirect("/admin/sections/faqs");
+        }
+    } catch (e) {
+        console.error("Error al actualizar FAQ:", e);
+        errorMessage = "Ocurrió un error inesperado al guardar los cambios.";
+    }
+}
+---
+
+<Layout
+    description="Editar Pregunta Frecuente - Toldo Perfil"
+    title="Editar FAQ - Toldo Perfil"
+    canonical="https://toldoperfil.es"
+>
+    <main class="font-sans min-h-screen">
+        {isAuthenticated ? (
+            <div class="fixed inset-0 -z-10 bg-neutral-900">
+                <div class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"></div>
+                <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div>
+            </div>
+
+            <div class="text-white p-6 max-w-2xl mx-auto space-y-8">
+                <!-- Header -->
+                <header class="flex items-center gap-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-4">
+                    <a href="/admin/sections/faqs" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight">Editar FAQ</h1>
+                        <p class="text-xs text-indigo-200">Modifica la pregunta o la respuesta existente</p>
+                    </div>
+                </header>
+
+                {errorMessage && (
+                    <div class="bg-red-500/10 border border-red-500/20 text-red-300 p-4 rounded-xl text-xs font-bold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>{errorMessage}</span>
+                    </div>
+                )}
+
+                <!-- Formulario -->
+                <form method="POST" class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 space-y-6 shadow-xl">
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-indigo-200 uppercase tracking-wider">Pregunta (Requerido)</label>
+                        <input 
+                            type="text" 
+                            name="question" 
+                            value={faqData.question || ""}
+                            placeholder="Ej: ¿Ofrecen garantía en sus instalaciones de toldos?"
+                            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                            required
+                        />
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-indigo-200 uppercase tracking-wider font-semibold">Respuesta (Requerido)</label>
+                        <textarea 
+                            name="answer" 
+                            rows="5"
+                            placeholder="Escribe la respuesta detallada a la pregunta..."
+                            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors resize-none leading-relaxed"
+                            required
+                        >{faqData.answer || ""}</textarea>
+                    </div>
+
+                    <hr class="border-white/5" />
+
+                    <!-- Footer Controls -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    name="isEnabled" 
+                                    class="sr-only peer" 
+                                    checked={faq.isEnabled} 
+                                />
+                                <div class="w-9 h-5 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-neutral-400 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600 peer-checked:after:bg-white"></div>
+                            </label>
+                            <span class="text-xs font-semibold text-neutral-300">Activa (mostrar en la web)</span>
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all"
+                        >
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        ) : (
+            <LoginForm />
+        )}
+    </main>
+</Layout>

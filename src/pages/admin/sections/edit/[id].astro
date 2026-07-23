@@ -1,0 +1,833 @@
+---
+import Layout from "@/layouts/AdminLayout.astro";
+import LoginForm from "@/components/admin/LoginForm.astro";
+import { db } from "@/db/client";
+import { PageSections } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { v2 as cloudinary } from "cloudinary";
+
+const cookie = Astro.cookies.get("admin_session");
+const isAuthenticated = cookie?.value === "authenticated";
+
+const { id } = Astro.params;
+
+let section: any;
+if (isAuthenticated && id) {
+    const result = await db.select()
+        .from(PageSections)
+        .where(eq(PageSections.id, Number(id)))
+        .limit(1);
+    section = result[0];
+}
+
+// Redirect if not found
+if (!section && isAuthenticated) {
+    return Astro.redirect("/admin/sections");
+}
+
+const sectionData = section?.data as any || {};
+const type = section?.type || "";
+
+const isFlexible = type === "about" || type === "communities" || type === "products_split" || type.startsWith("flexible_");
+const isGallery = type === "gallery_enterprise" || type === "gallery_private" || type.startsWith("gallery_");
+const isFaqBlock = type.startsWith("faq_block");
+const isForm = type.startsWith("form");
+
+// Configure Cloudinary
+cloudinary.config({
+    api_key: import.meta.env.CLOUDINARY_API_KEY,
+    api_secret: import.meta.env.CLOUDINARY_API_SECRET,
+    cloud_name: import.meta.env.CLOUDINARY_CLOUD_NAME,
+});
+
+const uploadStream = async (buffer: Uint8Array, options: any) => {
+    return new Promise((resolve, reject) => {
+        cloudinary.uploader
+            .upload_stream(options, (error: any, result: unknown) => {
+                if (error) return reject(error);
+                resolve(result);
+            })
+            .end(buffer);
+    });
+};
+
+let errorMessage = "";
+
+if (Astro.request.method === "POST" && isAuthenticated && section) {
+    try {
+        const formData = await Astro.request.formData();
+        const title = formData.get("title")?.toString().trim() || "";
+        const heading = formData.get("heading")?.toString().trim() || "";
+        const isEnabled = formData.get("isEnabled") === "on";
+        
+        let updateData = { ...sectionData };
+
+        if (isFlexible) {
+            const text = formData.get("text")?.toString() || "";
+            
+            // Button
+            const btnText = formData.get("btnText")?.toString().trim() || "";
+            const btnHref = formData.get("btnHref")?.toString().trim() || "";
+            const button = (btnText && btnHref) ? { text: btnText, href: btnHref } : null;
+
+            // Layouts
+            const desktopLayout = formData.get("desktopLayout")?.toString() || "right-left";
+            const mobileLayout = formData.get("mobileLayout")?.toString() || "stacked";
+
+            // Dynamic Checklist
+            const checklist: string[] = [];
+            const checklistKeys = Array.from(formData.keys()).filter(k => k.startsWith("checklist_item_"));
+            checklistKeys.sort((a, b) => Number(a.split("_")[2]) - Number(b.split("_")[2]));
+            for (const key of checklistKeys) {
+                const val = formData.get(key)?.toString().trim();
+                if (val) checklist.push(val);
+            }
+
+            // Dynamic Stats
+            const stats: { value: string; label: string }[] = [];
+            const statValueKeys = Array.from(formData.keys()).filter(k => k.startsWith("stat_val_"));
+            for (const key of statValueKeys) {
+                const index = key.split("_")[2];
+                const val = formData.get(key)?.toString().trim() || "";
+                const lbl = formData.get(`stat_lbl_${index}`)?.toString().trim() || "";
+                if (val || lbl) {
+                    stats.push({ value: val, label: lbl });
+                }
+            }
+
+            // Dynamic FAQs
+            const faqs: { question: string; answer: string }[] = [];
+            const faqQuestionKeys = Array.from(formData.keys()).filter(k => k.startsWith("faq_q_"));
+            for (const key of faqQuestionKeys) {
+                const index = key.split("_")[2];
+                const q = formData.get(key)?.toString().trim() || "";
+                const a = formData.get(`faq_a_${index}`)?.toString().trim() || "";
+                if (q || a) {
+                    faqs.push({ question: q, answer: a });
+                }
+            }
+
+            // Image management
+            let imageUrl = sectionData.image || sectionData.cloudinaryUrl || "";
+            const deleteImage = formData.get("deleteImage") === "on";
+            const imageFile = formData.get("imageFile") as File;
+
+            if (deleteImage) {
+                imageUrl = "";
+            } else if (imageFile && imageFile.size > 0) {
+                const arrayBuffer = await imageFile.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+                
+                const response: any = await uploadStream(uint8Array, {
+                    folder: `toldoperfil/sections/${section.type}`,
+                    transformation: [
+                        { quality: "auto:best", fetch_format: "auto" },
+                        { width: 1200, crop: "limit" }
+                    ]
+                });
+                imageUrl = response.url;
+            }
+
+            updateData = {
+                ...updateData,
+                title,
+                heading,
+                text,
+                image: imageUrl,
+                cloudinaryUrl: imageUrl,
+                checklist,
+                button,
+                stats,
+                faqs,
+                desktopLayout,
+                mobileLayout
+            };
+        } else if (isGallery) {
+            const category = formData.get("category")?.toString() || "enterprise";
+            const linkText = formData.get("linkText")?.toString().trim() || "";
+            const linkHref = formData.get("linkHref")?.toString().trim() || "";
+            updateData = {
+                ...updateData,
+                title,
+                heading,
+                category,
+                linkText,
+                linkHref
+            };
+        } else if (isFaqBlock) {
+            // Dynamic FAQs for FAQ block
+            const faqs: { question: string; answer: string }[] = [];
+            const faqQuestionKeys = Array.from(formData.keys()).filter(k => k.startsWith("faq_q_"));
+            for (const key of faqQuestionKeys) {
+                const index = key.split("_")[2];
+                const q = formData.get(key)?.toString().trim() || "";
+                const a = formData.get(`faq_a_${index}`)?.toString().trim() || "";
+                if (q || a) {
+                    faqs.push({ question: q, answer: a });
+                }
+            }
+            updateData = {
+                ...updateData,
+                title,
+                heading,
+                faqs
+            };
+        } else if (isForm) {
+            updateData = {
+                ...updateData,
+                title,
+                heading
+            };
+        }
+
+        // Update in DB
+        await db.update(PageSections)
+            .set({
+                isEnabled: isEnabled,
+                data: updateData
+            })
+            .where(eq(PageSections.id, section.id));
+
+        return Astro.redirect("/admin/sections");
+    } catch (e) {
+        console.error("Error al actualizar sección flexible:", e);
+        errorMessage = "Ocurrió un error inesperado al guardar los cambios.";
+    }
+}
+
+const isDeletable = type.startsWith("flexible_") || type.startsWith("gallery_") || type.startsWith("faq_block_") || type.startsWith("form_");
+---
+
+<Layout
+    description="Editar Sección - Toldo Perfil"
+    title="Editar Sección - Toldo Perfil"
+    canonical="https://toldoperfil.es"
+>
+    <main class="font-sans min-h-screen">
+        {isAuthenticated ? (
+            <div class="fixed inset-0 -z-10 bg-neutral-900">
+                <div class="absolute inset-0 bg-[url('/img/carousel/protrait02.webp')] bg-cover bg-center opacity-20 blur-sm scale-105"></div>
+                <div class="absolute inset-0 bg-neutral-900/80 mix-blend-multiply"></div>
+            </div>
+
+            <div class="text-white p-6 max-w-4xl mx-auto space-y-8">
+                <!-- Header -->
+                <header class="flex flex-col md:flex-row justify-between items-center gap-4 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl px-6 py-4">
+                    <div class="flex items-center gap-4">
+                        <a href="/admin/sections" class="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors border border-white/10">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                        </a>
+                        <div>
+                            <h1 class="text-xl font-bold tracking-tight">Editar Componente</h1>
+                            <p class="text-xs text-indigo-200">Personaliza los campos de este bloque de contenido</p>
+                        </div>
+                    </div>
+
+                    {isDeletable && (
+                        <button
+                            type="button"
+                            id="delete-section-btn"
+                            data-id={section.id}
+                            class="px-4 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-300 border border-red-500/20 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                        >
+                            Eliminar Sección
+                        </button>
+                    )}
+                </header>
+
+                {errorMessage && (
+                    <div class="bg-red-500/10 border border-red-500/20 text-red-300 p-4 rounded-xl text-xs font-bold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>{errorMessage}</span>
+                    </div>
+                )}
+
+                <form method="POST" enctype="multipart/form-data" class="bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 space-y-8 shadow-xl">
+                    
+                    <!-- Estado General -->
+                    <div class="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl">
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Estado de la Sección</h3>
+                            <p class="text-xs text-neutral-400">Determina si este componente se mostrará en la página principal</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer select-none">
+                            <input 
+                                type="checkbox" 
+                                name="isEnabled" 
+                                class="sr-only peer"
+                                checked={section.isEnabled}
+                            />
+                            <div class="w-11 h-6 bg-neutral-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-neutral-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 peer-checked:after:bg-white"></div>
+                        </label>
+                    </div>
+
+                    <!-- Datos Básicos: Título y Heading (Comunes) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-indigo-300">Título Principal</label>
+                            <input
+                                type="text"
+                                name="title"
+                                value={sectionData.title || ""}
+                                class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white transition-all outline-none"
+                                placeholder="Título..."
+                                required
+                            />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-indigo-300">Subtítulo / Introducción</label>
+                            <input
+                                type="text"
+                                name="heading"
+                                value={sectionData.heading || ""}
+                                class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white transition-all outline-none"
+                                placeholder="Subtítulo..."
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Configuración Específica de Galería -->
+                    {isGallery && (
+                        <div class="border-t border-white/10 pt-6 space-y-6">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Opciones de Galería
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-indigo-300">Categoría de Proyectos</label>
+                                    <select 
+                                        name="category" 
+                                        class="w-full bg-neutral-800 border border-white/10 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none"
+                                    >
+                                        <option value="enterprise" selected={sectionData.category === "enterprise"}>Empresas (Franquicias)</option>
+                                        <option value="privateCustomer" selected={sectionData.category === "privateCustomer"}>Particulares</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-indigo-300">Texto del Enlace</label>
+                                    <input
+                                        type="text"
+                                        name="linkText"
+                                        value={sectionData.linkText || ""}
+                                        class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none"
+                                        placeholder="e.g. Ver todos los proyectos"
+                                    />
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-indigo-300">Enlace (URL)</label>
+                                    <input
+                                        type="text"
+                                        name="linkHref"
+                                        value={sectionData.linkHref || ""}
+                                        class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none"
+                                        placeholder="e.g. /proyectos/empresas"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <!-- Editor de Texto Markdown con Live Preview (Solo Flexible) -->
+                    {isFlexible && (
+                        <div class="space-y-3 border-t border-white/10 pt-6">
+                            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-indigo-300">Texto Principal (Markdown)</label>
+                                <div class="flex gap-2">
+                                    <button type="button" id="tab-edit" class="px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-bold cursor-pointer">Editar</button>
+                                    <button type="button" id="tab-preview" class="px-3 py-1 bg-white/5 hover:bg-white/10 text-indigo-300 rounded-lg text-xs font-bold transition-all cursor-pointer">Vista Previa</button>
+                                </div>
+                            </div>
+
+                            <div id="editor-container" class="relative min-h-[250px]">
+                                <textarea
+                                    id="markdown-editor"
+                                    name="text"
+                                    rows="10"
+                                    class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl p-4 text-sm text-white transition-all outline-none font-mono"
+                                    placeholder="Escribe aquí el contenido en formato Markdown..."
+                                >{sectionData.text || ""}</textarea>
+                                <div 
+                                    id="markdown-preview" 
+                                    class="hidden w-full min-h-[220px] bg-white text-gray-900 border border-white/10 rounded-xl p-6 overflow-y-auto prose prose-neutral max-w-none text-sm font-light leading-relaxed"
+                                ></div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Disposición y Layout (Solo Flexible) */}
+                    {isFlexible && (
+                        <div class="border-t border-white/10 pt-6 space-y-4">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                                </svg>
+                                Disposición y Layout
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-indigo-300">Layout de Escritorio</label>
+                                    <select 
+                                        name="desktopLayout" 
+                                        class="w-full bg-neutral-800 border border-white/10 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none"
+                                    >
+                                        <option value="right-left" selected={sectionData.desktopLayout === "right-left"}>Texto Izquierda / Media Derecha</option>
+                                        <option value="left-right" selected={sectionData.desktopLayout === "left-right"}>Media Izquierda / Texto Derecha</option>
+                                        <option value="stacked" selected={sectionData.desktopLayout === "stacked"}>Apilado Vertical (Ancho Completo)</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-indigo-300">Layout Móvil</label>
+                                    <select 
+                                        name="mobileLayout" 
+                                        class="w-full bg-neutral-800 border border-white/10 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none"
+                                    >
+                                        <option value="stacked" selected={sectionData.mobileLayout === "stacked"}>Apilado estándar (Top a Bottom)</option>
+                                        <option value="reversed" selected={sectionData.mobileLayout === "reversed"}>Invertido (Media/Checklist primero)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Imagen Lateral (Solo Flexible) */}
+                    {isFlexible && (
+                        <div class="border-t border-white/10 pt-6 space-y-4">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Imagen Lateral (Opcional)
+                            </h3>
+                            <div class="flex flex-col md:flex-row gap-6 items-center">
+                                <div class="w-full md:w-1/3">
+                                    { (sectionData.image || sectionData.cloudinaryUrl) ? (
+                                        <div class="relative rounded-xl overflow-hidden border border-white/10 aspect-video md:aspect-auto">
+                                            <img 
+                                                src={sectionData.image || sectionData.cloudinaryUrl} 
+                                                class="w-full max-h-[150px] object-cover" 
+                                                alt="Imagen de sección"
+                                            />
+                                            <label class="absolute bottom-2 right-2 bg-red-600/90 hover:bg-red-700 px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-wider uppercase cursor-pointer select-none transition-colors">
+                                                <input type="checkbox" name="deleteImage" class="mr-1 inline-block align-middle" />
+                                                Eliminar
+                                            </label>
+                                        </div>
+                                    ) : (
+                                        <div class="border-2 border-dashed border-white/10 rounded-xl p-6 text-center text-xs text-neutral-400">
+                                            Sin imagen
+                                        </div>
+                                    )}
+                                </div>
+                                <div class="flex-1 w-full space-y-2">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-indigo-300">Subir Nueva Imagen</label>
+                                    <input 
+                                        type="file" 
+                                        name="imageFile" 
+                                        accept="image/*"
+                                        class="w-full text-xs text-neutral-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600/20 file:text-indigo-300 hover:file:bg-indigo-600/40 file:transition-colors file:cursor-pointer"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Checklist (Solo Flexible) */}
+                    {isFlexible && (
+                        <div class="border-t border-white/10 pt-6 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                    </svg>
+                                    Checklist / Puntos Fuertes
+                                </h3>
+                                <button
+                                    type="button"
+                                    id="add-checklist-item"
+                                    class="px-2.5 py-1 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 hover:text-white rounded-lg text-xs font-semibold border border-indigo-500/20 transition-all cursor-pointer"
+                                >
+                                    + Añadir Item
+                                </button>
+                            </div>
+                            
+                            <div id="checklist-container" class="space-y-3">
+                                { (sectionData.checklist || []).map((item: string, idx: number) => (
+                                    <div class="flex items-center gap-2 checklist-item">
+                                        <input
+                                            type="text"
+                                            name={`checklist_item_${idx}`}
+                                            value={item}
+                                            class="flex-1 bg-white/5 border border-white/10 focus:border-indigo-500 rounded-xl px-4 py-2 text-xs text-white outline-none"
+                                            placeholder="Punto del checklist..."
+                                        />
+                                        <button 
+                                            type="button" 
+                                            class="p-2 bg-red-600/10 hover:bg-red-600/30 text-red-400 rounded-xl border border-red-500/20 remove-item-btn transition-colors cursor-pointer"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Estadísticas (Solo Flexible) */}
+                    {isFlexible && (
+                        <div class="border-t border-white/10 pt-6 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                    Estadísticas / Logros
+                                </h3>
+                                <button
+                                    type="button"
+                                    id="add-stat-item"
+                                    class="px-2.5 py-1 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 hover:text-white rounded-lg text-xs font-semibold border border-indigo-500/20 transition-all cursor-pointer"
+                                >
+                                    + Añadir Estadística
+                                </button>
+                            </div>
+                            
+                            <div id="stats-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                { (sectionData.stats || []).map((stat: any, idx: number) => (
+                                    <div class="flex items-center gap-2 bg-white/5 border border-white/10 p-3 rounded-xl stat-item">
+                                        <div class="flex-1 space-y-2">
+                                            <input
+                                                type="text"
+                                                name={`stat_val_${idx}`}
+                                                value={stat.value}
+                                                class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 rounded-lg px-3 py-1.5 text-xs text-white outline-none"
+                                                placeholder="Valor (e.g. 10+, 100%...)"
+                                            />
+                                            <input
+                                                type="text"
+                                                name={`stat_lbl_${idx}`}
+                                                value={stat.label}
+                                                class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 rounded-lg px-3 py-1.5 text-xs text-white outline-none"
+                                                placeholder="Etiqueta..."
+                                            />
+                                        </div>
+                                        <button 
+                                            type="button" 
+                                            class="p-2 bg-red-600/10 hover:bg-red-600/30 text-red-400 rounded-xl border border-red-500/20 remove-item-btn transition-colors shrink-0 cursor-pointer"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Botón CTA (Solo Flexible) */}
+                    {isFlexible && (
+                        <div class="border-t border-white/10 pt-6 space-y-4">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Botón CTA (Llamada a la Acción)
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-indigo-300">Texto del Botón</label>
+                                    <input
+                                        type="text"
+                                        name="btnText"
+                                        value={sectionData.button?.text || ""}
+                                        class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none"
+                                        placeholder="e.g. Obtén tu presupuesto"
+                                    />
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="block text-xs font-bold uppercase tracking-wider text-indigo-300">Enlace (href)</label>
+                                    <input
+                                        type="text"
+                                        name="btnHref"
+                                        value={sectionData.button?.href || ""}
+                                        class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-white outline-none"
+                                        placeholder="e.g. #contact-us, /contacto"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Preguntas Frecuentes (Flexible o Bloque FAQ) */}
+                    {(isFlexible || isFaqBlock) && (
+                        <div class="border-t border-white/10 pt-6 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Preguntas Frecuentes
+                                </h3>
+                                <button
+                                    type="button"
+                                    id="add-faq-item"
+                                    class="px-2.5 py-1 bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 hover:text-white rounded-lg text-xs font-semibold border border-indigo-500/20 transition-all cursor-pointer"
+                                >
+                                    + Añadir FAQ
+                                </button>
+                            </div>
+                            
+                            <div id="faqs-container" class="space-y-4">
+                                { (sectionData.faqs || []).map((faq: any, idx: number) => (
+                                    <div class="bg-white/5 border border-white/10 p-4 rounded-xl space-y-2 faq-item-row relative">
+                                        <button 
+                                            type="button" 
+                                            class="absolute top-2 right-2 p-1.5 bg-red-600/10 hover:bg-red-600/30 text-red-400 rounded-lg remove-item-btn transition-colors shrink-0 cursor-pointer"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
+                                        <div class="space-y-2 pr-6">
+                                            <input
+                                                type="text"
+                                                name={`faq_q_${idx}`}
+                                                value={faq.question}
+                                                class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 rounded-lg px-3 py-1.5 text-xs text-white font-bold outline-none"
+                                                placeholder="Pregunta..."
+                                            />
+                                            <textarea
+                                                name={`faq_a_${idx}`}
+                                                rows="2"
+                                                class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 rounded-lg p-3 text-xs text-white outline-none"
+                                                placeholder="Respuesta..."
+                                            >{faq.answer}</textarea>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <!-- Botón de Envío -->
+                    <div class="border-t border-white/10 pt-6 flex justify-end gap-4">
+                        <a 
+                            href="/admin/sections" 
+                            class="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-neutral-300 rounded-xl text-sm font-semibold transition-all border border-white/5"
+                        >
+                            Cancelar
+                        </a>
+                        <button 
+                            type="submit" 
+                            class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 hover:-translate-y-0.5 transition-all cursor-pointer"
+                        >
+                            Guardar Cambios
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+            
+            <!-- Modal para confirmar eliminación -->
+            <dialog id="delete-modal" class="bg-neutral-900 border border-white/10 rounded-2xl p-6 text-white max-w-sm w-full backdrop:bg-black/60 shadow-2xl">
+                <h3 class="text-base font-bold mb-2 text-red-400">¿Eliminar esta sección?</h3>
+                <p class="text-xs text-neutral-400 leading-relaxed mb-6">
+                    Esta acción es irreversible y removerá permanentemente la sección personalizada y todo su contenido.
+                </p>
+                <div class="flex justify-end gap-3">
+                    <button id="cancel-delete-btn" class="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-semibold cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button id="confirm-delete-btn" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-red-600/20 cursor-pointer">
+                        Confirmar Eliminar
+                    </button>
+                </div>
+            </dialog>
+
+        ) : (
+            <LoginForm />
+        )}
+    </main>
+</Layout>
+
+<script>
+    import { marked } from "marked";
+    import { $, $$ } from "@/consts/dom-selector";
+
+    // Setup tabs for Markdown live preview
+    const tabEdit = $("#tab-edit");
+    const tabPreview = $("#tab-preview");
+    const editor = $("#markdown-editor") as HTMLTextAreaElement;
+    const preview = $("#markdown-preview");
+
+    if (tabEdit && tabPreview && editor && preview) {
+        tabEdit.addEventListener("click", () => {
+            tabEdit.classList.add("bg-indigo-600", "text-white");
+            tabEdit.classList.remove("bg-white/5", "text-indigo-300");
+            tabPreview.classList.add("bg-white/5", "text-indigo-300");
+            tabPreview.classList.remove("bg-indigo-600", "text-white");
+
+            editor.classList.remove("hidden");
+            preview.classList.add("hidden");
+        });
+
+        tabPreview.addEventListener("click", async () => {
+            tabPreview.classList.add("bg-indigo-600", "text-white");
+            tabPreview.classList.remove("bg-white/5", "text-indigo-300");
+            tabEdit.classList.add("bg-white/5", "text-indigo-300");
+            tabEdit.classList.remove("bg-indigo-600", "text-white");
+
+            editor.classList.add("hidden");
+            preview.classList.remove("hidden");
+
+            const markdownText = editor.value || "";
+            preview.innerHTML = await marked.parse(markdownText);
+        });
+    }
+
+    // Dynamic lists managers
+    const setupDynamicList = (addButtonId: string, containerId: string, htmlGenerator: (idx: number) => string) => {
+        const addBtn = document.getElementById(addButtonId);
+        const container = document.getElementById(containerId);
+        if (!addBtn || !container) return;
+
+        addBtn.addEventListener("click", () => {
+            const index = container.children.length;
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = htmlGenerator(index).trim();
+            const newRow = tempDiv.firstChild as HTMLElement;
+            
+            const removeBtn = newRow.querySelector(".remove-item-btn");
+            if (removeBtn) {
+                removeBtn.addEventListener("click", () => {
+                    newRow.remove();
+                });
+            }
+
+            container.appendChild(newRow);
+        });
+
+        const existingRows = container.children;
+        for (const row of existingRows) {
+            const removeBtn = row.querySelector(".remove-item-btn");
+            if (removeBtn) {
+                removeBtn.addEventListener("click", () => {
+                    row.remove();
+                });
+            }
+        }
+    };
+
+    // Checklist Setup
+    setupDynamicList(
+        "add-checklist-item", 
+        "checklist-container", 
+        (idx) => `
+            <div class="flex items-center gap-2 checklist-item">
+                <input
+                    type="text"
+                    name="checklist_item_${idx}"
+                    class="flex-1 bg-white/5 border border-white/10 focus:border-indigo-500 rounded-xl px-4 py-2 text-xs text-white outline-none"
+                    placeholder="Punto del checklist..."
+                />
+                <button type="button" class="p-2 bg-red-600/10 hover:bg-red-600/30 text-red-400 rounded-xl border border-red-500/20 remove-item-btn transition-colors cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+            </div>
+        `
+    );
+
+    // Stats Setup
+    setupDynamicList(
+        "add-stat-item", 
+        "stats-container", 
+        (idx) => `
+            <div class="flex items-center gap-2 bg-white/5 border border-white/10 p-3 rounded-xl stat-item">
+                <div class="flex-1 space-y-2">
+                    <input
+                        type="text"
+                        name="stat_val_${idx}"
+                        class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 rounded-lg px-3 py-1.5 text-xs text-white outline-none"
+                        placeholder="Valor (e.g. 10+, 100%...)"
+                    />
+                    <input
+                        type="text"
+                        name="stat_lbl_${idx}"
+                        class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 rounded-lg px-3 py-1.5 text-xs text-white outline-none"
+                        placeholder="Etiqueta..."
+                    />
+                </div>
+                <button type="button" class="p-2 bg-red-600/10 hover:bg-red-600/30 text-red-400 rounded-xl border border-red-500/20 remove-item-btn transition-colors shrink-0 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+            </div>
+        `
+    );
+
+    // FAQs Setup
+    setupDynamicList(
+        "add-faq-item", 
+        "faqs-container", 
+        (idx) => `
+            <div class="bg-white/5 border border-white/10 p-4 rounded-xl space-y-2 faq-item-row relative">
+                <button type="button" class="absolute top-2 right-2 p-1.5 bg-red-600/10 hover:bg-red-600/30 text-red-400 rounded-lg remove-item-btn transition-colors shrink-0 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                <div class="space-y-2 pr-6">
+                    <input
+                        type="text"
+                        name="faq_q_${idx}"
+                        class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 rounded-lg px-3 py-1.5 text-xs text-white font-bold outline-none"
+                        placeholder="Pregunta..."
+                    />
+                    <textarea
+                        name="faq_a_${idx}"
+                        rows="2"
+                        class="w-full bg-white/5 border border-white/10 focus:border-indigo-500 rounded-lg p-3 text-xs text-white outline-none"
+                        placeholder="Respuesta..."
+                    ></textarea>
+                </div>
+            </div>
+        `
+    );
+
+    // Section Deletion Modal Handling
+    const deleteBtn = document.getElementById("delete-section-btn");
+    const modal = document.getElementById("delete-modal") as HTMLDialogElement;
+    const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
+    const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+
+    if (deleteBtn && modal && cancelDeleteBtn && confirmDeleteBtn) {
+        deleteBtn.addEventListener("click", () => {
+            modal.showModal();
+        });
+
+        cancelDeleteBtn.addEventListener("click", () => {
+            modal.close();
+        });
+
+        confirmDeleteBtn.addEventListener("click", async () => {
+            const sectionId = deleteBtn.getAttribute("data-id");
+            try {
+                const res = await fetch("/api/sections/delete", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: sectionId })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    window.location.href = "/admin/sections";
+                } else {
+                    alert("Error al eliminar sección: " + result.error);
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Error al eliminar sección");
+            }
+        });
+    }
+</script>

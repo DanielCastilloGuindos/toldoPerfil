@@ -1,5 +1,5 @@
 ---
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
 
 import SEO, { type Preload } from "@/components/SEO.astro"
 import Header from '@/sections/Header.astro'
@@ -29,7 +29,7 @@ const { title, description, preload, image, canonical = 'https://toldoperfil.es'
 			robots="noindex, nofollow"
 		/>
 
-    <ViewTransitions />
+    <ClientRouter />
 	</head>
 	<body transition:name="body" >
 		<slot />

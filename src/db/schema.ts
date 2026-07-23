@@ -10,6 +10,9 @@ export const Customers = sqliteTable('Customers', {
     images: text('images', { mode: 'json' }).notNull(),
     isVisible: integer('isVisible', { mode: 'boolean' }).default(true),
     published: integer('published', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+    order: integer('order').default(0),
+    specs: text('specs'),
+    slug: text('slug'),
 });
 
 export const Analytics = sqliteTable('Analytics', {
@@ -46,3 +49,13 @@ export const AiSettings = sqliteTable('AiSettings', {
     systemPrompt: text('systemPrompt').notNull(), // AI writer persona/instructions
     created_at: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
 });
+
+export const PageSections = sqliteTable('PageSections', {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    type: text('type').notNull(),
+    order: integer('order').default(0).notNull(),
+    isEnabled: integer('isEnabled', { mode: 'boolean' }).default(true).notNull(),
+    data: text('data', { mode: 'json' }).notNull(),
+    updated_at: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+});
+
