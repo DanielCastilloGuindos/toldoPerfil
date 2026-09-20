@@ -1,9 +1,10 @@
 name: Autogenerar Blog Semanal
 
+# on:
+#   schedule:
+#     # Se ejecuta todos los días a las 08:00 UTC
+#     - cron: '0 8 * * *'
 on:
-  schedule:
-    # Se ejecuta todos los días a las 08:00 UTC
-    - cron: '0 8 * * *'
   workflow_dispatch: # Permite ejecutarlo manualmente desde la pestaña Actions de GitHub
 
 jobs:
@@ -11,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Código Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
 
       - name: Instalar Dependencias
